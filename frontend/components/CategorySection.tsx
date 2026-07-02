@@ -4,6 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BudgetBar, computeBudgetTotals } from "@/components/BudgetBar";
 import { Icon } from "@/components/Icon";
+import { Badge } from "@/components/ui/pixelact-ui/badge";
+import { Button } from "@/components/ui/pixelact-ui/button";
+import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/pixelact-ui/collapsible";
+import { Input } from "@/components/ui/pixelact-ui/input";
+import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   deleteLineItem,
   formatCurrency,
@@ -22,12 +32,12 @@ interface LineItemRowProps {
 function TypeBadge({ item }: { item: LineItem }) {
   const isIncome = item.type === "income";
   return (
-    <span
-      className={`badge badge-pill badge-sm gap-1 ${isIncome ? "badge-success bg-income-subtle" : "badge-error bg-expense-subtle"}`}
-    >
-      <Icon name={isIncome ? "income" : "expense"} size="xs" />
-      {item.type}
-    </span>
+    <Badge className={isIncome ? "bg-income-subtle text-foreground" : "bg-expense-subtle text-foreground"}>
+      <span className="flex items-center gap-1">
+        <Icon name={isIncome ? "income" : "expense"} size="xs" />
+        {item.type}
+      </span>
+    </Badge>
   );
 }
 
@@ -69,15 +79,15 @@ export function LineItemRow({ item }: LineItemRowProps) {
 
   if (editing) {
     return (
-      <div className="fade-in flex flex-wrap items-center gap-2 rounded-2xl bg-base-200 p-2">
-        <input
-          className="input input-bordered input-sm focus-ring flex-1"
+      <div className="fade-in flex flex-wrap items-center gap-2 bg-muted p-2">
+        <Input
+          className="min-w-0 flex-1"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           disabled={loading}
         />
-        <input
-          className="input input-bordered input-sm focus-ring w-24"
+        <Input
+          className="w-24"
           type="number"
           step="0.01"
           placeholder="Planned"
@@ -85,8 +95,8 @@ export function LineItemRow({ item }: LineItemRowProps) {
           onChange={(e) => setPlannedAmount(e.target.value)}
           disabled={loading}
         />
-        <input
-          className="input input-bordered input-sm focus-ring w-24"
+        <Input
+          className="w-24"
           type="number"
           step="0.01"
           placeholder="Realized"
@@ -94,22 +104,26 @@ export function LineItemRow({ item }: LineItemRowProps) {
           onChange={(e) => setRealizedAmount(e.target.value)}
           disabled={loading}
         />
-        <button
-          className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
+        <Button
+          variant="default"
+          size="sm"
+          className="pressable focus-ring gap-1"
           onClick={handleSave}
           disabled={loading}
         >
-          {!loading && <Icon name="save" size="xs" className="mr-1" colorClass="text-primary-content" />}
+          {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
           Save
-        </button>
-        <button
-          className="btn btn-ghost btn-sm pressable focus-ring"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="pressable focus-ring gap-1"
           onClick={() => setEditing(false)}
           disabled={loading}
         >
-          <Icon name="cancel" size="xs" className="mr-1" />
+          <Icon name="cancel" size="xs" />
           Cancel
-        </button>
+        </Button>
       </div>
     );
   }
@@ -122,10 +136,12 @@ export function LineItemRow({ item }: LineItemRowProps) {
         <TypeBadge item={item} />
         <span className="text-body">{item.label}</span>
         {!item.isRealized && (
-          <span className="badge badge-pill badge-warning badge-outline badge-sm gap-1 bg-planned-subtle">
-            <Icon name="planned" size="xs" />
-            planned
-          </span>
+          <Badge variant="outline" className="bg-planned-subtle text-foreground">
+            <span className="flex items-center gap-1">
+              <Icon name="planned" size="xs" />
+              planned
+            </span>
+          </Badge>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -134,21 +150,27 @@ export function LineItemRow({ item }: LineItemRowProps) {
           {formatCurrency(item.displayAmount)}
         </span>
         <div className="row-actions flex items-center gap-1">
-          <button
-            className="btn btn-ghost btn-xs pressable focus-ring"
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="pressable focus-ring h-auto p-1"
             onClick={() => setEditing(true)}
             aria-label="Edit line item"
           >
             <Icon name="edit" size="xs" />
-          </button>
-          <button
-            className="btn btn-ghost btn-xs text-error pressable focus-ring"
+          </Button>
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="pressable focus-ring h-auto p-1 text-destructive"
             onClick={handleDelete}
             disabled={loading}
             aria-label="Delete line item"
           >
-            <Icon name="delete" size="xs" />
-          </button>
+            <Icon name="delete" size="xs" colorClass="text-destructive" />
+          </Button>
         </div>
       </div>
     </div>
@@ -167,31 +189,34 @@ export function CategorySection({ category, yearMonth }: CategorySectionProps) {
   const { plannedTotal, realizedTotal } = computeBudgetTotals(category.lineItems);
 
   return (
-    <div className="frame-panel collapse collapse-arrow collapse-open collapse-smooth mb-3">
-      <input type="checkbox" defaultChecked aria-label={`Toggle ${category.name}`} />
-      <div className="collapse-title text-body font-semibold">
-        <div className="flex w-full items-center justify-between pr-8">
-          <span className="flex items-center gap-2">
-            <span className="icon-slot">
-              <Icon name={iconName} size="sm" />
+    <Collapsible defaultOpen className="mb-3">
+      <Card>
+        <CollapsibleTrigger className="w-full cursor-pointer px-4 py-3 text-left">
+          <div className="flex w-full items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <span className="icon-slot">
+                <Icon name={iconName} size="sm" />
+              </span>
+              <span className="text-display text-xs normal-case">{category.name}</span>
             </span>
-            <span className="text-display text-xs normal-case">{category.name}</span>
-          </span>
-          {hasContent && (
-            <span className="text-amount text-sm text-muted-finance">
-              {formatCurrency(categoryTotal)}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="collapse-content space-y-1 bg-base-100">
-        {hasContent && <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />}
-        {category.lineItems.map((item) => (
-          <LineItemRow key={item.id} item={item} />
-        ))}
-        <AddLineItemForm categoryId={category.id} yearMonth={yearMonth} />
-      </div>
-    </div>
+            {hasContent && (
+              <span className="text-amount text-sm text-muted-finance">
+                {formatCurrency(categoryTotal)}
+              </span>
+            )}
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-1 pt-0">
+            {hasContent && <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />}
+            {category.lineItems.map((item) => (
+              <LineItemRow key={item.id} item={item} />
+            ))}
+            <AddLineItemForm categoryId={category.id} yearMonth={yearMonth} />
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
 

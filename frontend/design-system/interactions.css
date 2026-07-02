@@ -7,7 +7,6 @@
 }
 
 .interactive-surface {
-  border-radius: var(--radius-field);
   transition: background-color var(--finance-duration-fast) var(--finance-ease-out),
     box-shadow var(--finance-duration-normal) var(--finance-ease-out),
     transform var(--finance-duration-fast) var(--finance-ease-out);
@@ -22,21 +21,11 @@
 }
 
 .interactive-row {
-  border-radius: var(--radius-field);
   transition: background-color var(--finance-duration-fast) var(--finance-ease-out);
 }
 
 .interactive-row:hover {
   background-color: var(--finance-hover);
-}
-
-.interactive-row .btn-ghost:hover:not(:disabled) {
-  background-color: var(--finance-hover-strong);
-  border-radius: var(--radius-field);
-}
-
-.interactive-row .btn-ghost.btn-circle:hover:not(:disabled) {
-  border-radius: 9999px;
 }
 
 .interactive-row .row-actions {
@@ -64,7 +53,7 @@
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -102,60 +91,16 @@
   animation: sparkle-pop 600ms var(--finance-ease-out);
 }
 
-.collapse-smooth {
-  overflow: hidden;
-  border-radius: var(--radius-box);
-}
-
-.collapse-smooth .collapse-title {
-  border-radius: 0;
-  transition: background-color var(--finance-duration-fast) var(--finance-ease-out);
-}
-
-.collapse-smooth:not([open]) > .collapse-title:hover {
-  background-color: var(--finance-hover);
-  border-radius: var(--radius-box);
-}
-
-.collapse-smooth[open] > .collapse-title:hover {
-  background-color: var(--finance-hover);
-  border-radius: var(--radius-box) var(--radius-box) 0 0;
-}
-
 .card-hover-lift {
-  transition: box-shadow var(--finance-duration-normal) var(--finance-ease-out),
-    transform var(--finance-duration-normal) var(--finance-ease-out);
+  transition: transform var(--finance-duration-normal) var(--finance-ease-out);
 }
 
 .card-hover-lift:hover {
-  box-shadow: 0 6px 20px var(--frame-glow);
   transform: translateY(-2px);
 }
 
 .btn-add-item {
-  border-radius: var(--radius-field);
-  color: var(--color-primary);
   font-weight: 600;
-  transition:
-    background-color var(--finance-duration-fast) var(--finance-ease-out),
-    box-shadow var(--finance-duration-normal) var(--finance-ease-out),
-    transform var(--finance-duration-fast) var(--finance-ease-out),
-    color var(--finance-duration-fast) var(--finance-ease-out);
-}
-
-.btn-add-item:hover:not(:disabled) {
-  background-color: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-100));
-  box-shadow: 0 3px 10px var(--frame-glow);
-  transform: translateY(-2px);
-  color: var(--color-primary);
-}
-
-.btn-add-item:active:not(:disabled) {
-  transform: translateY(0) scale(0.97);
-}
-
-.collapse-smooth > input[type="checkbox"] {
-  min-height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -165,7 +110,6 @@
   .pressable,
   .fade-in,
   .sparkle-pop,
-  .collapse-smooth .collapse-title,
   .card-hover-lift,
   .btn-add-item {
     animation: none;
@@ -174,8 +118,6 @@
 
   .interactive-surface:active,
   .pressable:active:not(:disabled),
-  .btn-add-item:hover:not(:disabled),
-  .btn-add-item:active:not(:disabled),
   .card-hover-lift:hover {
     transform: none;
   }

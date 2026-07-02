@@ -1,30 +1,23 @@
-:root,
-[data-theme="finance-light"] {
-  --finance-income: oklch(72% 0.16 155);
-  --finance-expense: oklch(65% 0.18 25);
-  --finance-planned: oklch(78% 0.14 85);
-  --finance-balance: var(--color-primary);
-  --finance-muted: oklch(52% 0.04 300);
-  --finance-hover: color-mix(in oklch, var(--color-primary) 10%, var(--color-base-100));
-  --finance-hover-strong: color-mix(in oklch, var(--color-primary) 18%, var(--color-base-100));
+:root {
+  --finance-income: var(--pastel-mint, #baffc9);
+  --finance-expense: var(--pastel-pink, #ffb3ba);
+  --finance-planned: var(--pastel-peach, #ffdfba);
+  --finance-balance: var(--primary);
+  --finance-muted: var(--muted-foreground);
+  --finance-hover: color-mix(in srgb, var(--primary) 18%, var(--card));
+  --finance-hover-strong: color-mix(in srgb, var(--primary) 28%, var(--card));
 
-  --frame-border: oklch(72% 0.18 305);
-  --frame-glow: color-mix(in oklch, var(--color-primary) 35%, transparent);
-  --frame-inner: color-mix(in oklch, var(--color-primary) 8%, var(--color-base-100));
-  --text-stroke: oklch(65% 0.14 305);
-  --dot-color: color-mix(in oklch, var(--color-primary) 18%, transparent);
+  --frame-border: var(--foreground);
+  --frame-glow: color-mix(in srgb, var(--primary) 35%, transparent);
+  --frame-inner: var(--card);
+  --text-stroke: color-mix(in srgb, var(--primary) 60%, var(--foreground));
+  --dot-color: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
-[data-theme="finance-dark"] {
-  --finance-muted: oklch(72% 0.03 300);
-  --finance-hover: color-mix(in oklch, var(--color-primary) 12%, var(--color-base-100));
-  --finance-hover-strong: color-mix(in oklch, var(--color-primary) 22%, var(--color-base-100));
-
-  --frame-border: oklch(78% 0.16 305);
-  --frame-glow: color-mix(in oklch, var(--color-primary) 25%, transparent);
-  --frame-inner: color-mix(in oklch, var(--color-primary) 12%, var(--color-base-100));
-  --text-stroke: oklch(55% 0.12 305);
-  --dot-color: color-mix(in oklch, var(--color-primary) 12%, transparent);
+.dark {
+  --finance-hover: color-mix(in srgb, var(--primary) 15%, var(--card));
+  --finance-hover-strong: color-mix(in srgb, var(--primary) 25%, var(--card));
+  --dot-color: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 .text-income {
@@ -48,104 +41,53 @@
 }
 
 .bg-income-subtle {
-  background-color: color-mix(in oklch, var(--finance-income) 18%, transparent);
+  background-color: color-mix(in srgb, var(--finance-income) 55%, var(--card));
 }
 
 .bg-expense-subtle {
-  background-color: color-mix(in oklch, var(--finance-expense) 18%, transparent);
+  background-color: color-mix(in srgb, var(--finance-expense) 55%, var(--card));
 }
 
 .bg-planned-subtle {
-  background-color: color-mix(in oklch, var(--finance-planned) 18%, transparent);
+  background-color: color-mix(in srgb, var(--finance-planned) 55%, var(--card));
 }
 
-/* Framed panel — Little Calendar widget style */
-.frame-panel {
-  background: var(--frame-inner);
-  border: 2px solid var(--frame-border);
-  border-radius: var(--radius-box);
-  box-shadow:
-    0 0 0 3px color-mix(in oklch, var(--frame-border) 20%, transparent),
-    0 4px 16px var(--frame-glow),
-    inset 0 1px 0 color-mix(in oklch, white 40%, transparent);
-}
-
-.frame-panel-inner {
-  background: var(--color-base-100);
-  border: 2px solid color-mix(in oklch, var(--frame-border) 50%, transparent);
-  border-radius: calc(var(--radius-box) - 0.25rem);
-}
-
-/* Pill title badge */
 .pill-title {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 1rem;
-  border-radius: 9999px;
-  border: 2px solid var(--frame-border);
-  background: color-mix(in oklch, var(--color-primary) 25%, transparent);
-  color: var(--color-base-content);
+  border-radius: 0;
+  box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+  margin: 4px;
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-family: var(--font-display, ui-sans-serif);
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-/* Dot star background */
 .bg-dots {
-  background-color: var(--color-base-200);
+  background-color: var(--background);
   background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
   background-size: 20px 20px;
 }
 
-/* Inventory slot for stat cards */
 .inventory-slot {
-  background: var(--color-base-100);
-  border: 2px solid color-mix(in oklch, var(--frame-border) 60%, transparent);
-  border-radius: var(--radius-box);
+  background: var(--card);
+  box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+  margin: 4px;
   padding: 0.75rem 1rem;
-  box-shadow: inset 0 2px 4px color-mix(in oklch, var(--color-base-content) 5%, transparent);
 }
 
-/* Pill badge override */
-.badge-pill {
-  border-radius: 9999px;
-  border-width: 2px;
-  font-weight: 600;
-  padding-left: 0.625rem;
-  padding-right: 0.625rem;
-}
-
-/* Speech bubble toast */
-.toast-bubble {
-  border-radius: 1rem;
-  border: 2px solid var(--frame-border);
-  box-shadow: 0 4px 12px var(--frame-glow);
-  position: relative;
-}
-
-.toast-bubble::after {
-  content: "";
-  position: absolute;
-  bottom: -8px;
-  right: 1.5rem;
-  width: 14px;
-  height: 14px;
-  background: inherit;
-  border-right: 2px solid var(--frame-border);
-  border-bottom: 2px solid var(--frame-border);
-  transform: rotate(45deg);
-}
-
-/* Icon slot for category headers */
 .icon-slot {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.5rem;
-  border: 2px solid color-mix(in oklch, var(--frame-border) 50%, transparent);
-  background: var(--color-base-200);
+  box-shadow: var(--pixel-box-shadow, 2px 2px 0 0 var(--foreground));
+  margin: 2px;
+  background: var(--muted);
 }

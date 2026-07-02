@@ -18,7 +18,7 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
         </span>
       </div>
       <div
-        className="h-2.5 overflow-hidden rounded-full border-2 border-base-300 bg-base-200"
+        className="h-3 overflow-hidden border-2 border-foreground bg-muted"
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
@@ -26,7 +26,7 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
         aria-label={`${pct}% of budget used`}
       >
         <div
-          className={`h-full rounded-full transition-all duration-300 ${overBudget ? "bg-error" : "bg-primary"}`}
+          className={`h-full transition-all duration-300 ${overBudget ? "bg-expense" : "bg-primary"}`}
           style={{ width: `${pct}%` }}
         />
       </div>

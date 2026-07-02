@@ -1,8 +1,148 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: finance-light --default, finance-dark --prefersdark;
-}
-@import "../design-system/themes.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @import "../design-system/tokens.css";
 @import "../design-system/typography.css";
 @import "../design-system/interactions.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Pastel Retro — https://www.pixelactui.com/colors */
+:root {
+  --pastel-pink: #ffb3ba;
+  --pastel-peach: #ffdfba;
+  --pastel-yellow: #ffffba;
+  --pastel-mint: #baffc9;
+  --pastel-blue: #bae1ff;
+
+  --background: #ffffba;
+  --foreground: #2d2a1f;
+  --card: #fffef5;
+  --card-foreground: #2d2a1f;
+  --popover: #fffef5;
+  --popover-foreground: #2d2a1f;
+  --primary: #bae1ff;
+  --primary-foreground: #1a3344;
+  --secondary: #ffdfba;
+  --secondary-foreground: #3d2e1a;
+  --muted: #ffdfba;
+  --muted-foreground: #5c5340;
+  --accent: #ffb3ba;
+  --accent-foreground: #3d1a1f;
+  --destructive: #ffb3ba;
+  --destructive-foreground: #3d1a1f;
+  --border: #2d2a1f;
+  --input: #fffef5;
+  --ring: #2d2a1f;
+  --success: #baffc9;
+  --success-foreground: #1a3d28;
+  --warning: #ffffba;
+  --warning-foreground: #3d3a1a;
+  --link: #4a90b8;
+  --radius: 0px;
+  --chart-1: #bae1ff;
+  --chart-2: #baffc9;
+  --chart-3: #ffb3ba;
+  --chart-4: #ffdfba;
+  --chart-5: #ffffba;
+  --sidebar: #fffef5;
+  --sidebar-foreground: #2d2a1f;
+  --sidebar-primary: #bae1ff;
+  --sidebar-primary-foreground: #1a3344;
+  --sidebar-accent: #ffdfba;
+  --sidebar-accent-foreground: #3d2e1a;
+  --sidebar-border: #2d2a1f;
+  --sidebar-ring: #2d2a1f;
+}
+
+.dark {
+  --background: #2a2830;
+  --foreground: #ffffba;
+  --card: #353340;
+  --card-foreground: #ffffba;
+  --popover: #353340;
+  --popover-foreground: #ffffba;
+  --primary: #7ab8d9;
+  --primary-foreground: #0f1a22;
+  --secondary: #4a4038;
+  --secondary-foreground: #ffdfba;
+  --muted: #4a4038;
+  --muted-foreground: #c4b896;
+  --accent: #8a5060;
+  --accent-foreground: #ffb3ba;
+  --destructive: #8a5060;
+  --destructive-foreground: #ffb3ba;
+  --border: #ffffba;
+  --input: #353340;
+  --ring: #bae1ff;
+  --success: #4a8a60;
+  --success-foreground: #baffc9;
+  --warning: #6a6530;
+  --warning-foreground: #ffffba;
+  --link: #bae1ff;
+  --chart-1: #7ab8d9;
+  --chart-2: #4a8a60;
+  --chart-3: #8a5060;
+  --chart-4: #6a5538;
+  --chart-5: #6a6530;
+  --sidebar: #353340;
+  --sidebar-foreground: #ffffba;
+  --sidebar-primary: #7ab8d9;
+  --sidebar-primary-foreground: #0f1a22;
+  --sidebar-accent: #4a4038;
+  --sidebar-accent-foreground: #ffdfba;
+  --sidebar-border: #ffffba;
+  --sidebar-ring: #bae1ff;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

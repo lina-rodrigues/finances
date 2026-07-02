@@ -14,7 +14,7 @@ export function CoinCounter({ amount, label, highlight = false }: CoinCounterPro
           {label}
         </div>
         <div
-          className={`text-amount-hero text-lg ${highlight ? "text-balance" : "text-base-content"}`}
+          className={`text-amount-hero text-lg ${highlight ? "text-balance" : "text-foreground"}`}
         >
           {amount}
         </div>

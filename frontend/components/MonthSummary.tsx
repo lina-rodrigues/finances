@@ -1,5 +1,6 @@
 import { CoinCounter } from "@/components/CoinCounter";
 import { Frame } from "@/components/Frame";
+import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { formatCurrency, formatYearMonthLabel, type MonthView } from "@/lib/api";
 
 interface MonthSummaryProps {
@@ -32,9 +33,9 @@ export function MonthSummary({ month }: MonthSummaryProps) {
         </div>
 
         {leveledUp && (
-          <div className="badge badge-pill badge-success bg-income-subtle gap-1">
+          <Badge className="bg-income-subtle text-foreground">
             Level up! Ending balance improved
-          </div>
+          </Badge>
         )}
 
         <div className="grid w-full gap-3 sm:grid-cols-2">

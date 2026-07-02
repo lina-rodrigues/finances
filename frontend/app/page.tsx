@@ -2,6 +2,8 @@ import Image from "next/image";
 import { CategoryManager } from "@/components/CategoryManager";
 import { CategorySection } from "@/components/CategorySection";
 import { MonthSummary } from "@/components/MonthSummary";
+import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
+import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import { fetchMonthView } from "@/lib/api";
 
 export default async function HomePage() {
@@ -22,20 +24,22 @@ export default async function HomePage() {
           <CategoryManager initialCategories={flatCategories} />
         </div>
         {data.categories.length === 0 ? (
-          <div className="frame-panel flex flex-col items-center gap-3 p-6 text-center">
-            <Image
-              src="/assets/mascot-piggy.svg"
-              alt=""
-              width={64}
-              height={64}
-              aria-hidden
-            />
-            <div className="toast-bubble alert alert-info max-w-sm">
-              <span className="text-body">
-                No categories yet. Run the seed script or add one with Manage.
-              </span>
-            </div>
-          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+              <Image
+                src="/assets/mascot-piggy.svg"
+                alt=""
+                width={64}
+                height={64}
+                aria-hidden
+              />
+              <Alert className="max-w-sm">
+                <AlertDescription className="text-body">
+                  No categories yet. Run the seed script or add one with Manage.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2">
             {data.categories.map((category) => (

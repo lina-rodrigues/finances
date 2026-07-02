@@ -2,51 +2,50 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
+import { Button } from "@/components/ui/pixelact-ui/button";
 
 const STORAGE_KEY = "finance-theme";
-const THEMES = ["finance-light", "finance-dark"] as const;
-type Theme = (typeof THEMES)[number];
 
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "finance-light";
+function getInitialDark(): boolean {
+  if (typeof window === "undefined") return false;
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "finance-dark" || stored === "finance-light") return stored;
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "finance-dark";
-  return "finance-light";
+  if (stored === "dark") return true;
+  if (stored === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("finance-light");
+  const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const initial = getInitialTheme();
-    setTheme(initial);
-    document.documentElement.setAttribute("data-theme", initial);
+    const dark = getInitialDark();
+    setIsDark(dark);
+    document.documentElement.classList.toggle("dark", dark);
     setMounted(true);
   }, []);
 
   function toggleTheme() {
-    const next: Theme = theme === "finance-light" ? "finance-dark" : "finance-light";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem(STORAGE_KEY, next);
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem(STORAGE_KEY, next ? "dark" : "light");
   }
 
   if (!mounted) {
-    return <div className="btn btn-ghost btn-circle btn-sm" aria-hidden />;
+    return <div className="h-9 w-9" aria-hidden />;
   }
 
-  const isDark = theme === "finance-dark";
-
   return (
-    <button
+    <Button
       type="button"
-      className="btn btn-ghost btn-circle btn-sm pressable focus-ring border-2 border-primary/30"
+      variant="secondary"
+      size="sm"
+      className="pressable focus-ring"
       onClick={toggleTheme}
       aria-label={isDark ? "Switch to day mode" : "Switch to night mode"}
     >
       <Icon name={isDark ? "themeDark" : "themeLight"} size="md" />
-    </button>
+    </Button>
   );
 }

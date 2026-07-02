@@ -3,6 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { Button } from "@/components/ui/pixelact-ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/pixelact-ui/dialog";
+import { Input } from "@/components/ui/pixelact-ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/pixelact-ui/select";
+import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   createCategory,
   deleteCategory,
@@ -34,6 +51,33 @@ function toEditable(cat: FlatCategory): EditableCategory {
     draftName: cat.name,
     draftIcon: resolveCategoryIcon(cat.icon),
   };
+}
+
+function IconSelect({
+  value,
+  onChange,
+  disabled,
+  label,
+}: {
+  value: IconName;
+  onChange: (icon: IconName) => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as IconName)} disabled={disabled}>
+      <SelectTrigger className="w-36" size="sm" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {categoryIcons.map((icon) => (
+          <SelectItem key={icon} value={icon}>
+            {formatIconLabel(icon)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function CategoryManager({ initialCategories }: CategoryManagerProps) {
@@ -129,158 +173,140 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   }
 
   return (
-    <>
-      <button
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
         type="button"
-        className="btn btn-primary btn-sm pressable focus-ring gap-1"
+        variant="default"
+        size="sm"
+        className="pressable focus-ring gap-1"
         onClick={() => setOpen(true)}
       >
-        <Icon name="edit" size="xs" colorClass="text-primary-content" />
+        <Icon name="edit" size="xs" />
         Manage
-      </button>
+      </Button>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Manage categories</DialogTitle>
+        </DialogHeader>
+        <p className="text-muted-finance text-body text-sm">
+          Rename, pick icons, reorder, or add categories.
+        </p>
 
-      {open && (
-        <div className="modal modal-open">
-          <div className="modal-box frame-panel max-w-2xl border-0 bg-transparent p-3 shadow-none">
-            <div className="frame-panel-inner p-5">
-            <h3 className="text-display text-sm">Manage categories</h3>
-            <p className="text-muted-finance text-body mt-2 text-sm">
-              Rename, pick icons, reorder, or add categories.
-            </p>
-
-            <div className="mt-4 space-y-2">
-              {categories.map((cat, index) => (
-                <div
-                  key={cat.id}
-                  className="interactive-row inventory-slot flex flex-wrap items-center gap-2 p-2"
+        <div className="mt-4 max-h-[50vh] space-y-2 overflow-y-auto">
+          {categories.map((cat, index) => (
+            <div
+              key={cat.id}
+              className="interactive-row inventory-slot flex flex-wrap items-center gap-2 p-2"
+            >
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="pressable focus-ring h-auto p-1"
+                  onClick={() => handleMove(index, -1)}
+                  disabled={loading || index === 0}
+                  aria-label="Move up"
                 >
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs pressable focus-ring"
-                      onClick={() => handleMove(index, -1)}
-                      disabled={loading || index === 0}
-                      aria-label="Move up"
-                    >
-                      <Icon name="arrowUp" size="xs" />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs pressable focus-ring"
-                      onClick={() => handleMove(index, 1)}
-                      disabled={loading || index === categories.length - 1}
-                      aria-label="Move down"
-                    >
-                      <Icon name="arrowDown" size="xs" />
-                    </button>
-                  </div>
+                  <Icon name="arrowUp" size="xs" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="pressable focus-ring h-auto p-1"
+                  onClick={() => handleMove(index, 1)}
+                  disabled={loading || index === categories.length - 1}
+                  aria-label="Move down"
+                >
+                  <Icon name="arrowDown" size="xs" />
+                </Button>
+              </div>
 
-                  <Icon name={cat.draftIcon} size="sm" />
+              <Icon name={cat.draftIcon} size="sm" />
 
-                  <input
-                    className="input input-bordered input-sm focus-ring min-w-0 flex-1"
-                    value={cat.draftName}
-                    onChange={(e) => updateDraft(cat.id, { draftName: e.target.value })}
-                    disabled={loading}
-                  />
-
-                  <select
-                    className="select select-bordered select-sm focus-ring w-36"
-                    value={cat.draftIcon}
-                    onChange={(e) =>
-                      updateDraft(cat.id, { draftIcon: e.target.value as IconName })
-                    }
-                    disabled={loading}
-                    aria-label={`Icon for ${cat.name}`}
-                  >
-                    {categoryIcons.map((icon) => (
-                      <option key={icon} value={icon}>
-                        {formatIconLabel(icon)}
-                      </option>
-                    ))}
-                  </select>
-
-                  <button
-                    type="button"
-                    className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
-                    onClick={() => handleSave(cat)}
-                    disabled={
-                      loading ||
-                      !cat.draftName.trim() ||
-                      (cat.draftName === cat.name && cat.draftIcon === resolveCategoryIcon(cat.icon))
-                    }
-                  >
-                    {!loading && (
-                      <Icon name="save" size="xs" className="mr-1" colorClass="text-primary-content" />
-                    )}
-                    Save
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm text-error pressable focus-ring"
-                    onClick={() => handleDelete(cat)}
-                    disabled={loading}
-                    aria-label={`Delete ${cat.name}`}
-                  >
-                    <Icon name="delete" size="xs" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="divider my-4">Add category</div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Icon name={newIcon} size="sm" />
-              <input
-                className="input input-bordered input-sm focus-ring min-w-0 flex-1"
-                placeholder="Category name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+              <Input
+                className="min-w-0 flex-1"
+                value={cat.draftName}
+                onChange={(e) => updateDraft(cat.id, { draftName: e.target.value })}
                 disabled={loading}
               />
-              <select
-                className="select select-bordered select-sm focus-ring w-36"
-                value={newIcon}
-                onChange={(e) => setNewIcon(e.target.value as IconName)}
-                disabled={loading}
-                aria-label="Icon for new category"
-              >
-                {categoryIcons.map((icon) => (
-                  <option key={icon} value={icon}>
-                    {formatIconLabel(icon)}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
-                onClick={handleAdd}
-                disabled={loading || !newName.trim()}
-              >
-                {!loading && (
-                  <Icon name="add" size="xs" className="mr-1" colorClass="text-primary-content" />
-                )}
-                Add
-              </button>
-            </div>
 
-            <div className="modal-action">
-              <button type="button" className="btn btn-sm pressable focus-ring" onClick={() => setOpen(false)}>
-                Close
-              </button>
+              <IconSelect
+                value={cat.draftIcon}
+                onChange={(icon) => updateDraft(cat.id, { draftIcon: icon })}
+                disabled={loading}
+                label={`Icon for ${cat.name}`}
+              />
+
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="pressable focus-ring gap-1"
+                onClick={() => handleSave(cat)}
+                disabled={
+                  loading ||
+                  !cat.draftName.trim() ||
+                  (cat.draftName === cat.name && cat.draftIcon === resolveCategoryIcon(cat.icon))
+                }
+              >
+                {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
+                Save
+              </Button>
+
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="pressable focus-ring"
+                onClick={() => handleDelete(cat)}
+                disabled={loading}
+                aria-label={`Delete ${cat.name}`}
+              >
+                <Icon name="delete" size="xs" />
+              </Button>
             </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="modal-backdrop"
-            aria-label="Close category manager"
-            onClick={() => setOpen(false)}
-          />
+          ))}
         </div>
-      )}
-    </>
+
+        <hr className="my-4 border-t-2 border-foreground/20" />
+        <p className="text-display mb-2 text-xs">Add category</p>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Icon name={newIcon} size="sm" />
+          <Input
+            className="min-w-0 flex-1"
+            placeholder="Category name"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            disabled={loading}
+          />
+          <IconSelect
+            value={newIcon}
+            onChange={setNewIcon}
+            disabled={loading}
+            label="Icon for new category"
+          />
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            className="pressable focus-ring gap-1"
+            onClick={handleAdd}
+            disabled={loading || !newName.trim()}
+          >
+            {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
+            Add
+          </Button>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
