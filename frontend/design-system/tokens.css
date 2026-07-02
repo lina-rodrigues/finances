@@ -1,0 +1,48 @@
+:root,
+[data-theme="finance-light"] {
+  --finance-income: var(--color-success);
+  --finance-expense: var(--color-error);
+  --finance-planned: var(--color-warning);
+  --finance-balance: var(--color-primary);
+  --finance-muted: oklch(55% 0.02 245);
+  --finance-hover: color-mix(in oklch, var(--color-base-content) 7%, var(--color-base-100));
+  --finance-hover-strong: color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100));
+}
+
+[data-theme="finance-dark"] {
+  --finance-muted: oklch(70% 0.02 245);
+  --finance-hover: color-mix(in oklch, var(--color-base-content) 8%, var(--color-base-100));
+  --finance-hover-strong: color-mix(in oklch, var(--color-base-content) 14%, var(--color-base-100));
+}
+
+.text-income {
+  color: var(--finance-income);
+}
+
+.text-expense {
+  color: var(--finance-expense);
+}
+
+.text-planned {
+  color: var(--finance-planned);
+}
+
+.text-balance {
+  color: var(--finance-balance);
+}
+
+.text-muted-finance {
+  color: var(--finance-muted);
+}
+
+.bg-income-subtle {
+  background-color: color-mix(in oklch, var(--finance-income) 12%, transparent);
+}
+
+.bg-expense-subtle {
+  background-color: color-mix(in oklch, var(--finance-expense) 12%, transparent);
+}
+
+.bg-planned-subtle {
+  background-color: color-mix(in oklch, var(--finance-planned) 12%, transparent);
+}

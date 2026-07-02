@@ -1,2 +1,8 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: finance-light --default, finance-dark --prefersdark;
+}
+@import "../design-system/themes.css";
+@import "../design-system/tokens.css";
+@import "../design-system/typography.css";
+@import "../design-system/interactions.css";

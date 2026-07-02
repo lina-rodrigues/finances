@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Icon } from "@/components/Icon";
 import {
   createLineItem,
   deleteLineItem,
@@ -9,112 +10,145 @@ import {
   updateLineItem,
   type CategoryNode,
   type LineItem,
-  type LineItemType,
 } from "@/lib/api";
+import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { AddLineItemForm } from "./AddLineItemForm";
 
 interface LineItemRowProps {
   item: LineItem;
-  yearMonth: string;
 }
 
-export function LineItemRow({ item, yearMonth }: LineItemRowProps) {
+function TypeBadge({ item }: { item: LineItem }) {
+  const isIncome = item.type === "income";
+  return (
+    <span
+      className={`badge badge-sm gap-1 ${isIncome ? "badge-success bg-income-subtle" : "badge-error bg-expense-subtle"}`}
+    >
+      <Icon name={isIncome ? "income" : "expense"} size="xs" />
+      {item.type}
+    </span>
+  );
+}
+
+export function LineItemRow({ item }: LineItemRowProps) {
   const router = useRouter();
+  const { loading, run } = useMutationFeedback();
   const [editing, setEditing] = useState(false);
   const [label, setLabel] = useState(item.label);
   const [plannedAmount, setPlannedAmount] = useState(String(item.plannedAmount));
   const [realizedAmount, setRealizedAmount] = useState(
     item.realizedAmount !== null ? String(item.realizedAmount) : "",
   );
-  const [saving, setSaving] = useState(false);
 
   async function handleSave() {
-    setSaving(true);
-    try {
-      await updateLineItem(item.id, {
-        label,
-        plannedAmount: parseFloat(plannedAmount),
-        realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
-      });
-      setEditing(false);
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
+    await run(
+      async () => {
+        await updateLineItem(item.id, {
+          label,
+          plannedAmount: parseFloat(plannedAmount),
+          realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
+        });
+        setEditing(false);
+        router.refresh();
+      },
+      { successMessage: "Line item updated" },
+    );
   }
 
   async function handleDelete() {
     if (!confirm("Delete this line item?")) return;
-    try {
-      await deleteLineItem(item.id);
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-    }
+    await run(
+      async () => {
+        await deleteLineItem(item.id);
+        router.refresh();
+      },
+      { successMessage: "Line item deleted" },
+    );
   }
 
   if (editing) {
     return (
-      <div className="flex flex-wrap items-center gap-2 rounded-lg bg-base-200 p-2">
+      <div className="fade-in flex flex-wrap items-center gap-2 rounded-lg bg-base-200 p-2">
         <input
-          className="input input-bordered input-sm flex-1"
+          className="input input-bordered input-sm focus-ring flex-1"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
+          disabled={loading}
         />
         <input
-          className="input input-bordered input-sm w-24"
+          className="input input-bordered input-sm focus-ring w-24"
           type="number"
           step="0.01"
           placeholder="Planned"
           value={plannedAmount}
           onChange={(e) => setPlannedAmount(e.target.value)}
+          disabled={loading}
         />
         <input
-          className="input input-bordered input-sm w-24"
+          className="input input-bordered input-sm focus-ring w-24"
           type="number"
           step="0.01"
           placeholder="Realized"
           value={realizedAmount}
           onChange={(e) => setRealizedAmount(e.target.value)}
+          disabled={loading}
         />
-        <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+        <button
+          className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
+          onClick={handleSave}
+          disabled={loading}
+        >
+          {!loading && <Icon name="save" size="xs" className="mr-1" colorClass="text-primary-content" />}
           Save
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => setEditing(false)}>
+        <button
+          className="btn btn-ghost btn-sm pressable focus-ring"
+          onClick={() => setEditing(false)}
+          disabled={loading}
+        >
+          <Icon name="cancel" size="xs" className="mr-1" />
           Cancel
         </button>
       </div>
     );
   }
 
+  const isIncome = item.type === "income";
+
   return (
-    <div className="flex items-center justify-between gap-2 rounded-lg px-2 py-1 hover:bg-base-200">
+    <div className="interactive-row flex items-center justify-between gap-2 px-2 py-1">
       <div className="flex items-center gap-2">
-        <span
-          className={`badge badge-sm ${item.type === "income" ? "badge-success" : "badge-error"}`}
-        >
-          {item.type}
-        </span>
+        <TypeBadge item={item} />
         <span>{item.label}</span>
         {!item.isRealized && (
-          <span className="badge badge-warning badge-outline badge-sm">planned</span>
+          <span className="badge badge-warning badge-outline badge-sm gap-1 bg-planned-subtle">
+            <Icon name="planned" size="xs" />
+            planned
+          </span>
         )}
       </div>
       <div className="flex items-center gap-2">
-        <span
-          className={`font-mono ${item.type === "income" ? "text-success" : "text-error"}`}
-        >
-          {item.type === "income" ? "+" : "-"}
+        <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
+          {isIncome ? "+" : "-"}
           {formatCurrency(item.displayAmount)}
         </span>
-        <button className="btn btn-ghost btn-xs" onClick={() => setEditing(true)}>
-          Edit
-        </button>
-        <button className="btn btn-ghost btn-xs text-error" onClick={handleDelete}>
-          Delete
-        </button>
+        <div className="row-actions flex items-center gap-1">
+          <button
+            className="btn btn-ghost btn-xs pressable focus-ring"
+            onClick={() => setEditing(true)}
+            aria-label="Edit line item"
+          >
+            <Icon name="edit" size="xs" />
+          </button>
+          <button
+            className="btn btn-ghost btn-xs text-error pressable focus-ring"
+            onClick={handleDelete}
+            disabled={loading}
+            aria-label="Delete line item"
+          >
+            <Icon name="delete" size="xs" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -132,16 +166,23 @@ export function CategorySection({ category, yearMonth, depth = 0 }: CategorySect
 
   return (
     <div className={depth > 0 ? "ml-4 border-l border-base-300 pl-3" : ""}>
-      <details className="collapse collapse-arrow bg-base-100 mb-2 shadow-sm" open={depth === 0}>
-        <summary className="collapse-title font-medium flex items-center justify-between pr-12">
-          <span>{category.name}</span>
-          {hasContent && (
-            <span className="font-mono text-sm opacity-70">{formatCurrency(categoryTotal)}</span>
-          )}
+      <details className="collapse collapse-arrow collapse-smooth bg-base-100 mb-2 shadow-sm" open={depth === 0}>
+        <summary className="collapse-title font-medium">
+          <div className="flex w-full items-center justify-between pr-8">
+            <span className="flex items-center gap-2">
+              <Icon name="category" size="sm" />
+              {category.name}
+            </span>
+            {hasContent && (
+              <span className="text-amount text-sm text-muted-finance">
+                {formatCurrency(categoryTotal)}
+              </span>
+            )}
+          </div>
         </summary>
         <div className="collapse-content space-y-1">
           {category.lineItems.map((item) => (
-            <LineItemRow key={item.id} item={item} yearMonth={yearMonth} />
+            <LineItemRow key={item.id} item={item} />
           ))}
           {category.children.map((child) => (
             <CategorySection

@@ -20,6 +20,10 @@ The project is a **pnpm monorepo** with two independently deployable packages:
 
 There is no shared runtime between API and frontend — the frontend never accesses the database directly.
 
+## Design
+
+See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's design system — themes, colors, icons, typography, and interaction patterns.
+
 ## Features (v1)
 
 - **Monthly view** for the current month
