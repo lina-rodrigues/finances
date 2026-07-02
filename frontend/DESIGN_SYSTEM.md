@@ -2,15 +2,15 @@
 
 A cute pixel-widget design system for the Finance app. Built on **[Pixelact UI](https://www.pixelactui.com/)**, **shadcn/ui**, **Tailwind CSS 4**, and **Pixelarticons**.
 
-Uses the **Pastel Retro** palette from [Pixelact UI Colors](https://www.pixelactui.com/colors):
+Uses a **Cotton Candy** pink & purple palette:
 
 | Swatch | Hex | Role |
 |--------|-----|------|
-| Pink | `#ffb3ba` | Expense / destructive |
-| Peach | `#ffdfba` | Planned / muted |
-| Yellow | `#ffffba` | Background (day) |
-| Mint | `#baffc9` | Income / success |
-| Blue | `#bae1ff` | Primary / balance |
+| Pink | `#fbcfe8` | Secondary / accents |
+| Lavender | `#e9d5ff` | Planned / muted |
+| Violet | `#c084fc` | Primary / balance |
+| Rose | `#fda4af` | Expense / destructive |
+| Mint | `#bbf7d0` | Income / success |
 
 ## Principles
 
@@ -24,7 +24,7 @@ Uses the **Pastel Retro** palette from [Pixelact UI Colors](https://www.pixelact
 ```
 components/ui/pixelact-ui/   # Pixelact UI components (via shadcn registry)
 design-system/
-├── tokens.css               # Pastel Retro semantic colors + layout utilities
+├── tokens.css               # Cotton Candy semantic colors + layout utilities
 ├── typography.css           # Pixel + body + amount fonts
 └── interactions.css         # Motion utilities
 
@@ -40,8 +40,8 @@ Day/night via `.dark` class on `<html>` (shadcn pattern):
 
 | Mode | Background | Character |
 |------|------------|-----------|
-| Day | Pastel yellow `#ffffba` | Soft retro candy |
-| Night | Deep purple `#2a2830` | Muted pastel dark |
+| Day | Soft pink `#fdf2ff` | Bubblegum lavender |
+| Night | Deep purple `#1a1225` | Cozy violet dark |
 
 Toggle via header button; preference stored in `localStorage`.
 

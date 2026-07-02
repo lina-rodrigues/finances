@@ -1,7 +1,7 @@
 :root {
-  --finance-income: var(--pastel-mint, #baffc9);
-  --finance-expense: var(--pastel-pink, #ffb3ba);
-  --finance-planned: var(--pastel-peach, #ffdfba);
+  --finance-income: var(--pastel-mint, #bbf7d0);
+  --finance-expense: var(--pastel-rose, #fda4af);
+  --finance-planned: var(--pastel-lavender, #e9d5ff);
   --finance-balance: var(--primary);
   --finance-muted: var(--muted-foreground);
   --finance-hover: color-mix(in srgb, var(--primary) 18%, var(--card));
@@ -46,6 +46,14 @@
 
 .bg-expense-subtle {
   background-color: color-mix(in srgb, var(--finance-expense) 55%, var(--card));
+}
+
+.bg-expense {
+  background-color: var(--finance-expense);
+}
+
+.bg-income {
+  background-color: var(--finance-income);
 }
 
 .bg-planned-subtle {
