@@ -1,0 +1,14 @@
+{
+  "name": "finance",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter api --filter frontend dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "seed": "pnpm --filter api seed",
+    "build": "pnpm --filter api build && pnpm --filter frontend build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
