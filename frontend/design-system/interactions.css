@@ -134,12 +134,8 @@
   box-shadow: 0 1px 3px color-mix(in oklch, var(--color-primary) 12%, transparent);
 }
 
-.chevron-icon {
-  transition: transform var(--finance-duration-normal) var(--finance-ease-out);
-}
-
-details[open] > summary .chevron-icon {
-  transform: rotate(180deg);
+.collapse-smooth > input[type="checkbox"] {
+  min-height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -150,7 +146,6 @@ details[open] > summary .chevron-icon {
   .fade-in,
   .collapse-smooth .collapse-title,
   .card-hover-lift,
-  .chevron-icon,
   .btn-add-item {
     animation: none;
     transition: none;

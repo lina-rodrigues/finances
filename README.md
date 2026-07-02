@@ -1,6 +1,6 @@
 # Finance
 
-A personal finance application for tracking monthly income and expenses with planned vs. realized amounts, hierarchical categories, and automatic balance carry-forward.
+A personal finance application for tracking monthly income and expenses with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward.
 
 ## Architecture
 
@@ -27,7 +27,7 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 ## Features (v1)
 
 - **Monthly view** for the current month
-- **Hierarchical categories** (e.g. Housing → Rent, Utilities)
+- **Flat categories** with custom icons and reordering
 - **Income and expense line items** with planned and realized amounts
 - **Planned indicator** — unrealized items show the planned amount with a "planned" badge
 - **Last month balance** — automatically carried forward from the previous month's ending balance
@@ -89,10 +89,10 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 
 ### Category
 
-Hierarchical categories stored with a `parentId` reference:
+Flat categories with display order and icon:
 
 ```json
-{ "name": "Rent", "parentId": "<Housing id>", "order": 0 }
+{ "name": "Rent", "order": 1, "icon": "house" }
 ```
 
 ### Month
@@ -145,8 +145,10 @@ The first month in the system starts with `lastMonthBalance: 0`.
 |--------|------|-------------|
 | GET | `/health` | Health check |
 | GET | `/categories` | List categories (flat) |
-| GET | `/categories?nested=true` | Category tree |
 | POST | `/categories` | Create category |
+| PATCH | `/categories/:id` | Update name, icon, or order |
+| PATCH | `/categories/reorder` | Bulk reorder `[{ id, order }]` |
+| DELETE | `/categories/:id` | Delete category (no line items) |
 | GET | `/months/current` | Current month view (auto-creates month) |
 | GET | `/months/:yearMonth` | Specific month view (`YYYY-MM`) |
 | POST | `/months/:yearMonth/line-items` | Add income/expense |
@@ -166,25 +168,18 @@ The first month in the system starts with `lastMonthBalance: 0`.
   "categories": [
     {
       "id": "...",
-      "name": "Income",
+      "name": "Salary",
       "order": 0,
-      "lineItems": [],
-      "children": [
+      "icon": "income",
+      "lineItems": [
         {
           "id": "...",
-          "name": "Salary",
-          "lineItems": [
-            {
-              "id": "...",
-              "type": "income",
-              "label": "Paycheck",
-              "plannedAmount": 5000,
-              "realizedAmount": null,
-              "displayAmount": 5000,
-              "isRealized": false
-            }
-          ],
-          "children": []
+          "type": "income",
+          "label": "Paycheck",
+          "plannedAmount": 5000,
+          "realizedAmount": null,
+          "displayAmount": 5000,
+          "isRealized": false
         }
       ]
     }

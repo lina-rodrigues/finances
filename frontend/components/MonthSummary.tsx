@@ -14,19 +14,29 @@ export function MonthSummary({ month }: MonthSummaryProps) {
         </h1>
         <div className="stats stats-vertical w-full shadow-none lg:stats-horizontal">
           <div className="stat">
-            <div className="stat-figure text-balance">
-              <Icon name="balance" size="lg" />
+            <div className="flex w-full items-center justify-between gap-4">
+              <div>
+                <div className="stat-title">Last month balance</div>
+                <div className="stat-value text-amount text-lg">
+                  {formatCurrency(month.lastMonthBalance)}
+                </div>
+              </div>
+              <div className="shrink-0 text-balance">
+                <Icon name="balance" size="lg" />
+              </div>
             </div>
-            <div className="stat-title">Last month balance</div>
-            <div className="stat-value text-amount text-lg">{formatCurrency(month.lastMonthBalance)}</div>
           </div>
           <div className="stat">
-            <div className="stat-figure text-balance">
-              <Icon name="endingBalance" size="lg" />
-            </div>
-            <div className="stat-title">Ending balance</div>
-            <div className="stat-value text-amount text-lg text-balance">
-              {formatCurrency(month.endingBalance)}
+            <div className="flex w-full items-center justify-between gap-4">
+              <div>
+                <div className="stat-title">Ending balance</div>
+                <div className="stat-value text-amount text-lg text-balance">
+                  {formatCurrency(month.endingBalance)}
+                </div>
+              </div>
+              <div className="shrink-0 text-balance">
+                <Icon name="endingBalance" size="lg" />
+              </div>
             </div>
           </div>
         </div>

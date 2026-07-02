@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 import { Category, type ICategory } from "../models/Category.js";
+import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
 import { LineItem, type ILineItem, type LineItemType } from "../models/LineItem.js";
 
 export interface LineItemResponse {
@@ -12,12 +13,35 @@ export interface LineItemResponse {
   isRealized: boolean;
 }
 
-export interface CategoryNode {
+export interface CategoryWithLineItems {
   id: string;
   name: string;
   order: number;
+  icon: string;
   lineItems: LineItemResponse[];
-  children: CategoryNode[];
+}
+
+export interface FlatCategoryResponse {
+  id: string;
+  name: string;
+  order: number;
+  icon: string;
+}
+
+function normalizeIcon(icon: string | undefined): string {
+  if (icon && isAllowedCategoryIcon(icon)) {
+    return icon;
+  }
+  return DEFAULT_CATEGORY_ICON;
+}
+
+function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
+  return {
+    id: cat._id.toString(),
+    name: cat.name,
+    order: cat.order,
+    icon: normalizeIcon(cat.icon),
+  };
 }
 
 function toLineItemResponse(item: ILineItem): LineItemResponse {
@@ -33,52 +57,46 @@ function toLineItemResponse(item: ILineItem): LineItemResponse {
   };
 }
 
-function buildCategoryTree(
-  categories: ICategory[],
-  lineItemsByCategory: Map<string, ILineItem[]>,
-): CategoryNode[] {
-  const nodeMap = new Map<string, CategoryNode>();
+/** Flatten legacy hierarchical categories (parentId) into a flat ordered list. */
+export async function flattenLegacyCategories(): Promise<void> {
+  const collection = Category.collection;
+  const needsMigration = await collection.findOne({
+    $or: [{ parentId: { $exists: true } }, { icon: { $exists: false } }],
+  });
 
-  for (const cat of categories) {
-    nodeMap.set(cat._id.toString(), {
-      id: cat._id.toString(),
-      name: cat.name,
-      order: cat.order,
-      lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map(toLineItemResponse),
-      children: [],
-    });
+  if (!needsMigration) {
+    return;
   }
 
-  const roots: CategoryNode[] = [];
+  const categories = await collection.find({}).sort({ order: 1, name: 1 }).toArray();
+  let order = 0;
 
   for (const cat of categories) {
-    const node = nodeMap.get(cat._id.toString())!;
-    if (cat.parentId) {
-      const parent = nodeMap.get(cat.parentId.toString());
-      if (parent) {
-        parent.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    } else {
-      roots.push(node);
+    const doc = cat as Record<string, unknown>;
+    const updates: Record<string, unknown> = { order: order++ };
+    if (!doc.icon || typeof doc.icon !== "string") {
+      updates.icon = DEFAULT_CATEGORY_ICON;
     }
+    await collection.updateOne(
+      { _id: cat._id },
+      {
+        $set: updates,
+        $unset: { parentId: "" },
+      },
+    );
   }
+}
 
-  const sortNodes = (nodes: CategoryNode[]): CategoryNode[] => {
-    nodes.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
-    for (const node of nodes) {
-      node.children = sortNodes(node.children);
-    }
-    return nodes;
-  };
-
-  return sortNodes(roots);
+export async function getAllCategoriesFlat(): Promise<FlatCategoryResponse[]> {
+  await flattenLegacyCategories();
+  const categories = await Category.find().sort({ order: 1, name: 1 });
+  return categories.map(toFlatCategoryResponse);
 }
 
 export async function getCategoriesWithLineItems(
   monthId: Types.ObjectId,
-): Promise<CategoryNode[]> {
+): Promise<CategoryWithLineItems[]> {
+  await flattenLegacyCategories();
   const categories = await Category.find().sort({ order: 1, name: 1 });
   const lineItems = await LineItem.find({ monthId }).sort({ createdAt: 1 });
 
@@ -90,22 +108,17 @@ export async function getCategoriesWithLineItems(
     lineItemsByCategory.set(key, list);
   }
 
-  return buildCategoryTree(categories, lineItemsByCategory);
-}
-
-export async function getAllCategoriesFlat(): Promise<
-  { id: string; name: string; parentId: string | null; order: number }[]
-> {
-  const categories = await Category.find().sort({ order: 1, name: 1 });
   return categories.map((cat) => ({
-    id: cat._id.toString(),
-    name: cat.name,
-    parentId: cat.parentId?.toString() ?? null,
-    order: cat.order,
+    ...toFlatCategoryResponse(cat),
+    lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map(toLineItemResponse),
   }));
 }
 
-export async function getCategoriesTree(): Promise<CategoryNode[]> {
-  const categories = await Category.find().sort({ order: 1, name: 1 });
-  return buildCategoryTree(categories, new Map());
+export async function reorderCategories(
+  items: { id: string; order: number }[],
+): Promise<FlatCategoryResponse[]> {
+  for (const item of items) {
+    await Category.findByIdAndUpdate(item.id, { order: item.order });
+  }
+  return getAllCategoriesFlat();
 }

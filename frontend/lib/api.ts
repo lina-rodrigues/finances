@@ -10,12 +10,12 @@ export interface LineItem {
   isRealized: boolean;
 }
 
-export interface CategoryNode {
+export interface Category {
   id: string;
   name: string;
   order: number;
+  icon: string;
   lineItems: LineItem[];
-  children: CategoryNode[];
 }
 
 export interface MonthView {
@@ -25,14 +25,14 @@ export interface MonthView {
     lastMonthBalance: number;
     endingBalance: number;
   };
-  categories: CategoryNode[];
+  categories: Category[];
 }
 
 export interface FlatCategory {
   id: string;
   name: string;
-  parentId: string | null;
   order: number;
+  icon: string;
 }
 
 function getApiUrl(): string {
@@ -57,6 +57,63 @@ export async function fetchCategories(): Promise<FlatCategory[]> {
     throw new Error(`Failed to fetch categories: ${res.statusText}`);
   }
   return res.json();
+}
+
+export async function createCategory(data: {
+  name: string;
+  icon?: string;
+  order?: number;
+}): Promise<FlatCategory> {
+  const res = await fetch(`${getApiUrl()}/categories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to create category: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function updateCategory(
+  id: string,
+  data: Partial<{ name: string; icon: string; order: number }>,
+): Promise<FlatCategory> {
+  const res = await fetch(`${getApiUrl()}/categories/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to update category: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function reorderCategories(
+  items: { id: string; order: number }[],
+): Promise<FlatCategory[]> {
+  const res = await fetch(`${getApiUrl()}/categories/reorder`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to reorder categories: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  const res = await fetch(`${getApiUrl()}/categories/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const message =
+      typeof body.error === "string" ? body.error : `Failed to delete category: ${res.statusText}`;
+    throw new Error(message);
+  }
 }
 
 export async function createLineItem(

@@ -1,15 +1,19 @@
 import "dotenv/config";
 import { connectDb } from "../db/connection.js";
 import { Category } from "../models/Category.js";
+import { DEFAULT_CATEGORY_ICON } from "../constants/categoryIcons.js";
 
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/finance";
 
 const seedCategories = [
-  { name: "Income", order: 0, children: [{ name: "Salary", order: 0 }] },
-  { name: "Housing", order: 1, children: [{ name: "Rent", order: 0 }, { name: "Utilities", order: 1 }] },
-  { name: "Food", order: 2, children: [{ name: "Groceries", order: 0 }, { name: "Dining Out", order: 1 }] },
-  { name: "Transport", order: 3, children: [{ name: "Fuel", order: 0 }, { name: "Public Transit", order: 1 }] },
-  { name: "Other", order: 4, children: [] },
+  { name: "Salary", order: 0, icon: "income" },
+  { name: "Rent", order: 1, icon: "house" },
+  { name: "Utilities", order: 2, icon: "bolt" },
+  { name: "Groceries", order: 3, icon: "cartShopping" },
+  { name: "Dining Out", order: 4, icon: "utensils" },
+  { name: "Fuel", order: 5, icon: "car" },
+  { name: "Public Transit", order: 6, icon: "car" },
+  { name: "Other", order: 7, icon: "category" },
 ];
 
 async function seed() {
@@ -21,20 +25,12 @@ async function seed() {
     process.exit(0);
   }
 
-  for (const root of seedCategories) {
-    const parent = await Category.create({
-      name: root.name,
-      parentId: null,
-      order: root.order,
+  for (const cat of seedCategories) {
+    await Category.create({
+      name: cat.name,
+      order: cat.order,
+      icon: cat.icon ?? DEFAULT_CATEGORY_ICON,
     });
-
-    for (const child of root.children) {
-      await Category.create({
-        name: child.name,
-        parentId: parent._id,
-        order: child.order,
-      });
-    }
   }
 
   console.log("Categories seeded successfully.");

@@ -18,7 +18,6 @@ export function useMutationFeedback() {
       } catch (err) {
         console.error(err);
         showToast(options?.errorMessage ?? "Something went wrong. Please try again.", "error");
-        throw err;
       } finally {
         setLoading(false);
       }

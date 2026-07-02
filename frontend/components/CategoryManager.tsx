@@ -1,0 +1,284 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
+import {
+  createCategory,
+  deleteCategory,
+  fetchCategories,
+  reorderCategories,
+  updateCategory,
+  type FlatCategory,
+} from "@/lib/api";
+import {
+  categoryIcons,
+  formatIconLabel,
+  resolveCategoryIcon,
+  type IconName,
+} from "@/lib/icons";
+import { useMutationFeedback } from "@/lib/useMutationFeedback";
+
+interface CategoryManagerProps {
+  initialCategories: FlatCategory[];
+}
+
+interface EditableCategory extends FlatCategory {
+  draftName: string;
+  draftIcon: IconName;
+}
+
+function toEditable(cat: FlatCategory): EditableCategory {
+  return {
+    ...cat,
+    draftName: cat.name,
+    draftIcon: resolveCategoryIcon(cat.icon),
+  };
+}
+
+export function CategoryManager({ initialCategories }: CategoryManagerProps) {
+  const router = useRouter();
+  const { loading, run } = useMutationFeedback();
+  const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState<EditableCategory[]>(() =>
+    [...initialCategories].sort((a, b) => a.order - b.order).map(toEditable),
+  );
+  const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState<IconName>("category");
+
+  useEffect(() => {
+    setCategories(
+      [...initialCategories].sort((a, b) => a.order - b.order).map(toEditable),
+    );
+  }, [initialCategories]);
+
+  async function refreshCategories() {
+    const fresh = await fetchCategories();
+    setCategories([...fresh].sort((a, b) => a.order - b.order).map(toEditable));
+    router.refresh();
+  }
+
+  async function handleSave(cat: EditableCategory) {
+    if (!cat.draftName.trim()) return;
+
+    await run(
+      async () => {
+        await updateCategory(cat.id, {
+          name: cat.draftName.trim(),
+          icon: cat.draftIcon,
+        });
+        await refreshCategories();
+      },
+      { successMessage: "Category updated" },
+    );
+  }
+
+  async function handleMove(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= categories.length) return;
+
+    const reordered = [...categories];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    const items = reordered.map((cat, order) => ({ id: cat.id, order }));
+    setCategories(reordered);
+
+    await run(
+      async () => {
+        await reorderCategories(items);
+        await refreshCategories();
+      },
+      { successMessage: "Categories reordered" },
+    );
+  }
+
+  async function handleAdd() {
+    if (!newName.trim()) return;
+
+    await run(
+      async () => {
+        await createCategory({ name: newName.trim(), icon: newIcon });
+        setNewName("");
+        setNewIcon("category");
+        await refreshCategories();
+      },
+      { successMessage: "Category created" },
+    );
+  }
+
+  async function handleDelete(cat: EditableCategory) {
+    if (!confirm(`Delete category "${cat.name}"?`)) return;
+
+    await run(
+      async () => {
+        await deleteCategory(cat.id);
+        await refreshCategories();
+      },
+      {
+        successMessage: "Category deleted",
+        errorMessage: "Could not delete category. Remove line items first.",
+      },
+    );
+  }
+
+  function updateDraft(id: string, patch: Partial<Pick<EditableCategory, "draftName" | "draftIcon">>) {
+    setCategories((prev) =>
+      prev.map((cat) => (cat.id === id ? { ...cat, ...patch } : cat)),
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-outline btn-sm pressable focus-ring gap-1"
+        onClick={() => setOpen(true)}
+      >
+        <Icon name="edit" size="xs" />
+        Manage
+      </button>
+
+      {open && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-2xl">
+            <h3 className="text-lg font-bold">Manage categories</h3>
+            <p className="text-muted-finance mt-1 text-sm">
+              Rename, pick icons, reorder, or add categories.
+            </p>
+
+            <div className="mt-4 space-y-2">
+              {categories.map((cat, index) => (
+                <div
+                  key={cat.id}
+                  className="interactive-row flex flex-wrap items-center gap-2 rounded-lg border border-base-300 p-2"
+                >
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs pressable focus-ring"
+                      onClick={() => handleMove(index, -1)}
+                      disabled={loading || index === 0}
+                      aria-label="Move up"
+                    >
+                      <Icon name="arrowUp" size="xs" />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs pressable focus-ring"
+                      onClick={() => handleMove(index, 1)}
+                      disabled={loading || index === categories.length - 1}
+                      aria-label="Move down"
+                    >
+                      <Icon name="arrowDown" size="xs" />
+                    </button>
+                  </div>
+
+                  <Icon name={cat.draftIcon} size="sm" />
+
+                  <input
+                    className="input input-bordered input-sm focus-ring min-w-0 flex-1"
+                    value={cat.draftName}
+                    onChange={(e) => updateDraft(cat.id, { draftName: e.target.value })}
+                    disabled={loading}
+                  />
+
+                  <select
+                    className="select select-bordered select-sm focus-ring w-36"
+                    value={cat.draftIcon}
+                    onChange={(e) =>
+                      updateDraft(cat.id, { draftIcon: e.target.value as IconName })
+                    }
+                    disabled={loading}
+                    aria-label={`Icon for ${cat.name}`}
+                  >
+                    {categoryIcons.map((icon) => (
+                      <option key={icon} value={icon}>
+                        {formatIconLabel(icon)}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
+                    onClick={() => handleSave(cat)}
+                    disabled={
+                      loading ||
+                      !cat.draftName.trim() ||
+                      (cat.draftName === cat.name && cat.draftIcon === resolveCategoryIcon(cat.icon))
+                    }
+                  >
+                    {!loading && (
+                      <Icon name="save" size="xs" className="mr-1" colorClass="text-primary-content" />
+                    )}
+                    Save
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm text-error pressable focus-ring"
+                    onClick={() => handleDelete(cat)}
+                    disabled={loading}
+                    aria-label={`Delete ${cat.name}`}
+                  >
+                    <Icon name="delete" size="xs" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="divider my-4">Add category</div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Icon name={newIcon} size="sm" />
+              <input
+                className="input input-bordered input-sm focus-ring min-w-0 flex-1"
+                placeholder="Category name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                disabled={loading}
+              />
+              <select
+                className="select select-bordered select-sm focus-ring w-36"
+                value={newIcon}
+                onChange={(e) => setNewIcon(e.target.value as IconName)}
+                disabled={loading}
+                aria-label="Icon for new category"
+              >
+                {categoryIcons.map((icon) => (
+                  <option key={icon} value={icon}>
+                    {formatIconLabel(icon)}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className={`btn btn-primary btn-sm pressable focus-ring ${loading ? "loading" : ""}`}
+                onClick={handleAdd}
+                disabled={loading || !newName.trim()}
+              >
+                {!loading && (
+                  <Icon name="add" size="xs" className="mr-1" colorClass="text-primary-content" />
+                )}
+                Add
+              </button>
+            </div>
+
+            <div className="modal-action">
+              <button type="button" className="btn btn-sm" onClick={() => setOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="modal-backdrop"
+            aria-label="Close category manager"
+            onClick={() => setOpen(false)}
+          />
+        </div>
+      )}
+    </>
+  );
+}

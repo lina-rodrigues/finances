@@ -4,13 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import {
-  createLineItem,
   deleteLineItem,
   formatCurrency,
   updateLineItem,
-  type CategoryNode,
+  type Category,
   type LineItem,
 } from "@/lib/api";
+import { resolveCategoryIcon } from "@/lib/icons";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { AddLineItemForm } from "./AddLineItemForm";
 
@@ -155,59 +155,44 @@ export function LineItemRow({ item }: LineItemRowProps) {
 }
 
 interface CategorySectionProps {
-  category: CategoryNode;
+  category: Category;
   yearMonth: string;
-  depth?: number;
 }
 
-export function CategorySection({ category, yearMonth, depth = 0 }: CategorySectionProps) {
-  const hasContent = category.lineItems.length > 0 || category.children.length > 0;
+export function CategorySection({ category, yearMonth }: CategorySectionProps) {
+  const iconName = resolveCategoryIcon(category.icon);
+  const hasContent = category.lineItems.length > 0;
   const categoryTotal = sumCategoryAmounts(category);
 
   return (
-    <div className={depth > 0 ? "ml-4 border-l border-base-300 pl-3" : ""}>
-      <details className="collapse collapse-arrow collapse-smooth bg-base-100 mb-2 shadow-sm" open={depth === 0}>
-        <summary className="collapse-title font-medium">
-          <div className="flex w-full items-center justify-between pr-8">
-            <span className="flex items-center gap-2">
-              <Icon name="category" size="sm" />
-              {category.name}
+    <div className="collapse collapse-arrow collapse-open collapse-smooth bg-base-100 mb-2 shadow-sm">
+      <input type="checkbox" defaultChecked aria-label={`Toggle ${category.name}`} />
+      <div className="collapse-title font-medium">
+        <div className="flex w-full items-center justify-between pr-8">
+          <span className="flex items-center gap-2">
+            <Icon name={iconName} size="sm" />
+            {category.name}
+          </span>
+          {hasContent && (
+            <span className="text-amount text-sm text-muted-finance">
+              {formatCurrency(categoryTotal)}
             </span>
-            {hasContent && (
-              <span className="text-amount text-sm text-muted-finance">
-                {formatCurrency(categoryTotal)}
-              </span>
-            )}
-          </div>
-        </summary>
-        <div className="collapse-content space-y-1">
-          {category.lineItems.map((item) => (
-            <LineItemRow key={item.id} item={item} />
-          ))}
-          {category.children.map((child) => (
-            <CategorySection
-              key={child.id}
-              category={child}
-              yearMonth={yearMonth}
-              depth={depth + 1}
-            />
-          ))}
-          <AddLineItemForm categoryId={category.id} yearMonth={yearMonth} />
+          )}
         </div>
-      </details>
+      </div>
+      <div className="collapse-content space-y-1">
+        {category.lineItems.map((item) => (
+          <LineItemRow key={item.id} item={item} />
+        ))}
+        <AddLineItemForm categoryId={category.id} yearMonth={yearMonth} />
+      </div>
     </div>
   );
 }
 
-function sumCategoryAmounts(category: CategoryNode): number {
-  let total = category.lineItems.reduce((sum, item) => {
+function sumCategoryAmounts(category: Category): number {
+  return category.lineItems.reduce((sum, item) => {
     const amount = item.displayAmount;
     return sum + (item.type === "income" ? amount : -amount);
   }, 0);
-
-  for (const child of category.children) {
-    total += sumCategoryAmounts(child);
-  }
-
-  return total;
 }

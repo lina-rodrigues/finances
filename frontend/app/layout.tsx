@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Icon } from "@/components/Icon";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToastProvider } from "@/components/ToastProvider";
-import "@/lib/fontawesome";
 import { inter, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 

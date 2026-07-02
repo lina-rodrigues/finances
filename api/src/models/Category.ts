@@ -1,16 +1,17 @@
-import mongoose, { Schema, type Document, type Types } from "mongoose";
+import mongoose, { Schema, type Document } from "mongoose";
+import { DEFAULT_CATEGORY_ICON } from "../constants/categoryIcons.js";
 
 export interface ICategory extends Document {
   name: string;
-  parentId: Types.ObjectId | null;
   order: number;
+  icon: string;
 }
 
 const categorySchema = new Schema<ICategory>(
   {
     name: { type: String, required: true },
-    parentId: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     order: { type: Number, default: 0 },
+    icon: { type: String, default: DEFAULT_CATEGORY_ICON },
   },
   { timestamps: true },
 );

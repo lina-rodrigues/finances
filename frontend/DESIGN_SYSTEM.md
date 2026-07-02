@@ -63,7 +63,8 @@ Use the `<Icon name="..." />` component — never import FA icons directly in UI
 | `planned` | clock | amber | Unrealized items |
 | `balance` | wallet | blue | Last month balance |
 | `endingBalance` | scale-balanced | blue | Ending balance |
-| `category` | folder | muted | Category headers |
+| `category` | folder | muted | Default category icon |
+| `house`, `utensils`, `car`, … | various | themed | Category picker icons |
 | `add` | plus | primary | Add item |
 | `edit` | pen | neutral | Edit action |
 | `delete` | trash | error | Delete action |
@@ -107,8 +108,9 @@ All create/update/delete actions use `useMutationFeedback`:
 
 ## Component Patterns
 
-- **MonthSummary** — stat cards with icon + amount; ending balance in primary color
-- **CategorySection** — collapsible with folder icon; category total right-aligned
+- **MonthSummary** — stat cards with amount left, icon right; ending balance in primary color
+- **CategorySection** — flat collapsible sections with per-category icon; total right-aligned
+- **CategoryManager** — modal to rename, reorder, pick icons, add/delete categories
 - **LineItemRow** — icon+label badge for type; planned badge with clock icon; edit/delete on hover
 - **AddLineItemForm** — expand with fade-in; plus icon trigger
 
