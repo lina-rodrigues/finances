@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import Image from "next/image";
 
 type ToastType = "success" | "error" | "info";
 
@@ -36,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`alert alert-sm shadow-lg fade-in ${
+            className={`toast-bubble alert alert-sm fade-in ${
               toast.type === "error"
                 ? "alert-error"
                 : toast.type === "success"
@@ -44,7 +45,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   : "alert-info"
             }`}
           >
-            <span>{toast.message}</span>
+            <div className="flex items-center gap-2">
+              {toast.type === "success" && (
+                <Image
+                  src="/assets/sparkle.svg"
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="sparkle-pop shrink-0"
+                  aria-hidden
+                />
+              )}
+              <span className="text-body font-semibold">{toast.message}</span>
+            </div>
           </div>
         ))}
       </div>

@@ -1,8 +1,15 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Nunito, Press_Start_2P } from "next/font/google";
 
-export const inter = Inter({
+export const nunito = Nunito({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+export const pressStart = Press_Start_2P({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
   display: "swap",
 });
 

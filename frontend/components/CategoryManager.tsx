@@ -132,18 +132,19 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     <>
       <button
         type="button"
-        className="btn btn-outline btn-sm pressable focus-ring gap-1"
+        className="btn btn-primary btn-sm pressable focus-ring gap-1"
         onClick={() => setOpen(true)}
       >
-        <Icon name="edit" size="xs" />
+        <Icon name="edit" size="xs" colorClass="text-primary-content" />
         Manage
       </button>
 
       {open && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-2xl">
-            <h3 className="text-lg font-bold">Manage categories</h3>
-            <p className="text-muted-finance mt-1 text-sm">
+          <div className="modal-box frame-panel max-w-2xl border-0 bg-transparent p-3 shadow-none">
+            <div className="frame-panel-inner p-5">
+            <h3 className="text-display text-sm">Manage categories</h3>
+            <p className="text-muted-finance text-body mt-2 text-sm">
               Rename, pick icons, reorder, or add categories.
             </p>
 
@@ -151,7 +152,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
               {categories.map((cat, index) => (
                 <div
                   key={cat.id}
-                  className="interactive-row flex flex-wrap items-center gap-2 rounded-lg border border-base-300 p-2"
+                  className="interactive-row inventory-slot flex flex-wrap items-center gap-2 p-2"
                 >
                   <div className="flex items-center gap-1">
                     <button
@@ -266,9 +267,10 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             </div>
 
             <div className="modal-action">
-              <button type="button" className="btn btn-sm" onClick={() => setOpen(false)}>
+              <button type="button" className="btn btn-sm pressable focus-ring" onClick={() => setOpen(false)}>
                 Close
               </button>
+            </div>
             </div>
           </div>
           <button

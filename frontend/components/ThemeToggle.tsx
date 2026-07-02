@@ -42,9 +42,9 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-circle btn-sm pressable focus-ring"
+      className="btn btn-ghost btn-circle btn-sm pressable focus-ring border-2 border-primary/30"
       onClick={toggleTheme}
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={isDark ? "Switch to day mode" : "Switch to night mode"}
     >
       <Icon name={isDark ? "themeDark" : "themeLight"} size="md" />
     </button>

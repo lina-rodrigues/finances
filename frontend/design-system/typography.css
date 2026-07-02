@@ -4,7 +4,25 @@
 }
 
 .text-display {
-  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-family: var(--font-display, ui-sans-serif);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.text-pixel {
+  font-family: var(--font-display, ui-sans-serif);
+  letter-spacing: 0.08em;
+}
+
+.text-amount-hero {
+  font-family: var(--font-display, ui-sans-serif);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  -webkit-text-stroke: 1px var(--text-stroke);
+  paint-order: stroke fill;
+}
+
+.text-body {
+  font-family: var(--font-sans, ui-sans-serif);
 }

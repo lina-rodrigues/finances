@@ -58,7 +58,7 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
   return (
     <form
       onSubmit={handleSubmit}
-      className="fade-in mt-2 flex flex-wrap items-end gap-2 rounded-lg bg-base-200 p-2"
+      className="fade-in mt-2 flex flex-wrap items-end gap-2 rounded-2xl bg-base-200 p-3"
     >
       <select
         className="select select-bordered select-sm focus-ring"
