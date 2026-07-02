@@ -27,7 +27,9 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 ## Features (v1)
 
 - **Monthly view** for the current month
-- **Flat categories** with custom icons and reordering
+- **Flat categories** with custom Font Awesome icons and drag-free reordering (up/down)
+- **Category management** — rename, pick icons, reorder, add, and delete via **Manage** on the Categories header
+- **Light and dark themes** — toggle in the navbar; preference saved in the browser
 - **Income and expense line items** with planned and realized amounts
 - **Planned indicator** — unrealized items show the planned amount with a "planned" badge
 - **Last month balance** — automatically carried forward from the previous month's ending balance
@@ -76,6 +78,12 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
    - Frontend: http://localhost:3000
    - API: http://localhost:4000
 
+If the frontend shows errors after pulling changes, restart with a clean cache:
+
+```bash
+cd frontend && rm -rf .next && pnpm dev
+```
+
 ## Environment Variables
 
 | Variable | Package | Default | Description |
@@ -89,11 +97,15 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 
 ### Category
 
-Flat categories with display order and icon:
+Flat categories with display order and icon key:
 
 ```json
 { "name": "Rent", "order": 1, "icon": "house" }
 ```
+
+Allowed icon keys: `category`, `income`, `house`, `utensils`, `car`, `cartShopping`, `bolt`, `heartPulse`, `graduationCap`, `plane`, `gift`, `piggyBank`, `briefcase`, `shirt`, `film`, `dumbbell` (see [`api/src/constants/categoryIcons.ts`](api/src/constants/categoryIcons.ts)).
+
+Legacy hierarchical categories in an existing database are flattened automatically on the next API request. Use **Manage** in the UI to clean up duplicate names, or drop the `categories` collection and run `pnpm seed` for a fresh set.
 
 ### Month
 
@@ -147,7 +159,7 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | GET | `/categories` | List categories (flat) |
 | POST | `/categories` | Create category |
 | PATCH | `/categories/:id` | Update name, icon, or order |
-| PATCH | `/categories/reorder` | Bulk reorder `[{ id, order }]` |
+| PATCH | `/categories/reorder` | Bulk reorder `{ "items": [{ "id", "order" }] }` |
 | DELETE | `/categories/:id` | Delete category (no line items) |
 | GET | `/months/current` | Current month view (auto-creates month) |
 | GET | `/months/:yearMonth` | Specific month view (`YYYY-MM`) |
@@ -201,24 +213,27 @@ The first month in the system starts with `lastMonthBalance: 0`.
 
 ```
 finance/
-├── docker-compose.yml      # MongoDB
+├── docker-compose.yml          # MongoDB
 ├── .env.example
+├── pnpm-workspace.yaml
 ├── api/
 │   └── src/
-│       ├── models/         # Category, Month, LineItem
-│       ├── routes/         # REST endpoints
-│       ├── services/       # Balance cascade, category tree
-│       └── seed/           # Default categories
+│       ├── constants/          # Allowed category icon keys
+│       ├── models/             # Category, Month, LineItem
+│       ├── routes/             # REST endpoints
+│       ├── services/           # Balance cascade, flat categories
+│       └── seed/               # Default flat categories
 └── frontend/
-    ├── app/                # Next.js App Router (SSR page)
-    ├── components/         # DaisyUI UI components
-    └── lib/api.ts          # Typed API client
+    ├── DESIGN_SYSTEM.md        # Themes, colors, icons, interactions
+    ├── design-system/          # CSS tokens and themes
+    ├── app/                    # Next.js App Router (SSR page)
+    ├── components/             # UI (CategoryManager, CategorySection, …)
+    └── lib/                    # API client, icons, fonts
 ```
 
 ## Future Extensions
 
 - Month navigation (browse past/future months)
-- Category management UI
 - Authentication and multi-user support
 - Charts and spending summaries
 - Dockerize API and frontend services
