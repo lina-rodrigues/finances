@@ -4,8 +4,13 @@
  * mode, across the three seeded months (previous, current, next).
  * Requires the dev server at http://localhost:3000 (pnpm dev).
  *
+ * Playwright reports env(safe-area-inset-*) as 0, so phone-sized viewports
+ * also get a safe-area/ pass with injected insets (typical Android status bar).
+ *
  * Usage: pnpm responsive-check
- * Output: .responsive-audit/<theme>/<month>/<viewport>.png
+ * Output:
+ *   .responsive-audit/<theme>/<month>/<viewport>.png
+ *   .responsive-audit/<theme>/<month>/safe-area/<viewport>.png  (phones only)
  */
 
 import { chromium } from "playwright";
@@ -17,6 +22,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, ".responsive-audit");
 const url = process.env.RESPONSIVE_CHECK_URL ?? "http://localhost:3000";
 
+/** Typical Android status-bar inset (Playwright cannot set env(safe-area-inset-*)). */
+const SIMULATED_SAFE_AREA_TOP = 47;
+
 const viewports = [
   { name: "iphone-se", width: 375, height: 667 },
   { name: "iphone-14", width: 390, height: 844 },
@@ -27,6 +35,8 @@ const viewports = [
   { name: "desktop", width: 1440, height: 900 },
   { name: "wide", width: 1920, height: 1080 },
 ];
+
+const phoneViewports = viewports.filter((vp) => vp.width <= 430);
 
 const themes = ["light", "dark"];
 
@@ -57,33 +67,73 @@ async function assertDevServer() {
   }
 }
 
+async function captureViewport(page, { theme, month, vp, subdir, simulateSafeArea = false }) {
+  const dir = path.join(outDir, theme, month.name, subdir);
+  await mkdir(dir, { recursive: true });
+
+  await page.evaluate(() => {
+    document.getElementById("responsive-check-safe-area")?.remove();
+  });
+  if (simulateSafeArea) {
+    await page.addStyleTag({
+      id: "responsive-check-safe-area",
+      content: `
+        .app-header {
+          padding-top: calc(1rem + ${SIMULATED_SAFE_AREA_TOP}px) !important;
+        }
+      `,
+    });
+  }
+
+  await page.setViewportSize({ width: vp.width, height: vp.height });
+  await page.emulateMedia({ colorScheme: theme });
+  await page.goto(`${url}/${month.query}`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+
+  const file = path.join(dir, `${vp.name}-${vp.width}x${vp.height}.png`);
+  await page.screenshot({ path: file, fullPage: true });
+  console.log(`saved ${path.relative(root, file)}`);
+}
+
 await assertDevServer();
 await rm(outDir, { recursive: true, force: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
 
-const total = themes.length * months.length * viewports.length;
+const baseTotal = themes.length * months.length * viewports.length;
+const safeAreaTotal = themes.length * months.length * phoneViewports.length;
+const total = baseTotal + safeAreaTotal;
+
 console.log(
-  `Capturing ${total} screenshots (${themes.length} themes x ${months.length} months x ${viewports.length} viewports) from ${url}`,
+  `Capturing ${total} screenshots from ${url}`,
+);
+console.log(
+  `  ${baseTotal} standard (${themes.length} themes x ${months.length} months x ${viewports.length} viewports)`,
+);
+console.log(
+  `  ${safeAreaTotal} safe-area (${themes.length} themes x ${months.length} months x ${phoneViewports.length} phone viewports)`,
 );
 console.log(`Output: ${outDir}/\n`);
 
 for (const theme of themes) {
-  await page.emulateMedia({ colorScheme: theme });
-
   for (const month of months) {
-    const dir = path.join(outDir, theme, month.name);
-    await mkdir(dir, { recursive: true });
-
     for (const vp of viewports) {
-      await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto(`${url}/${month.query}`, { waitUntil: "networkidle" });
-      await page.waitForTimeout(500);
+      await captureViewport(page, { theme, month, vp, subdir: "" });
+    }
+  }
+}
 
-      const file = path.join(dir, `${vp.name}-${vp.width}x${vp.height}.png`);
-      await page.screenshot({ path: file, fullPage: true });
-      console.log(`saved ${path.relative(root, file)}`);
+for (const theme of themes) {
+  for (const month of months) {
+    for (const vp of phoneViewports) {
+      await captureViewport(page, {
+        theme,
+        month,
+        vp,
+        subdir: "safe-area",
+        simulateSafeArea: true,
+      });
     }
   }
 }

@@ -160,14 +160,26 @@
   top: 0;
   z-index: 40;
   background: var(--background);
-  /* Real padding plus the notch inset; un-layered CSS overrides Tailwind's py-* */
-  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  /* Browser tabs already sit below system UI — safe-area only in installed PWA */
+  padding-top: 1rem;
   border-bottom: 2px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+@media (display-mode: standalone) {
+  .app-header {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  }
 }
 
 .app-main {
   flex: 1;
-  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  padding-bottom: 2rem;
+}
+
+@media (display-mode: standalone) {
+  .app-main {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Responsive inline forms (add / edit line items) */
