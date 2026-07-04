@@ -21,7 +21,7 @@ export function CoinCounter({ amount, label, highlight = false, icon }: CoinCoun
           {label}
         </div>
         <div
-          className={`text-amount-hero text-base sm:text-lg ${highlight ? "text-balance" : "text-foreground"}`}
+          className={`text-amount-hero break-words text-base sm:text-lg ${highlight ? "text-fin-balance" : "text-foreground"}`}
         >
           {amount}
         </div>

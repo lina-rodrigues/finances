@@ -27,14 +27,15 @@ export interface BadgeProps
   asChild?: boolean;
 }
 
-function Badge({ children, font, variant, ...props }: BadgeProps) {
+function Badge({ children, font, variant, className, ...props }: BadgeProps) {
   return (
-    <div className={cn("relative inline-flex")}>
+    <div className={cn("relative inline-flex max-w-full")}>
       <ShadcnBadge
         {...props}
         className={cn(
           "rounded-none shadow-(--pixel-box-shadow) box-shadow-margin",
-          badgeVariants({ variant, font })
+          badgeVariants({ variant, font }),
+          className
         )}
         variant={variant}
       >

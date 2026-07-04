@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import {
   formatCurrency,
+  getCurrentYearMonth,
   monthPagePath,
   nextYearMonth,
   prevYearMonth,
@@ -27,7 +28,10 @@ function monthParts(yearMonth: string) {
 
 export function MonthSummary({ month }: MonthSummaryProps) {
   const { month: monthName, year } = monthParts(month.yearMonth);
-  const leveledUp = month.endingBalance > month.lastMonthBalance;
+  // Future months are fully planned, so a higher balance isn't an achievement yet
+  const leveledUp =
+    month.endingBalance > month.lastMonthBalance &&
+    month.yearMonth <= getCurrentYearMonth();
   const previousMonth = prevYearMonth(month.yearMonth);
   const followingMonth = nextYearMonth(month.yearMonth);
 
@@ -42,7 +46,7 @@ export function MonthSummary({ month }: MonthSummaryProps) {
           </Button>
 
           <div>
-            <div className="text-display text-pixel text-2xl text-balance">{monthName}</div>
+            <h2 className="text-display text-fin-balance text-2xl">{monthName}</h2>
             {year && (
               <div className="text-muted-finance text-body mt-1 text-sm font-semibold tracking-widest">
                 {year}
@@ -58,12 +62,15 @@ export function MonthSummary({ month }: MonthSummaryProps) {
         </div>
 
         {leveledUp && (
-          <Badge className="bg-income-subtle text-foreground">
-            Level up! Ending balance improved
+          <Badge className="bg-income-subtle h-auto max-w-full whitespace-normal text-center text-foreground">
+            <span className="flex flex-wrap items-center justify-center gap-1">
+              <Icon name="arrowUp" size="xs" colorClass="text-income" />
+              Level up! Balance improved
+            </span>
           </Badge>
         )}
 
-        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-3 lg:grid-cols-2">
           <CoinCounter
             label="Last month"
             amount={formatCurrency(month.lastMonthBalance)}
