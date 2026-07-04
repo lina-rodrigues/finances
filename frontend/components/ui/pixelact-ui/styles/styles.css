@@ -1,16 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
-
 :root {
   --box-shadow-width: 4px;
-  --pixel-box-shadow: calc(-1 * (var(--box-shadow-width))) 0 0 0 black,
-    var(--box-shadow-width) 0 0 0 black, 0 var(--box-shadow-width) 0 0 black,
-    0 calc(-1 * (var(--box-shadow-width))) 0 0 black;
+  --pixel-box-shadow: calc(-1 * (var(--box-shadow-width))) 0 0 0 var(--foreground),
+    var(--box-shadow-width) 0 0 0 var(--foreground),
+    0 var(--box-shadow-width) 0 0 var(--foreground),
+    0 calc(-1 * (var(--box-shadow-width))) 0 0 var(--foreground);
   --pixel-box-shadow-destructive: calc(-1 * (var(--box-shadow-width))) 0 0 0
       var(--destructive),
     var(--box-shadow-width) 0 0 0 var(--destructive),
     0 var(--box-shadow-width) 0 0 var(--destructive),
     0 calc(-1 * (var(--box-shadow-width))) 0 0 var(--destructive);
-  --default-inner-border-color: rgb(200, 200, 200);
 }
 
 .dark {
@@ -21,7 +19,8 @@
 }
 
 .pixel-font {
-  font-family: "Press Start 2P", system-ui, -apple-system, sans-serif;
+  /* Press Start 2P is self-hosted via next/font (lib/fonts.ts) */
+  font-family: var(--font-display, "Press Start 2P"), system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   letter-spacing: 0.5px;
 }

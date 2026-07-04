@@ -18,7 +18,6 @@
   --frame-border: var(--foreground);
   --frame-glow: color-mix(in srgb, var(--primary) 35%, transparent);
   --frame-inner: var(--card);
-  --text-stroke: color-mix(in srgb, var(--primary) 60%, var(--foreground));
   --dot-color: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
@@ -46,7 +45,8 @@
   color: var(--finance-planned-text);
 }
 
-.text-balance {
+/* Named to avoid colliding with Tailwind's `text-balance` (text-wrap: balance) */
+.text-fin-balance {
   color: var(--finance-balance-text);
 }
 
@@ -92,12 +92,13 @@
   gap: 0.5rem;
   padding: 0.375rem 1rem;
   border-radius: 0;
-  box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+  box-shadow: var(--pixel-box-shadow);
   margin: 4px;
   background: var(--primary);
   color: var(--primary-foreground);
   font-family: var(--font-display, ui-sans-serif);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -110,7 +111,7 @@
 
 .inventory-slot {
   background: var(--card);
-  box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+  box-shadow: var(--pixel-box-shadow);
   margin: 4px;
   padding: 0.75rem 1rem;
 }
@@ -121,8 +122,8 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  box-shadow: var(--pixel-box-shadow, 2px 2px 0 0 var(--foreground));
-  margin: 2px;
+  box-shadow: var(--pixel-box-shadow);
+  margin: 4px;
   background: var(--muted);
 }
 
@@ -141,9 +142,16 @@
   .phone-shell {
     min-height: calc(100dvh - 3rem);
     margin-block: 1.5rem;
-    box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+    box-shadow: var(--pixel-box-shadow);
     outline: 2px solid var(--foreground);
     outline-offset: 0;
+  }
+}
+
+/* On large screens, widen the frame so categories can flow in two columns */
+@media (min-width: 1024px) {
+  .phone-shell {
+    max-width: 56rem;
   }
 }
 
@@ -152,7 +160,8 @@
   top: 0;
   z-index: 40;
   background: var(--background);
-  padding-top: env(safe-area-inset-top, 0px);
+  /* Real padding plus the notch inset; un-layered CSS overrides Tailwind's py-* */
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
   border-bottom: 2px solid color-mix(in srgb, var(--foreground) 12%, transparent);
 }
 

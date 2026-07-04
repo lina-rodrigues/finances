@@ -4,6 +4,7 @@ import { ArrowUp } from "pixelarticons/react/ArrowUp";
 import { Briefcase } from "pixelarticons/react/Briefcase";
 import { Car } from "pixelarticons/react/Car";
 import { Check } from "pixelarticons/react/Check";
+import { ChevronDown } from "pixelarticons/react/ChevronDown";
 import { ChevronLeft } from "pixelarticons/react/ChevronLeft";
 import { ChevronRight } from "pixelarticons/react/ChevronRight";
 import { Clock } from "pixelarticons/react/Clock";
@@ -15,6 +16,7 @@ import { Folder } from "pixelarticons/react/Folder";
 import { Gift } from "pixelarticons/react/Gift";
 import { Heart } from "pixelarticons/react/Heart";
 import { Home } from "pixelarticons/react/Home";
+import { InfoBox } from "pixelarticons/react/InfoBox";
 import { HumanArmsUp } from "pixelarticons/react/HumanArmsUp";
 import { MapPin } from "pixelarticons/react/MapPin";
 import { Moon } from "pixelarticons/react/Moon";
@@ -22,6 +24,7 @@ import { PenSquare } from "pixelarticons/react/PenSquare";
 import { Plus } from "pixelarticons/react/Plus";
 import { Shirt } from "pixelarticons/react/Shirt";
 import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
+import { SquareAlert } from "pixelarticons/react/SquareAlert";
 import { Trash } from "pixelarticons/react/Trash";
 import { University } from "pixelarticons/react/University";
 import { Video } from "pixelarticons/react/Video";
@@ -63,7 +66,10 @@ export type IconName =
   | "themeLight"
   | "themeDark"
   | "chevronLeft"
-  | "chevronRight";
+  | "chevronRight"
+  | "chevronDown"
+  | "alert"
+  | "info";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -97,29 +103,34 @@ export const iconMap: Record<IconName, PixelIcon> = {
   themeDark: Moon,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
+  chevronDown: ChevronDown,
+  alert: SquareAlert,
+  info: InfoBox,
 };
 
 export const iconColorMap: Record<IconName, string> = {
   income: "text-income",
   expense: "text-expense",
   planned: "text-planned",
-  balance: "text-balance",
-  endingBalance: "text-balance",
+  balance: "text-fin-balance",
+  endingBalance: "text-fin-balance",
+  /* Category icons sit on pale muted slots, so they use the darker
+     WCAG-safe finance text tints instead of the pastel fills. */
   category: "text-muted-finance",
   house: "text-link",
-  utensils: "text-warning",
-  car: "text-info",
-  cartShopping: "text-success",
-  bolt: "text-warning",
-  heartPulse: "text-error",
+  utensils: "text-expense",
+  car: "text-link",
+  cartShopping: "text-income",
+  bolt: "text-planned",
+  heartPulse: "text-expense",
   graduationCap: "text-link",
-  plane: "text-info",
-  gift: "text-secondary",
-  piggyBank: "text-success",
+  plane: "text-link",
+  gift: "text-expense",
+  piggyBank: "text-income",
   briefcase: "text-link",
-  shirt: "text-accent",
-  film: "text-secondary",
-  dumbbell: "text-success",
+  shirt: "text-planned",
+  film: "text-link",
+  dumbbell: "text-income",
   add: "text-link",
   edit: "text-muted-foreground",
   delete: "text-destructive",
@@ -127,10 +138,13 @@ export const iconColorMap: Record<IconName, string> = {
   cancel: "text-muted-foreground",
   arrowUp: "text-muted-foreground",
   arrowDown: "text-muted-foreground",
-  themeLight: "text-warning",
-  themeDark: "text-info",
+  themeLight: "text-fin-balance",
+  themeDark: "text-fin-balance",
   chevronLeft: "text-muted-finance",
   chevronRight: "text-muted-finance",
+  chevronDown: "text-muted-finance",
+  alert: "text-expense",
+  info: "text-planned",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */
