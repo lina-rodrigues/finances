@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback } from "react";
 import { toast as sonnerToast } from "sonner";
+import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import "@/components/ui/pixelact-ui/styles/styles.css";
 
@@ -38,6 +39,7 @@ interface ToastProps {
 function Toast({ title, type }: ToastProps) {
   return (
     <div
+      role="status"
       className={cn(
         "box-shadow-margin flex w-full max-w-sm items-center gap-2 bg-background p-4 shadow-(--pixel-box-shadow)",
         variantClass[type],
@@ -53,6 +55,8 @@ function Toast({ title, type }: ToastProps) {
           aria-hidden
         />
       )}
+      {type === "error" && <Icon name="alert" size="sm" />}
+      {type === "info" && <Icon name="info" size="sm" />}
       <p className="pixel-font text-sm font-semibold text-foreground">{title}</p>
     </div>
   );
