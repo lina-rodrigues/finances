@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import {
@@ -92,6 +93,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   );
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState<IconName>("category");
+  const [deletingCategory, setDeletingCategory] = useState<EditableCategory | null>(null);
 
   // router.refresh() re-runs the server page, which feeds fresh categories
   // back through initialCategories and this effect.
@@ -149,11 +151,10 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   }
 
   async function handleDelete(cat: EditableCategory) {
-    if (!confirm(`Delete category "${cat.name}"?`)) return;
-
     await run(
       async () => {
         await deleteCategory(cat.id);
+        setDeletingCategory(null);
         router.refresh();
       },
       { successMessage: "Category deleted" },
@@ -254,7 +255,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 variant="destructive"
                 size="sm"
                 className="pressable focus-ring"
-                onClick={() => handleDelete(cat)}
+                onClick={() => setDeletingCategory(cat)}
                 disabled={loading}
                 aria-label={`Delete ${cat.name}`}
               >
@@ -300,6 +301,23 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             Close
           </Button>
         </DialogFooter>
+
+        <ConfirmDialog
+          open={deletingCategory !== null}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setDeletingCategory(null);
+          }}
+          title="Delete category?"
+          description={
+            deletingCategory
+              ? `"${deletingCategory.name}" and its line items will be removed.`
+              : undefined
+          }
+          loading={loading}
+          onConfirm={() => {
+            if (deletingCategory) void handleDelete(deletingCategory);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

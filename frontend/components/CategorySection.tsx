@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BudgetBar, computeBudgetTotals } from "@/components/BudgetBar";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
@@ -32,7 +33,10 @@ interface LineItemRowProps {
 function TypeBadge({ item }: { item: LineItem }) {
   const isIncome = item.type === "income";
   return (
-    <Badge className={isIncome ? "bg-income-subtle text-foreground" : "bg-expense-subtle text-foreground"}>
+    <Badge
+      font="normal"
+      className={`h-4 px-1.5 text-[0.625rem] ${isIncome ? "bg-income-subtle text-foreground" : "bg-expense-subtle text-foreground"}`}
+    >
       <span className="flex items-center gap-1">
         <Icon name={isIncome ? "income" : "expense"} size="xs" />
         {item.type}
@@ -45,6 +49,7 @@ function LineItemRow({ item }: LineItemRowProps) {
   const router = useRouter();
   const { loading, run } = useMutationFeedback();
   const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [label, setLabel] = useState(item.label);
   const [plannedAmount, setPlannedAmount] = useState(String(item.plannedAmount));
   const [realizedAmount, setRealizedAmount] = useState(
@@ -67,10 +72,10 @@ function LineItemRow({ item }: LineItemRowProps) {
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this line item?")) return;
     await run(
       async () => {
         await deleteLineItem(item.id);
+        setConfirmingDelete(false);
         router.refresh();
       },
       { successMessage: "Line item deleted" },
@@ -134,20 +139,26 @@ function LineItemRow({ item }: LineItemRowProps) {
   const isIncome = item.type === "income";
 
   return (
-    <div className="interactive-row flex flex-col gap-2 px-2 py-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <TypeBadge item={item} />
-        <span className="text-body min-w-0 break-words">{item.label}</span>
-        {!item.isRealized && (
-          <Badge variant="outline" className="bg-planned-subtle text-foreground">
-            <span className="flex items-center gap-1">
-              <Icon name="planned" size="xs" />
-              planned
-            </span>
-          </Badge>
-        )}
+    <div className="interactive-row flex items-start justify-between gap-2 px-2 py-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
+        <span className="flex flex-wrap items-center gap-1">
+          <TypeBadge item={item} />
+          {!item.isRealized && (
+            <Badge
+              font="normal"
+              variant="outline"
+              className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+            >
+              <span className="flex items-center gap-1">
+                <Icon name="planned" size="xs" />
+                planned
+              </span>
+            </Badge>
+          )}
+        </span>
       </div>
-      <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
+      <div className="flex shrink-0 items-center gap-2">
         <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
           {isIncome ? "+" : "-"}
           {formatCurrency(item.displayAmount)}
@@ -168,7 +179,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             variant="link"
             size="sm"
             className="pressable focus-ring h-auto p-1 text-destructive"
-            onClick={handleDelete}
+            onClick={() => setConfirmingDelete(true)}
             disabled={loading}
             aria-label="Delete line item"
           >
@@ -176,6 +187,14 @@ function LineItemRow({ item }: LineItemRowProps) {
           </Button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        title="Delete line item?"
+        description={`"${item.label}" will be removed from this month.`}
+        loading={loading}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
@@ -191,27 +210,40 @@ export function CategorySection({ category, yearMonth }: CategorySectionProps) {
   const categoryTotal = sumCategoryAmounts(category);
   const { plannedTotal, realizedTotal } = computeBudgetTotals(category.lineItems);
 
+  const totalClass =
+    categoryTotal > 0 ? "text-income" : categoryTotal < 0 ? "text-expense" : "text-muted-finance";
+  const totalLabel = `${categoryTotal > 0 ? "+" : categoryTotal < 0 ? "-" : ""}${formatCurrency(
+    Math.abs(categoryTotal),
+  )}`;
+
   return (
-    <Collapsible defaultOpen className="mb-3">
+    <Collapsible defaultOpen>
       <Card>
-        <CollapsibleTrigger className="w-full cursor-pointer px-4 py-3 text-left">
-          <div className="flex w-full flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        <CollapsibleTrigger className="interactive-surface group w-full cursor-pointer px-4 py-3 text-left">
+          <div className="flex w-full items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-2">
               <span className="icon-slot shrink-0">
                 <Icon name={iconName} size="sm" />
               </span>
-              <span className="text-display truncate text-xs normal-case">{category.name}</span>
+              <h3 className="text-display truncate text-xs normal-case">{category.name}</h3>
             </span>
-            {hasContent && (
-              <span className="text-amount shrink-0 text-sm text-muted-finance sm:text-right">
-                {formatCurrency(categoryTotal)}
-              </span>
-            )}
+            <span className="flex shrink-0 items-center gap-2">
+              <span className={`text-amount text-sm ${totalClass}`}>{totalLabel}</span>
+              <Icon
+                name="chevronDown"
+                size="sm"
+                className="transition-transform duration-200 group-data-[state=open]:rotate-180"
+              />
+            </span>
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="space-y-1 pt-0">
-            {hasContent && <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />}
+            {hasContent ? (
+              <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />
+            ) : (
+              <p className="text-body text-muted-finance px-2 text-sm">Nothing planned yet.</p>
+            )}
             {category.lineItems.map((item) => (
               <LineItemRow key={item.id} item={item} />
             ))}
