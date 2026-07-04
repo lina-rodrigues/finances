@@ -26,6 +26,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, ".responsive-audit");
 const url = process.env.RESPONSIVE_CHECK_URL ?? "http://localhost:3000";
 
+// Matches SEED_DEV_EMAIL / SEED_DEV_PASSWORD defaults (pnpm seed).
+const devEmail = process.env.RESPONSIVE_CHECK_EMAIL ?? "dev@finance.local";
+const devPassword = process.env.RESPONSIVE_CHECK_PASSWORD ?? "password123";
+
 /** Typical Android status-bar inset (Playwright cannot set env(safe-area-inset-*)). */
 const SIMULATED_SAFE_AREA_TOP = 47;
 
@@ -60,6 +64,19 @@ const months = [
 ];
 
 const currentMonth = months[0];
+
+async function login(page) {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(url, { waitUntil: "networkidle" });
+  if (!page.url().includes("/login")) {
+    return;
+  }
+  await page.fill("#email", devEmail);
+  await page.fill("#password", devPassword);
+  await page.click('button[type="submit"]');
+  await page.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 15000 });
+  await page.waitForTimeout(500);
+}
 
 async function assertDevServer() {
   try {
@@ -104,6 +121,57 @@ async function openAddItemModal(page, vp) {
   await page.locator('[data-testid="add-item-trigger-category"]').click({ force: true });
 }
 
+async function captureScrollContainer(page, filePath, { expand = true } = {}) {
+  const shell = page.locator(".phone-shell");
+  const main = page.locator(".app-main");
+  if ((await shell.count()) > 0) {
+    if (expand) {
+      await shell.evaluate((el) => {
+        el.style.height = `${el.scrollHeight}px`;
+        el.style.maxHeight = "none";
+        el.style.overflow = "visible";
+      });
+      if ((await main.count()) > 0) {
+        await main.evaluate((el) => {
+          el.scrollTop = 0;
+          el.style.height = `${el.scrollHeight}px`;
+          el.style.maxHeight = "none";
+          el.style.overflow = "visible";
+        });
+      } else {
+        await shell.evaluate((el) => {
+          el.scrollTop = 0;
+        });
+      }
+      await page.waitForTimeout(50);
+      await shell.screenshot({ path: filePath });
+      await shell.evaluate((el) => {
+        el.style.height = "";
+        el.style.maxHeight = "";
+        el.style.overflow = "";
+      });
+      if ((await main.count()) > 0) {
+        await main.evaluate((el) => {
+          el.style.height = "";
+          el.style.maxHeight = "";
+          el.style.overflow = "";
+        });
+      }
+      return;
+    }
+    await shell.screenshot({ path: filePath });
+    return;
+  }
+
+  const viewport = page.locator(".scroll-viewport");
+  if ((await viewport.count()) > 0) {
+    await viewport.screenshot({ path: filePath });
+    return;
+  }
+
+  await page.screenshot({ path: filePath });
+}
+
 async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea = false }) {
   const dir = path.join(outDir, theme, currentMonth.name, subdir, "add-item-modal");
   await mkdir(dir, { recursive: true });
@@ -120,7 +188,7 @@ async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea =
 
   const baseName = `${vp.name}-${vp.width}x${vp.height}`;
   const modalFile = path.join(dir, `${baseName}-modal.png`);
-  await page.screenshot({ path: modalFile });
+  await captureScrollContainer(page, modalFile, { expand: false });
   console.log(`saved ${path.relative(root, modalFile)}`);
 
   const comboboxInput = page.locator('[data-testid="category-combobox-input"]');
@@ -129,7 +197,7 @@ async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea =
   await page.waitForTimeout(200);
 
   const comboboxFile = path.join(dir, `${baseName}-combobox-open.png`);
-  await page.screenshot({ path: comboboxFile });
+  await captureScrollContainer(page, comboboxFile, { expand: false });
   console.log(`saved ${path.relative(root, comboboxFile)}`);
 
   await page.keyboard.press("Escape");
@@ -147,7 +215,7 @@ async function captureViewport(page, { theme, month, vp, subdir, simulateSafeAre
   await page.waitForTimeout(500);
 
   const file = path.join(dir, `${vp.name}-${vp.width}x${vp.height}.png`);
-  await page.screenshot({ path: file, fullPage: true });
+  await captureScrollContainer(page, file);
   console.log(`saved ${path.relative(root, file)}`);
 
   if (month.name === currentMonth.name && subdir === "") {
@@ -164,6 +232,7 @@ await rm(outDir, { recursive: true, force: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
+await login(page);
 
 const baseTotal = themes.length * months.length * viewports.length;
 const safeAreaTotal = themes.length * months.length * phoneViewports.length;

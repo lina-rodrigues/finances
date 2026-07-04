@@ -9,19 +9,23 @@ import {
 } from "@/components/DialogPortals";
 import "@/components/ui/pixelact-ui/styles/styles.css";
 
-function isPortaledSelectTarget(target: EventTarget | null): boolean {
-  return target instanceof Element && target.closest('[data-slot="dialog-overlay-portal"]') !== null;
-}
+/**
+ * Resolves the app-shell portal element without reading the ref during render,
+ * so the dialog never portals to document.body for a frame and then re-portals.
+ */
+function usePortalContainer(
+  portalRef: React.RefObject<HTMLDivElement | null> | null,
+): HTMLDivElement | undefined {
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
 
-function guardPortaledSelectOutside<
-  E extends { target: EventTarget | null; preventDefault(): void },
->(userHandler?: (event: E) => void) {
-  return (event: E) => {
-    if (isPortaledSelectTarget(event.target)) {
-      event.preventDefault();
-    }
-    userHandler?.(event);
-  };
+  // No dependency array: on initial mount the shell ref is not attached yet
+  // (ancestor host refs attach after child layout effects), so re-check every
+  // render. The setState bails out once the value stabilizes.
+  React.useLayoutEffect(() => {
+    setContainer(portalRef?.current ?? null);
+  });
+
+  return container ?? undefined;
 }
 
 const Dialog = ({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) => {
@@ -41,7 +45,8 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      inAppShell ? "app-shell-column z-0" : "fixed inset-0 z-50",
+      // Must sit above the sticky app header (z-40) and the add-item FAB (z-30)
+      inAppShell ? "app-shell-column z-50" : "fixed inset-0 z-50",
       "bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
@@ -53,11 +58,15 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, onPointerDownOutside, onInteractOutside, onFocusOutside, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const overlayPortalRef = React.useRef<HTMLDivElement>(null);
   const appPortalRef = useAppDialogPortal();
   const inAppShell = appPortalRef != null;
-  const portalContainer = inAppShell ? appPortalRef.current : undefined;
+  const portalContainer = usePortalContainer(appPortalRef);
+
+  if (inAppShell && !portalContainer) {
+    return null;
+  }
 
   return (
     <DialogPortal container={portalContainer}>
@@ -67,12 +76,9 @@ const DialogContent = React.forwardRef<
           ref={ref}
           className={cn(
             "dialog-content-frame pixel-font rounded-none shadow-(--pixel-box-shadow) bg-background grid max-h-[calc(100%-2rem)] gap-4 overflow-visible border p-6 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-            inAppShell ? "dialog-in-app-shell z-10" : "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            inAppShell ? "dialog-in-app-shell z-50" : "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
             className,
           )}
-          onPointerDownOutside={guardPortaledSelectOutside(onPointerDownOutside)}
-          onInteractOutside={guardPortaledSelectOutside(onInteractOutside)}
-          onFocusOutside={guardPortaledSelectOutside(onFocusOutside)}
           {...props}
         >
           {children}

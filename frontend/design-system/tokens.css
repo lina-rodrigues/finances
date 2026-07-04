@@ -19,6 +19,7 @@
   --frame-glow: color-mix(in srgb, var(--primary) 35%, transparent);
   --frame-inner: var(--card);
   --dot-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  --scrollbar-handle: color-mix(in srgb, var(--foreground) 28%, transparent);
 }
 
 .dark {
@@ -31,6 +32,7 @@
   --finance-hover: color-mix(in srgb, var(--primary) 15%, var(--card));
   --finance-hover-strong: color-mix(in srgb, var(--primary) 25%, var(--card));
   --dot-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  --scrollbar-handle: color-mix(in srgb, var(--foreground) 24%, transparent);
 }
 
 .text-income {
@@ -127,20 +129,46 @@
   background: var(--muted);
 }
 
+/* Scroll containers — scrollbar stays inside the element, never on the document */
+.scroll-viewport {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-handle) transparent;
+}
+
+.scroll-viewport::-webkit-scrollbar {
+  width: 0.375rem;
+  background: transparent;
+}
+
+.scroll-viewport::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-handle);
+}
+
+.scroll-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Phone-app shell — full bleed on mobile, framed column on desktop */
 .phone-shell {
   width: 100%;
   max-width: 28rem;
   margin-inline: auto;
   background: var(--background);
-  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .phone-shell {
-    min-height: calc(100dvh - 3rem);
+    height: calc(100dvh - 3rem);
+    max-height: calc(100dvh - 3rem);
     margin-block: 1.5rem;
     box-shadow: var(--pixel-box-shadow);
     outline: 2px solid var(--foreground);
@@ -155,25 +183,57 @@
   }
 }
 
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
+/* App header — fixed row above the scrollable main pane */
+.app-nav-bar {
+  width: 100%;
+  flex-shrink: 0;
   background: var(--background);
-  /* Browser tabs already sit below system UI — safe-area only in installed PWA */
-  padding-top: 1rem;
   border-bottom: 2px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.app-nav-handle {
+  display: block;
+  width: 3rem;
+  height: 0.3125rem;
+  margin: 0.375rem auto 0.625rem;
+  background: color-mix(in srgb, var(--foreground) 35%, transparent);
+}
+
+.app-header {
+  top: 0;
+  /* Match pre-overlay header breathing room; handle sits above the toolbar row */
+  padding-top: 0.25rem;
 }
 
 @media (display-mode: standalone) {
   .app-header {
-    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-top: calc(0.25rem + env(safe-area-inset-top, 0px));
   }
 }
 
 .app-main {
   flex: 1;
+  min-height: 0;
   padding-bottom: 2rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-handle) transparent;
+}
+
+.app-main::-webkit-scrollbar {
+  width: 0.375rem;
+  background: transparent;
+}
+
+.app-main::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-handle);
+}
+
+.app-main::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @media (display-mode: standalone) {

@@ -145,8 +145,11 @@
 }
 
 @layer base {
-  html {
-    scrollbar-gutter: stable;
+  html,
+  body {
+    overflow: hidden;
+    height: 100%;
+    max-height: 100dvh;
   }
   * {
     @apply border-border outline-ring/50;

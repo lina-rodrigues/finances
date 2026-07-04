@@ -24,13 +24,12 @@ export function PhoneShell({ children }: { children: React.ReactNode }) {
       syncAppShellMetrics(shell);
     });
     observer.observe(shell);
-
-    const handleResize = () => syncAppShellMetrics(shell);
-    window.addEventListener("resize", handleResize);
+    // Viewport resizes recenter the shell without changing its width — observe
+    // the root element so --app-shell-left stays in sync (body never scrolls).
+    observer.observe(document.documentElement);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", handleResize);
       document.documentElement.style.removeProperty("--app-shell-left");
       document.documentElement.style.removeProperty("--app-shell-width");
     };

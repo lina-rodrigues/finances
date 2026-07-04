@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${nunito.variable} ${pressStart.variable} ${jetbrainsMono.variable} bg-dots min-h-screen font-sans`}
+        className={`${nunito.variable} ${pressStart.variable} ${jetbrainsMono.variable} bg-dots font-sans`}
       >
         <AuthProvider>
           <ThemeFlashScript />
