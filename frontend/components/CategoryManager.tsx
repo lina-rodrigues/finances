@@ -34,6 +34,7 @@ import {
   resolveCategoryIcon,
   type IconName,
 } from "@/lib/icons";
+import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface CategoryManagerProps {
@@ -86,6 +87,7 @@ function IconSelect({
 
 export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { loading, run } = useMutationFeedback();
   const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState<EditableCategory[]>(() =>
@@ -95,8 +97,6 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [newIcon, setNewIcon] = useState<IconName>("category");
   const [deletingCategory, setDeletingCategory] = useState<EditableCategory | null>(null);
 
-  // router.refresh() re-runs the server page, which feeds fresh categories
-  // back through initialCategories and this effect.
   useEffect(() => {
     setCategories(sortToEditable(initialCategories));
   }, [initialCategories]);
@@ -112,7 +112,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         });
         router.refresh();
       },
-      { successMessage: "Category updated" },
+      { successMessage: t("categories.categoryUpdated") },
     );
   }
 
@@ -132,7 +132,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         await reorderCategories(items);
         router.refresh();
       },
-      { successMessage: "Categories reordered" },
+      { successMessage: t("categories.categoryReordered") },
     );
   }
 
@@ -146,7 +146,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         setNewIcon("category");
         router.refresh();
       },
-      { successMessage: "Category created" },
+      { successMessage: t("categories.categoryAdded") },
     );
   }
 
@@ -157,7 +157,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         setDeletingCategory(null);
         router.refresh();
       },
-      { successMessage: "Category deleted" },
+      { successMessage: t("categories.categoryDeleted") },
     );
   }
 
@@ -177,15 +177,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         onClick={() => setOpen(true)}
       >
         <Icon name="edit" size="xs" />
-        Manage
+        {t("categories.manage")}
       </Button>
-      <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto">
+      <DialogContent className="max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Manage categories</DialogTitle>
+          <DialogTitle>{t("categories.manageTitle")}</DialogTitle>
         </DialogHeader>
-        <p className="text-muted-finance text-body text-sm">
-          Rename, pick icons, reorder, or add categories.
-        </p>
+        <p className="text-muted-finance text-body text-sm">{t("categories.manageHint")}</p>
 
         <div className="mt-4 max-h-[50vh] space-y-2 overflow-y-auto">
           {categories.map((cat, index) => (
@@ -201,7 +199,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                   className="pressable focus-ring h-auto p-1"
                   onClick={() => handleMove(index, -1)}
                   disabled={loading || index === 0}
-                  aria-label="Move up"
+                  aria-label={t("categories.moveUp")}
                 >
                   <Icon name="arrowUp" size="xs" />
                 </Button>
@@ -212,7 +210,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                   className="pressable focus-ring h-auto p-1"
                   onClick={() => handleMove(index, 1)}
                   disabled={loading || index === categories.length - 1}
-                  aria-label="Move down"
+                  aria-label={t("categories.moveDown")}
                 >
                   <Icon name="arrowDown" size="xs" />
                 </Button>
@@ -247,7 +245,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 }
               >
                 {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
-                Save
+                {t("common.save")}
               </Button>
 
               <Button
@@ -257,7 +255,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 className="pressable focus-ring"
                 onClick={() => setDeletingCategory(cat)}
                 disabled={loading}
-                aria-label={`Delete ${cat.name}`}
+                aria-label={t("categories.deleteCategory")}
               >
                 <Icon name="delete" size="xs" />
               </Button>
@@ -266,13 +264,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         </div>
 
         <hr className="my-4 border-t-2 border-foreground/20" />
-        <p className="text-display mb-2 text-xs">Add category</p>
+        <p className="text-display mb-2 text-xs">{t("categories.addCategory")}</p>
 
         <div className="flex flex-wrap items-center gap-2">
           <Icon name={newIcon} size="sm" />
           <Input
             className="min-w-0 flex-1"
-            placeholder="Category name"
+            placeholder={t("categories.categoryName")}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             disabled={loading}
@@ -292,13 +290,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             disabled={loading || !newName.trim()}
           >
             {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-            Add
+            {t("categories.add")}
           </Button>
         </div>
 
         <DialogFooter>
           <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
-            Close
+            {t("categories.close")}
           </Button>
         </DialogFooter>
 
@@ -307,10 +305,10 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           onOpenChange={(isOpen) => {
             if (!isOpen) setDeletingCategory(null);
           }}
-          title="Delete category?"
+          title={t("categories.deleteCategory")}
           description={
             deletingCategory
-              ? `"${deletingCategory.name}" and its line items will be removed.`
+              ? t("categories.deleteCategoryDescription", { name: deletingCategory.name })
               : undefined
           }
           loading={loading}

@@ -8,5 +8,11 @@ services:
     environment:
       MONGO_INITDB_DATABASE: finance
 
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
 volumes:
   mongo_data:

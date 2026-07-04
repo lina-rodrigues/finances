@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-import { CategoryCombobox, UNCATEGORIZED_LABEL } from "@/components/CategoryCombobox";
+import { CategoryCombobox } from "@/components/CategoryCombobox";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import {
@@ -27,6 +27,7 @@ import {
   type FlatCategory,
   type LineItemType,
 } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface AddLineItemDialogProps {
@@ -37,10 +38,6 @@ interface AddLineItemDialogProps {
   initialCategoryName?: string;
 }
 
-function defaultCategoryName(initialCategoryName?: string): string {
-  return initialCategoryName ?? UNCATEGORIZED_LABEL;
-}
-
 export function AddLineItemDialog({
   open,
   onOpenChange,
@@ -49,10 +46,12 @@ export function AddLineItemDialog({
   initialCategoryName,
 }: AddLineItemDialogProps) {
   const router = useRouter();
+  const { t } = useTranslation();
+  const uncategorizedLabel = t("common.uncategorized");
   const { loading, run } = useMutationFeedback();
   const categoryFieldId = useId();
   const labelFieldId = useId();
-  const [categoryName, setCategoryName] = useState(defaultCategoryName(initialCategoryName));
+  const [categoryName, setCategoryName] = useState(initialCategoryName ?? uncategorizedLabel);
   const [type, setType] = useState<LineItemType>("expense");
   const [label, setLabel] = useState("");
   const [plannedAmount, setPlannedAmount] = useState("");
@@ -60,16 +59,16 @@ export function AddLineItemDialog({
 
   useEffect(() => {
     if (open) {
-      setCategoryName(defaultCategoryName(initialCategoryName));
+      setCategoryName(initialCategoryName ?? uncategorizedLabel);
       setType("expense");
       setLabel("");
       setPlannedAmount("");
       setRealizedAmount("");
     }
-  }, [open, initialCategoryName]);
+  }, [open, initialCategoryName, uncategorizedLabel]);
 
   async function resolveCategoryId(trimmed: string): Promise<string | null> {
-    if (trimmed.toLowerCase() === UNCATEGORIZED_LABEL.toLowerCase()) {
+    if (trimmed.toLowerCase() === uncategorizedLabel.toLowerCase()) {
       return null;
     }
 
@@ -102,7 +101,7 @@ export function AddLineItemDialog({
         onOpenChange(false);
         router.refresh();
       },
-      { successMessage: "Line item added" },
+      { successMessage: t("categories.itemAdded") },
     );
   }
 
@@ -110,10 +109,10 @@ export function AddLineItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="add-line-item-dialog"
-        className="max-h-[85dvh] w-[calc(100%-2rem)] max-w-md overflow-x-hidden overflow-y-auto"
+        className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle className="text-display text-xs normal-case">Add item</DialogTitle>
+          <DialogTitle className="text-display text-xs normal-case">{t("addItem.title")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
@@ -127,7 +126,7 @@ export function AddLineItemDialog({
 
           <div className="space-y-1">
             <label htmlFor={`${categoryFieldId}-type`} className="text-body text-sm font-semibold">
-              Type
+              {t("addItem.type")}
             </label>
             <div className="finance-dialog-field">
               <Select value={type} onValueChange={(value) => setType(value as LineItemType)} disabled={loading}>
@@ -135,8 +134,8 @@ export function AddLineItemDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">{t("categories.expense")}</SelectItem>
+                  <SelectItem value="income">{t("categories.income")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -144,12 +143,12 @@ export function AddLineItemDialog({
 
           <div className="space-y-1">
             <label htmlFor={labelFieldId} className="text-body text-sm font-semibold">
-              Label
+              {t("addItem.label")}
             </label>
             <div className="finance-dialog-field">
               <Input
                 id={labelFieldId}
-                placeholder="Label"
+                placeholder={t("addItem.label")}
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
                 required
@@ -160,14 +159,14 @@ export function AddLineItemDialog({
 
           <div className="space-y-1">
             <label htmlFor={`${labelFieldId}-planned`} className="text-body text-sm font-semibold">
-              Planned
+              {t("addItem.planned")}
             </label>
             <div className="finance-dialog-field">
               <Input
                 id={`${labelFieldId}-planned`}
                 type="number"
                 step="0.01"
-                placeholder="Planned"
+                placeholder={t("addItem.planned")}
                 value={plannedAmount}
                 onChange={(event) => setPlannedAmount(event.target.value)}
                 required
@@ -178,14 +177,14 @@ export function AddLineItemDialog({
 
           <div className="space-y-1">
             <label htmlFor={`${labelFieldId}-realized`} className="text-body text-sm font-semibold">
-              Realized
+              {t("addItem.realized")}
             </label>
             <div className="finance-dialog-field">
               <Input
                 id={`${labelFieldId}-realized`}
                 type="number"
                 step="0.01"
-                placeholder="Realized"
+                placeholder={t("categories.realized")}
                 value={realizedAmount}
                 onChange={(event) => setRealizedAmount(event.target.value)}
                 disabled={loading}
@@ -203,7 +202,7 @@ export function AddLineItemDialog({
               disabled={loading}
             >
               <Icon name="cancel" size="xs" />
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -213,7 +212,7 @@ export function AddLineItemDialog({
               disabled={loading}
             >
               {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-              Add
+              {t("addItem.submit")}
             </Button>
           </DialogFooter>
         </form>

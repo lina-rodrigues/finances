@@ -1,0 +1,133 @@
+{
+  "common": {
+    "appTitle": "Finanças",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "confirm": "Confirmar",
+    "loading": "Carregando…",
+    "somethingWrong": "Algo deu errado. Tente novamente.",
+    "uncategorized": "Sem categoria"
+  },
+  "auth": {
+    "login": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Entre na sua conta",
+      "email": "E-mail",
+      "password": "Senha",
+      "submit": "Entrar",
+      "forgotPassword": "Esqueceu a senha?",
+      "noAccount": "Não tem uma conta?",
+      "signUp": "Cadastre-se"
+    },
+    "signup": {
+      "title": "Criar conta",
+      "subtitle": "Cadastre-se com um código de convite",
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "invitationCode": "Código de convite",
+      "submit": "Criar conta",
+      "hasAccount": "Já tem uma conta?",
+      "signIn": "Entrar"
+    },
+    "forgotPassword": {
+      "title": "Esqueceu a senha",
+      "subtitle": "Enviaremos um link de redefinição",
+      "email": "E-mail",
+      "submit": "Enviar link",
+      "backToLogin": "Voltar ao login",
+      "success": "Se esse e-mail existir, um link foi enviado."
+    },
+    "resetPassword": {
+      "title": "Redefinir senha",
+      "subtitle": "Escolha uma nova senha",
+      "password": "Nova senha",
+      "submit": "Redefinir senha",
+      "success": "Senha atualizada. Você já pode entrar.",
+      "invalidToken": "Este link é inválido ou expirou."
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "name": "Nome",
+    "theme": "Tema",
+    "themeSystem": "Padrão do sistema",
+    "themeLight": "Claro",
+    "themeDark": "Escuro",
+    "currency": "Moeda",
+    "language": "Idioma",
+    "languageEn": "Inglês",
+    "languagePt": "Português",
+    "logout": "Sair",
+    "saved": "Configurações salvas"
+  },
+  "month": {
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "lastMonth": "Mês passado",
+    "ending": "Saldo final",
+    "levelUp": "Level up! Saldo melhorou"
+  },
+  "categories": {
+    "title": "Categorias",
+    "addItem": "Adicionar item",
+    "manage": "Gerenciar",
+    "empty": "Nenhuma categoria ainda. Execute o seed ou adicione uma em Gerenciar.",
+    "income": "Receita",
+    "expense": "Despesa",
+    "planned": "Planejado",
+    "realized": "Realizado",
+    "deleteItem": "Excluir item",
+    "deleteItemConfirm": "Excluir este item?",
+    "deleteCategory": "Excluir categoria",
+    "deleteCategoryConfirm": "Excluir \"{name}\"? Isso não pode ser desfeito.",
+    "categoryName": "Nome da categoria",
+    "addCategory": "Adicionar categoria",
+    "editCategory": "Editar categoria",
+    "noCategories": "Sem categorias",
+    "reorderHint": "Arraste ou use as setas para reordenar",
+    "itemAdded": "Item adicionado",
+    "itemUpdated": "Item atualizado",
+    "itemDeleted": "Item excluído",
+    "categoryAdded": "Categoria adicionada",
+    "categoryUpdated": "Categoria atualizada",
+    "categoryDeleted": "Categoria excluída",
+    "categoryReordered": "Categorias reordenadas",
+    "manageTitle": "Gerenciar categorias",
+    "manageHint": "Renomeie, escolha ícones, reordene ou adicione categorias.",
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "close": "Fechar",
+    "add": "Adicionar",
+    "nothingPlanned": "Nada planejado ainda.",
+    "plannedBadge": "planejado",
+    "deleteLineItemDescription": "\"{label}\" será removido deste mês.",
+    "deleteCategoryDescription": "\"{name}\" e seus itens serão removidos."
+  },
+  "addItem": {
+    "title": "Adicionar item",
+    "category": "Categoria",
+    "type": "Tipo",
+    "label": "Rótulo",
+    "planned": "Planejado",
+    "realized": "Realizado (opcional)",
+    "submit": "Adicionar item"
+  },
+  "budget": {
+    "plannedOf": "{spent} de {planned} planejado"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Faça login novamente.",
+    "INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
+    "INVALID_INVITATION_CODE": "Código de convite inválido.",
+    "EMAIL_ALREADY_EXISTS": "Já existe uma conta com este e-mail.",
+    "INVALID_OR_EXPIRED_TOKEN": "Este link é inválido ou expirou.",
+    "NOT_FOUND": "Não encontrado.",
+    "CATEGORY_HAS_LINE_ITEMS": "Não é possível excluir categoria com itens.",
+    "Validation error": "Verifique os dados informados."
+  },
+  "toast": {
+    "signedOut": "Sessão encerrada"
+  }
+}

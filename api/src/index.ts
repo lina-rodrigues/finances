@@ -1,7 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { connectDb } from "./db/connection.js";
+import authRouter from "./routes/auth.js";
+import usersRouter from "./routes/users.js";
 import categoriesRouter from "./routes/categories.js";
 import monthsRouter from "./routes/months.js";
 import lineItemsRouter from "./routes/lineItems.js";
@@ -11,13 +14,17 @@ const PORT = parseInt(process.env.PORT ?? "4000", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 
 const app = express();
-app.use(cors({ origin: CORS_ORIGIN }));
+app.set("trust proxy", 1);
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth", authRouter);
+app.use("/users", usersRouter);
 app.use("/categories", categoriesRouter);
 app.use("/months", monthsRouter);
 app.use("/line-items", lineItemsRouter);

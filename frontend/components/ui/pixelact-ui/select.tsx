@@ -26,14 +26,6 @@ export const inputVariants = cva("text-foreground", {
   },
 });
 
-function Select(props: React.ComponentProps<typeof ShadcnSelect>) {
-  return <ShadcnSelect {...props} />;
-}
-
-function SelectGroup(props: React.ComponentProps<typeof ShadcnSelectGroup>) {
-  return <ShadcnSelectGroup {...props} />;
-}
-
 function SelectValue({
   font,
   className,
@@ -53,22 +45,16 @@ function SelectTrigger({
   font?: "normal" | "pixel";
 }) {
   return (
-    <div
+    <ShadcnSelectTrigger
+      size={size}
       className={cn(
-        "relative shadow-(--pixel-box-shadow) box-shadow-margin w-full",
+        "relative w-full rounded-none border-0 bg-background shadow-(--pixel-box-shadow) box-shadow-margin ring-0 dark:bg-background",
+        "h-auto min-h-11 p-2 text-sm leading-normal data-[size=default]:h-auto data-[size=sm]:h-auto",
         inputVariants({ font }),
         className,
       )}
-    >
-      <ShadcnSelectTrigger
-        size={size}
-        className={cn(
-          "w-full rounded-none border-0 bg-background ring-0 shadow-none dark:bg-background",
-          className,
-        )}
-        {...props}
-      />
-    </div>
+      {...props}
+    />
   );
 }
 
@@ -89,10 +75,6 @@ function SelectContent({
   );
 }
 
-function SelectLabel(props: React.ComponentProps<typeof ShadcnSelectLabel>) {
-  return <ShadcnSelectLabel {...props} />;
-}
-
 function SelectItem({ className, ...props }: React.ComponentProps<typeof ShadcnSelectItem>) {
   return (
     <ShadcnSelectItem
@@ -105,17 +87,13 @@ function SelectItem({ className, ...props }: React.ComponentProps<typeof ShadcnS
   );
 }
 
-function SelectSeparator(props: React.ComponentProps<typeof ShadcnSelectSeparator>) {
-  return <ShadcnSelectSeparator {...props} />;
-}
-
 export {
-  Select,
+  ShadcnSelect as Select,
   SelectContent,
-  SelectGroup,
+  ShadcnSelectGroup as SelectGroup,
   SelectItem,
-  SelectLabel,
-  SelectSeparator,
+  ShadcnSelectLabel as SelectLabel,
+  ShadcnSelectSeparator as SelectSeparator,
   SelectTrigger,
   SelectValue,
 };

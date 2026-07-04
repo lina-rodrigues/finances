@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import { type Category, type FlatCategory, type LineItem } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 
 interface CategoriesSectionProps {
   categories: Category[];
@@ -24,6 +25,7 @@ export function CategoriesSection({
   flatCategories,
   yearMonth,
 }: CategoriesSectionProps) {
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [initialCategoryName, setInitialCategoryName] = useState<string | undefined>();
 
@@ -32,11 +34,13 @@ export function CategoriesSection({
     setDialogOpen(true);
   }
 
+  const uncategorizedLabel = t("common.uncategorized");
+
   const uncategorizedCategory: Category | null =
     uncategorized.length > 0
       ? {
           id: "__uncategorized__",
-          name: "Uncategorized",
+          name: uncategorizedLabel,
           order: Number.MAX_SAFE_INTEGER,
           icon: "category",
           lineItems: uncategorized,
@@ -48,7 +52,7 @@ export function CategoriesSection({
   return (
     <section className="pt-4">
       <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-display text-sm">Categories</h2>
+        <h2 className="text-display text-sm">{t("categories.title")}</h2>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -59,7 +63,7 @@ export function CategoriesSection({
             onClick={() => openAddItem()}
           >
             <Icon name="add" size="xs" />
-            Add item
+            {t("categories.addItem")}
           </Button>
           <CategoryManager initialCategories={flatCategories} />
         </div>
@@ -70,9 +74,7 @@ export function CategoriesSection({
           <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
             <Image src="/assets/mascot-piggy.svg" alt="" width={64} height={64} aria-hidden />
             <Alert className="max-w-sm">
-              <AlertDescription className="text-body">
-                No categories yet. Run the seed script or add one with Manage.
-              </AlertDescription>
+              <AlertDescription className="text-body">{t("categories.empty")}</AlertDescription>
             </Alert>
           </CardContent>
         </Card>
@@ -90,7 +92,7 @@ export function CategoriesSection({
             <CategorySection
               key={uncategorizedCategory.id}
               category={uncategorizedCategory}
-              onAddItem={() => openAddItem("Uncategorized")}
+              onAddItem={() => openAddItem(uncategorizedLabel)}
             />
           )}
         </div>
@@ -102,7 +104,7 @@ export function CategoriesSection({
         size="lg"
         className="add-item-fab pressable focus-ring box-shadow-margin sm:hidden"
         data-testid="add-item-trigger-fab"
-        aria-label="Add item"
+        aria-label={t("categories.addItem")}
         onClick={() => openAddItem()}
       >
         <Icon name="add" size="md" />

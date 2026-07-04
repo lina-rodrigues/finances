@@ -1,0 +1,294 @@
+"use client";
+
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/pixelact-ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/pixelact-ui/dialog";
+import { Input } from "@/components/ui/pixelact-ui/input";
+import { Label } from "@/components/ui/pixelact-ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/pixelact-ui/select";
+import { Spinner } from "@/components/ui/pixelact-ui/spinner";
+import { updateUserProfile, type ThemePreference } from "@/lib/auth-api";
+import { useAuth } from "@/lib/AuthProvider";
+import { getCurrencyOptions } from "@/lib/currencies";
+import { useTranslation } from "@/lib/i18n";
+import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import type { AppLanguage } from "@/lib/auth-api";
+
+interface SettingsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+type ThemeOption = "system" | "light" | "dark";
+
+function themeToOption(theme: ThemePreference): ThemeOption {
+  if (theme === "light" || theme === "dark") {
+    return theme;
+  }
+  return "system";
+}
+
+function optionToTheme(option: ThemeOption): ThemePreference {
+  return option === "system" ? null : option;
+}
+
+export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+  const { user, updateLocalPreferences, updateLocalName, logout } = useAuth();
+  const { t, setLocale } = useTranslation();
+  const { loading, run } = useMutationFeedback();
+  const currencyListId = useId();
+
+  const [name, setName] = useState(user?.name ?? "");
+  const [themeOption, setThemeOption] = useState<ThemeOption>("system");
+  const [currency, setCurrency] = useState("USD");
+  const [language, setLanguage] = useState<AppLanguage>("en");
+  const [currencyQuery, setCurrencyQuery] = useState("");
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currencyContainerRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
+
+  const currencyOptions = useMemo(() => getCurrencyOptions(), []);
+  const filteredCurrencies = useMemo(() => {
+    const q = currencyQuery.trim().toLowerCase();
+    if (!q) {
+      return currencyOptions;
+    }
+    return currencyOptions.filter(
+      (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q),
+    );
+  }, [currencyOptions, currencyQuery]);
+
+  useEffect(() => {
+    if (open && !wasOpenRef.current && user) {
+      setName(user.name);
+      setThemeOption(themeToOption(user.preferences.theme));
+      setCurrency(user.preferences.currency);
+      setLanguage(user.preferences.language);
+      setCurrencyQuery("");
+      setCurrencyOpen(false);
+    }
+    wasOpenRef.current = open;
+  }, [open, user]);
+
+  useEffect(() => {
+    if (!currencyOpen) {
+      return;
+    }
+    function handlePointerDown(e: MouseEvent) {
+      if (currencyContainerRef.current && !currencyContainerRef.current.contains(e.target as Node)) {
+        setCurrencyOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [currencyOpen]);
+
+  async function savePreferences(patch: {
+    name?: string;
+    preferences?: Partial<{ theme: ThemePreference; currency: string; language: AppLanguage }>;
+  }) {
+    await run(
+      async () => {
+        const updated = await updateUserProfile(patch);
+        updateLocalName(updated.name);
+        updateLocalPreferences(updated.preferences);
+        if (updated.preferences.language !== language) {
+          setLocale(updated.preferences.language);
+        }
+      },
+      { successMessage: t("settings.saved") },
+    );
+  }
+
+  async function handleNameBlur() {
+    if (!user || name.trim() === user.name) {
+      return;
+    }
+    await savePreferences({ name: name.trim() });
+  }
+
+  async function handleThemeChange(option: ThemeOption) {
+    const next = optionToTheme(option);
+    setThemeOption(option);
+    updateLocalPreferences({ theme: next });
+    await savePreferences({ preferences: { theme: next } });
+  }
+
+  async function handleLanguageChange(next: AppLanguage) {
+    setLanguage(next);
+    updateLocalPreferences({ language: next });
+    setLocale(next);
+    await savePreferences({ preferences: { language: next } });
+  }
+
+  async function handleCurrencySelect(code: string) {
+    setCurrency(code);
+    setCurrencyOpen(false);
+    setCurrencyQuery("");
+    updateLocalPreferences({ currency: code });
+    await savePreferences({ preferences: { currency: code } });
+  }
+
+  const selectedCurrency = currencyOptions.find((c) => c.code === currency);
+
+  const themeItems = useMemo(
+    () => ({
+      system: t("settings.themeSystem"),
+      light: t("settings.themeLight"),
+      dark: t("settings.themeDark"),
+    }),
+    [t],
+  );
+
+  const languageItems = useMemo(
+    () => ({
+      en: t("settings.languageEn"),
+      pt: t("settings.languagePt"),
+    }),
+    [t],
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85dvh] flex-col gap-4 overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle className="text-display text-xs normal-case">{t("settings.title")}</DialogTitle>
+        </DialogHeader>
+
+        <div className="finance-dialog-form min-h-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto px-6">
+          <div className="space-y-1">
+            <Label htmlFor="settings-name">{t("settings.name")}</Label>
+            <div className="finance-dialog-field">
+              <Input
+                id="settings-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={() => void handleNameBlur()}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="settings-theme">{t("settings.theme")}</Label>
+            <div className="finance-dialog-field">
+              <Select
+                value={themeOption}
+                items={themeItems}
+                onValueChange={(value) => void handleThemeChange(value as ThemeOption)}
+                disabled={loading}
+              >
+                <SelectTrigger id="settings-theme">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="system">{t("settings.themeSystem")}</SelectItem>
+                  <SelectItem value="light">{t("settings.themeLight")}</SelectItem>
+                  <SelectItem value="dark">{t("settings.themeDark")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1" ref={currencyContainerRef}>
+            <Label htmlFor={`${currencyListId}-input`}>{t("settings.currency")}</Label>
+            <div className="finance-dialog-field relative">
+              <Input
+                id={`${currencyListId}-input`}
+                role="combobox"
+                aria-expanded={currencyOpen}
+                aria-controls={`${currencyListId}-listbox`}
+                value={currencyOpen ? currencyQuery : `${currency} — ${selectedCurrency?.name ?? currency}`}
+                onChange={(e) => {
+                  setCurrencyQuery(e.target.value);
+                  setCurrencyOpen(true);
+                }}
+                onFocus={() => setCurrencyOpen(true)}
+                disabled={loading}
+              />
+              {currencyOpen && (
+                <ul
+                  id={`${currencyListId}-listbox`}
+                  role="listbox"
+                  className="absolute top-full z-[60] mt-1 max-h-48 w-full overflow-y-auto border bg-background shadow-(--pixel-box-shadow)"
+                >
+                  {filteredCurrencies.map((option) => (
+                    <li key={option.code} role="presentation">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={option.code === currency}
+                        className={`text-body flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted ${
+                          option.code === currency ? "bg-muted" : ""
+                        } ${option.pinned ? "font-semibold" : ""}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => void handleCurrencySelect(option.code)}
+                      >
+                        <span>{option.code}</span>
+                        <span className="text-muted-finance truncate">{option.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="settings-language">{t("settings.language")}</Label>
+            <div className="finance-dialog-field">
+              <Select
+                value={language}
+                items={languageItems}
+                onValueChange={(value) => void handleLanguageChange(value as AppLanguage)}
+                disabled={loading}
+              >
+                <SelectTrigger id="settings-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">{t("settings.languageEn")}</SelectItem>
+                  <SelectItem value="pt">{t("settings.languagePt")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 px-6 pb-6 pt-2 sm:justify-between">
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="pressable focus-ring gap-1"
+            onClick={() => void logout()}
+            disabled={loading}
+          >
+            {t("settings.logout")}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="pressable focus-ring"
+            onClick={() => onOpenChange(false)}
+          >
+            {loading ? <Spinner className="size-4" /> : t("common.cancel")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

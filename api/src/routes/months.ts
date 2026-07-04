@@ -6,10 +6,12 @@ import {
   ensureMonth,
 } from "../services/balanceService.js";
 import { getCategoriesWithLineItems } from "../services/categoryService.js";
+import { assertCategoryOwnedByUser } from "../services/ownershipService.js";
 import {
   createLineItemSchema,
   toLineItemMutationResponse,
 } from "../schemas/lineItem.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getCurrentYearMonth,
@@ -17,20 +19,21 @@ import {
 } from "../utils/yearMonth.js";
 
 const router = Router();
+router.use(requireAuth);
 
 router.param("yearMonth", (req, res, next, value) => {
   if (!isValidYearMonth(value)) {
-    res.status(400).json({ error: "Invalid yearMonth format. Use YYYY-MM." });
+    res.status(400).json({ error: "INVALID_YEAR_MONTH" });
     return;
   }
   next();
 });
 
-async function buildMonthView(yearMonth: string) {
-  const month = await ensureMonth(yearMonth);
+async function buildMonthView(userId: string, yearMonth: string) {
+  const month = await ensureMonth(userId, yearMonth);
   const lineItems = await LineItem.find({ monthId: month._id }).sort({ createdAt: 1 });
 
-  const { categories, uncategorized } = await getCategoriesWithLineItems(lineItems);
+  const { categories, uncategorized } = await getCategoriesWithLineItems(userId, lineItems);
 
   return {
     month: {
@@ -46,15 +49,15 @@ async function buildMonthView(yearMonth: string) {
 
 router.get(
   "/current",
-  asyncHandler(async (_req, res) => {
-    res.json(await buildMonthView(getCurrentYearMonth()));
+  asyncHandler(async (req, res) => {
+    res.json(await buildMonthView(req.userId!, getCurrentYearMonth()));
   }),
 );
 
 router.get(
   "/:yearMonth",
   asyncHandler(async (req, res) => {
-    res.json(await buildMonthView(req.params.yearMonth));
+    res.json(await buildMonthView(req.userId!, req.params.yearMonth));
   }),
 );
 
@@ -63,7 +66,15 @@ router.post(
   asyncHandler(async (req, res) => {
     const { yearMonth } = req.params;
     const body = createLineItemSchema.parse(req.body);
-    const month = await ensureMonth(yearMonth);
+    const month = await ensureMonth(req.userId!, yearMonth);
+
+    if (body.categoryId) {
+      const owned = await assertCategoryOwnedByUser(body.categoryId, req.userId!);
+      if (!owned) {
+        res.status(404).json({ error: "NOT_FOUND" });
+        return;
+      }
+    }
 
     const lineItem = await LineItem.create({
       monthId: month._id,
@@ -74,7 +85,7 @@ router.post(
       realizedAmount: body.realizedAmount ?? null,
     });
 
-    await cascadeBalanceFrom(yearMonth);
+    await cascadeBalanceFrom(req.userId!, yearMonth);
 
     res.status(201).json(toLineItemMutationResponse(lineItem));
   }),

@@ -8,9 +8,11 @@ import {
   reorderCategories,
   toFlatCategoryResponse,
 } from "../services/categoryService.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
+router.use(requireAuth);
 
 const iconSchema = z
   .string()
@@ -40,8 +42,8 @@ const reorderSchema = z.object({
 
 router.get(
   "/",
-  asyncHandler(async (_req, res) => {
-    res.json(await getAllCategoriesFlat());
+  asyncHandler(async (req, res) => {
+    res.json(await getAllCategoriesFlat(req.userId!));
   }),
 );
 
@@ -49,7 +51,7 @@ router.patch(
   "/reorder",
   asyncHandler(async (req, res) => {
     const body = reorderSchema.parse(req.body);
-    res.json(await reorderCategories(body.items));
+    res.json(await reorderCategories(req.userId!, body.items));
   }),
 );
 
@@ -60,11 +62,14 @@ router.post(
 
     let order = body.order;
     if (order === undefined) {
-      const maxOrder = await Category.findOne().sort({ order: -1 }).select("order");
+      const maxOrder = await Category.findOne({ userId: req.userId })
+        .sort({ order: -1 })
+        .select("order");
       order = (maxOrder?.order ?? -1) + 1;
     }
 
     const category = await Category.create({
+      userId: req.userId,
       name: body.name,
       icon: body.icon ?? DEFAULT_CATEGORY_ICON,
       order,
@@ -78,14 +83,14 @@ router.patch(
   "/:id",
   asyncHandler(async (req, res) => {
     const body = updateCategorySchema.parse(req.body);
-    const category = await Category.findByIdAndUpdate(
-      req.params.id,
+    const category = await Category.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
       { $set: body },
       { new: true, runValidators: true },
     );
 
     if (!category) {
-      res.status(404).json({ error: "Category not found" });
+      res.status(404).json({ error: "NOT_FOUND" });
       return;
     }
 
@@ -96,20 +101,21 @@ router.patch(
 router.delete(
   "/:id",
   asyncHandler(async (req, res) => {
+    const category = await Category.findOne({ _id: req.params.id, userId: req.userId });
+    if (!category) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
     const lineItemCount = await LineItem.countDocuments({ categoryId: req.params.id });
     if (lineItemCount > 0) {
       res.status(409).json({
-        error: "Cannot delete category with existing line items",
+        error: "CATEGORY_HAS_LINE_ITEMS",
       });
       return;
     }
 
-    const category = await Category.findByIdAndDelete(req.params.id);
-    if (!category) {
-      res.status(404).json({ error: "Category not found" });
-      return;
-    }
-
+    await Category.findByIdAndDelete(req.params.id);
     res.status(204).send();
   }),
 );

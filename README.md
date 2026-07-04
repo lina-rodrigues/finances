@@ -36,10 +36,13 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 
 ## Features (v1)
 
+- **User accounts** — custom JWT auth (login, signup with invitation code, forgot/reset password)
+- **Per-user data** — categories, months, and line items scoped by `userId`
+- **Settings modal** — name, theme (system/light/dark), currency (full ISO list, BRL/USD pinned), language (EN/PT)
+- **i18n** — English and Portuguese via `frontend/messages/{en,pt}.json`
 - **Monthly view** with previous/next month navigation
 - **Flat categories** with custom pixel-art icons ([Pixelarticons](https://pixelarticons.com/)) and drag-free reordering (up/down)
 - **Category management** — rename, pick icons, reorder, add, and delete via **Manage** on the Categories header
-- **Light and dark themes** — toggle in the navbar; preference saved in the browser
 - **Income and expense line items** with planned and realized amounts
 - **Planned indicator** — unrealized items show the planned amount with a "planned" badge
 - **Last month balance** — automatically carried forward from the previous month's ending balance
@@ -53,11 +56,13 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 
 ## Quick Start
 
-1. **Start MongoDB**
+1. **Start MongoDB and Mailpit**
 
    ```bash
    docker compose up -d
    ```
+
+   Mailpit web UI: http://localhost:8025 (captures password-reset emails in dev).
 
 2. **Configure environment**
 
@@ -73,11 +78,15 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
    pnpm install
    ```
 
-4. **Seed default categories**
+4. **Seed demo data (optional)**
+
+   Creates a dev user (`dev@finance.local` / `password123`) with sample categories and line items:
 
    ```bash
-   pnpm seed
+   pnpm seed:fresh
    ```
+
+   Or sign up at http://localhost:3000/signup with the `INVITATION_CODE` from your `.env`.
 
 5. **Run both services**
 
@@ -101,13 +110,21 @@ cd frontend && rm -rf .next && pnpm dev
 | `PORT` | api | `4000` | API server port |
 | `MONGODB_URI` | api | `mongodb://localhost:27017/finance` | MongoDB connection string |
 | `CORS_ORIGIN` | api | `http://localhost:3000` | Allowed frontend origin |
+| `JWT_SECRET` | api | — | Secret for signing auth cookies (required) |
+| `INVITATION_CODE` | api | — | Required code for signup |
+| `FRONTEND_URL` | api | `http://localhost:3000` | Base URL for password-reset links |
+| `SMTP_HOST` | api | `localhost` | SMTP host (Mailpit in dev) |
+| `SMTP_PORT` | api | `1025` | SMTP port |
+| `SMTP_FROM` | api | `finance@localhost` | From address for emails |
 | `NEXT_PUBLIC_API_URL` | frontend | `http://localhost:4000` | API base URL for fetch calls |
+| `SEED_DEV_EMAIL` | api | `dev@finance.local` | Dev user email for seed script |
+| `SEED_DEV_PASSWORD` | api | `password123` | Dev user password for seed script |
 
 ## Data Model
 
 ### Category
 
-Flat categories with display order and icon key:
+Flat categories with display order and icon key, scoped per user:
 
 ```json
 { "name": "Rent", "order": 1, "icon": "house" }
@@ -166,7 +183,14 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
-| GET | `/categories` | List categories (flat) |
+| POST | `/auth/register` | Sign up (name, email, password, invitationCode) |
+| POST | `/auth/login` | Sign in (sets httpOnly cookie) |
+| POST | `/auth/logout` | Sign out |
+| GET | `/auth/me` | Current user + preferences |
+| POST | `/auth/forgot-password` | Send password-reset email |
+| POST | `/auth/reset-password` | Reset password with token |
+| PATCH | `/users/me` | Update name and/or preferences |
+| GET | `/categories` | List categories (flat, auth required) |
 | POST | `/categories` | Create category |
 | PATCH | `/categories/:id` | Update name, icon, or order |
 | PATCH | `/categories/reorder` | Bulk reorder `{ "items": [{ "id", "order" }] }` |
@@ -250,6 +274,6 @@ finance/
 
 ## Future Extensions
 
-- Authentication and multi-user support
+- MFA and social login (Passport + TOTP — see plan notes)
 - Charts and spending summaries
 - Dockerize API and frontend services

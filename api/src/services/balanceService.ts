@@ -1,6 +1,7 @@
 import { Month, type IMonth } from "../models/Month.js";
 import { LineItem, effectiveAmount } from "../models/LineItem.js";
 import { nextYearMonth } from "../utils/yearMonth.js";
+import type { Types } from "mongoose";
 
 export function computeBalance(
   lastMonthBalance: number,
@@ -19,8 +20,8 @@ export async function computeEndingBalance(month: IMonth): Promise<number> {
   return computeBalance(month.lastMonthBalance, lineItems);
 }
 
-export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
-  const month = await Month.findOne({ yearMonth });
+export async function cascadeBalanceFrom(userId: Types.ObjectId | string, yearMonth: string): Promise<void> {
+  const month = await Month.findOne({ userId, yearMonth });
   if (!month) {
     return;
   }
@@ -30,7 +31,7 @@ export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
 
   while (true) {
     const next = nextYearMonth(currentYearMonth);
-    const nextMonth = await Month.findOne({ yearMonth: next });
+    const nextMonth = await Month.findOne({ userId, yearMonth: next });
 
     if (!nextMonth) {
       break;
@@ -46,14 +47,14 @@ export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
   }
 }
 
-export async function ensureMonth(yearMonth: string): Promise<IMonth> {
-  const existing = await Month.findOne({ yearMonth });
+export async function ensureMonth(userId: Types.ObjectId | string, yearMonth: string): Promise<IMonth> {
+  const existing = await Month.findOne({ userId, yearMonth });
   if (existing) {
     return existing;
   }
 
-  const prev = await Month.findOne({ yearMonth: { $lt: yearMonth } }).sort({ yearMonth: -1 });
+  const prev = await Month.findOne({ userId, yearMonth: { $lt: yearMonth } }).sort({ yearMonth: -1 });
   const lastMonthBalance = prev ? await computeEndingBalance(prev) : 0;
 
-  return Month.create({ yearMonth, lastMonthBalance });
+  return Month.create({ userId, yearMonth, lastMonthBalance });
 }

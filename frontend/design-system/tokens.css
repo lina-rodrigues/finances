@@ -232,10 +232,11 @@
 .finance-dialog-field {
   margin: var(--box-shadow-width);
   min-width: 0;
+  overflow: visible;
 }
 
 .finance-dialog-field .pixel__input,
-.finance-dialog-field > .relative {
+.finance-dialog-field [data-slot="select-trigger"] {
   margin: 0;
   width: 100%;
   max-width: 100%;
@@ -244,4 +245,27 @@
 
 .finance-dialog-field .pixel__input {
   display: block;
+}
+
+/* Inset modals slightly narrower than the phone shell (28rem) */
+.dialog-content-frame {
+  width: min(24rem, calc(100% - 2rem));
+  max-width: min(24rem, calc(100% - 2rem));
+}
+
+/* Match phone-shell width/center for portaled overlays inside the app */
+.app-shell-column {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: var(--app-shell-left, 50%);
+  width: var(--app-shell-width, min(100%, 28rem));
+  transform: none;
+}
+
+.dialog-in-app-shell {
+  position: fixed;
+  top: 50%;
+  left: calc(var(--app-shell-left, 50%) + var(--app-shell-width, 28rem) / 2);
+  transform: translate(-50%, -50%);
 }

@@ -1,4 +1,7 @@
-import { formatCurrency } from "@/lib/api";
+"use client";
+
+import { useTranslation } from "@/lib/i18n";
+import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
 interface BudgetBarProps {
   plannedTotal: number;
@@ -6,6 +9,9 @@ interface BudgetBarProps {
 }
 
 export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
+  const { t } = useTranslation();
+  const formatMoney = useFormatCurrency();
+
   if (plannedTotal <= 0) return null;
 
   const actualPct = Math.round((realizedTotal / plannedTotal) * 100);
@@ -16,12 +22,15 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
   return (
     <div className="px-2 pb-2">
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-muted-finance text-body text-xs">Budget</span>
+        <span className="text-muted-finance text-body text-xs">{t("addItem.planned")}</span>
         <span
           className={`text-body text-xs font-semibold ${overBudget ? "text-expense" : "text-muted-finance"}`}
         >
           {nothingRealized
-            ? `${formatCurrency(0)} of ${formatCurrency(plannedTotal)} planned`
+            ? t("budget.plannedOf", {
+                spent: formatMoney(0),
+                planned: formatMoney(plannedTotal),
+              })
             : `${actualPct}%`}
         </span>
       </div>
@@ -33,8 +42,11 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
         aria-valuemax={100}
         aria-label={
           nothingRealized
-            ? `Nothing spent yet of ${formatCurrency(plannedTotal)} planned`
-            : `${actualPct}% of budget used`
+            ? t("budget.plannedOf", {
+                spent: formatMoney(0),
+                planned: formatMoney(plannedTotal),
+              })
+            : `${actualPct}%`
         }
       >
         <div
@@ -46,7 +58,7 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
   );
 }
 
-function computeBudgetTotals(
+export function computeBudgetTotals(
   lineItems: { plannedAmount: number; realizedAmount: number | null; type: string }[],
 ) {
   let plannedTotal = 0;
@@ -60,5 +72,3 @@ function computeBudgetTotals(
 
   return { plannedTotal, realizedTotal };
 }
-
-export { computeBudgetTotals };

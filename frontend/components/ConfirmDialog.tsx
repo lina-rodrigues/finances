@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/pixelact-ui/dialog";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { Icon } from "@/components/Icon";
+import { useTranslation } from "@/lib/i18n";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -27,13 +28,15 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Delete",
+  confirmLabel,
   loading = false,
   onConfirm,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-sm">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && (
@@ -52,7 +55,7 @@ export function ConfirmDialog({
             disabled={loading}
           >
             <Icon name="cancel" size="xs" />
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -62,8 +65,12 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? <Spinner className="size-4" /> : <Icon name="delete" size="xs" colorClass="text-destructive-foreground" />}
-            {confirmLabel}
+            {loading ? (
+              <Spinner className="size-4" />
+            ) : (
+              <Icon name="delete" size="xs" colorClass="text-destructive-foreground" />
+            )}
+            {confirmLabel ?? t("common.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

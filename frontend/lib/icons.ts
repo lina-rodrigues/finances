@@ -26,6 +26,7 @@ import { Shirt } from "pixelarticons/react/Shirt";
 import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
 import { SquareAlert } from "pixelarticons/react/SquareAlert";
 import { Trash } from "pixelarticons/react/Trash";
+import { ToolCase } from "pixelarticons/react/ToolCase";
 import { University } from "pixelarticons/react/University";
 import { Video } from "pixelarticons/react/Video";
 import { Wallet } from "pixelarticons/react/Wallet";
@@ -69,7 +70,8 @@ export type IconName =
   | "chevronRight"
   | "chevronDown"
   | "alert"
-  | "info";
+  | "info"
+  | "settings";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -106,6 +108,7 @@ export const iconMap: Record<IconName, PixelIcon> = {
   chevronDown: ChevronDown,
   alert: SquareAlert,
   info: InfoBox,
+  settings: ToolCase,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -145,6 +148,7 @@ export const iconColorMap: Record<IconName, string> = {
   chevronDown: "text-muted-finance",
   alert: "text-expense",
   info: "text-planned",
+  settings: "text-muted-finance",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

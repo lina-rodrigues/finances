@@ -1,0 +1,133 @@
+{
+  "common": {
+    "appTitle": "Finance",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "somethingWrong": "Something went wrong. Please try again.",
+    "uncategorized": "Uncategorized"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "signup": {
+      "title": "Create account",
+      "subtitle": "Join with an invitation code",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "invitationCode": "Invitation code",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "We'll send you a reset link",
+      "email": "Email",
+      "submit": "Send reset link",
+      "backToLogin": "Back to sign in",
+      "success": "If that email exists, a reset link was sent."
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "subtitle": "Choose a new password",
+      "password": "New password",
+      "submit": "Reset password",
+      "success": "Password updated. You can sign in now.",
+      "invalidToken": "This reset link is invalid or expired."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "name": "Name",
+    "theme": "Theme",
+    "themeSystem": "System default",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "currency": "Currency",
+    "language": "Language",
+    "languageEn": "English",
+    "languagePt": "Portuguese",
+    "logout": "Sign out",
+    "saved": "Settings saved"
+  },
+  "month": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "lastMonth": "Last month",
+    "ending": "Ending",
+    "levelUp": "Level up! Balance improved"
+  },
+  "categories": {
+    "title": "Categories",
+    "addItem": "Add item",
+    "manage": "Manage",
+    "empty": "No categories yet. Run the seed script or add one with Manage.",
+    "income": "Income",
+    "expense": "Expense",
+    "planned": "Planned",
+    "realized": "Realized",
+    "deleteItem": "Delete item",
+    "deleteItemConfirm": "Delete this line item?",
+    "deleteCategory": "Delete category",
+    "deleteCategoryConfirm": "Delete \"{name}\"? This cannot be undone.",
+    "categoryName": "Category name",
+    "addCategory": "Add category",
+    "editCategory": "Edit category",
+    "noCategories": "No categories",
+    "reorderHint": "Drag or use arrows to reorder",
+    "itemAdded": "Line item added",
+    "itemUpdated": "Line item updated",
+    "itemDeleted": "Line item deleted",
+    "categoryAdded": "Category added",
+    "categoryUpdated": "Category updated",
+    "categoryDeleted": "Category deleted",
+    "categoryReordered": "Categories reordered",
+    "manageTitle": "Manage categories",
+    "manageHint": "Rename, pick icons, reorder, or add categories.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "close": "Close",
+    "add": "Add",
+    "nothingPlanned": "Nothing planned yet.",
+    "plannedBadge": "planned",
+    "deleteLineItemDescription": "\"{label}\" will be removed from this month.",
+    "deleteCategoryDescription": "\"{name}\" and its line items will be removed."
+  },
+  "addItem": {
+    "title": "Add item",
+    "category": "Category",
+    "type": "Type",
+    "label": "Label",
+    "planned": "Planned",
+    "realized": "Realized (optional)",
+    "submit": "Add item"
+  },
+  "budget": {
+    "plannedOf": "{spent} of {planned} planned"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Please sign in again.",
+    "INVALID_CREDENTIALS": "Invalid email or password.",
+    "INVALID_INVITATION_CODE": "Invalid invitation code.",
+    "EMAIL_ALREADY_EXISTS": "An account with this email already exists.",
+    "INVALID_OR_EXPIRED_TOKEN": "This reset link is invalid or expired.",
+    "NOT_FOUND": "Not found.",
+    "CATEGORY_HAS_LINE_ITEMS": "Cannot delete category with existing line items.",
+    "Validation error": "Please check your input."
+  },
+  "toast": {
+    "signedOut": "Signed out"
+  }
+}

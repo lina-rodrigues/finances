@@ -15,9 +15,10 @@ pnpm monorepo, two independently deployable packages. The frontend never touches
 | `api/` | Express + Mongoose + Zod + TypeScript (ESM, `tsx`) | 4000 |
 | `frontend/` | Next.js 15 App Router + React 19 + Tailwind CSS 4 | 3000 |
 
-- MongoDB runs via `docker compose up -d` (root `docker-compose.yml`).
-- `api/src/`: `routes/` (REST), `services/` (balance cascade, flat categories), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — must stay in sync with `frontend/lib/icons.ts` `categoryIcons`).
-- `frontend/app/page.tsx` is a server component; interactive pieces (`CategoryManager`, `CategorySection`, forms) are client components that call the API via `frontend/lib/api.ts` and then `router.refresh()`.
+- MongoDB and Mailpit run via `docker compose up -d` (root `docker-compose.yml`). Mailpit UI: http://localhost:8025.
+- `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — must stay in sync with `frontend/lib/icons.ts` `categoryIcons`).
+- `frontend/app/(app)/page.tsx` is a server component (uses `lib/api-server.ts` with cookie forwarding); auth pages live under `frontend/app/(auth)/`. Interactive pieces call `frontend/lib/api.ts` (client, `credentials: "include"`) then `router.refresh()`.
+- Auth: custom JWT in httpOnly cookie (`finance-token`). Settings in `SettingsDialog` (gear icon). i18n via `frontend/lib/i18n.tsx` + `messages/{en,pt}.json`.
 
 ## Commands
 
@@ -26,7 +27,7 @@ Run from the repo root:
 | Command | Purpose |
 |---------|---------|
 | `pnpm dev` | Run API + frontend in parallel (check if already running first — it usually is) |
-| `pnpm seed` / `pnpm seed:fresh` | Seed default categories (fresh drops existing data) |
+| `pnpm seed` / `pnpm seed:fresh` | Seed dev user + demo data (`seed:fresh` drops all users/data) |
 | `pnpm build` | Build both packages |
 | `pnpm contrast-check` | WCAG AA audit of theme colors (reads CSS only, no server needed) |
 | `pnpm responsive-check` | Playwright screenshots: 2 themes x 3 months x 8 viewports into `.responsive-audit/<theme>/<month>/` (requires dev server on :3000) |

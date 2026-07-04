@@ -5,8 +5,7 @@ import { Icon } from "@/components/Icon";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import { type FlatCategory } from "@/lib/api";
 import { resolveCategoryIcon } from "@/lib/icons";
-
-export const UNCATEGORIZED_LABEL = "Uncategorized";
+import { useTranslation } from "@/lib/i18n";
 
 interface CategoryComboboxProps {
   id?: string;
@@ -29,6 +28,8 @@ export function CategoryCombobox({
   categories,
   disabled = false,
 }: CategoryComboboxProps) {
+  const { t } = useTranslation();
+  const uncategorizedLabel = t("common.uncategorized");
   const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -36,10 +37,9 @@ export function CategoryCombobox({
 
   const suggestions = useMemo(() => {
     const query = value.trim().toLowerCase();
-    const showAll =
-      query.length === 0 || query === UNCATEGORIZED_LABEL.toLowerCase();
+    const showAll = query.length === 0 || query === uncategorizedLabel.toLowerCase();
     const items: Suggestion[] = [
-      { label: UNCATEGORIZED_LABEL, icon: "category", isUncategorized: true },
+      { label: uncategorizedLabel, icon: "category", isUncategorized: true },
     ];
 
     for (const cat of categories) {
@@ -49,7 +49,7 @@ export function CategoryCombobox({
     }
 
     return items;
-  }, [categories, value]);
+  }, [categories, value, uncategorizedLabel]);
 
   useEffect(() => {
     setHighlightIndex(0);
@@ -103,7 +103,7 @@ export function CategoryCombobox({
   return (
     <div ref={containerRef} className="space-y-1">
       <label htmlFor={id} className="text-body text-sm font-semibold">
-        Category
+        {t("addItem.category")}
       </label>
       <div className="finance-dialog-field relative">
         <Input
@@ -121,7 +121,7 @@ export function CategoryCombobox({
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder="Category name"
+          placeholder={t("categories.categoryName")}
           autoComplete="off"
         />
         {open && suggestions.length > 0 && (
@@ -131,30 +131,30 @@ export function CategoryCombobox({
             role="listbox"
             className="absolute top-full z-[60] mt-1 max-h-48 w-full overflow-y-auto border bg-background shadow-(--pixel-box-shadow)"
           >
-          {suggestions.map((suggestion, index) => {
-            const iconName = resolveCategoryIcon(suggestion.icon);
-            const highlighted = index === highlightIndex;
+            {suggestions.map((suggestion, index) => {
+              const iconName = resolveCategoryIcon(suggestion.icon);
+              const highlighted = index === highlightIndex;
 
-            return (
-              <li key={suggestion.label} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={highlighted}
-                  className={`interactive-row flex w-full items-center gap-2 px-3 py-2 text-left ${
-                    highlighted ? "bg-muted" : ""
-                  }`}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectSuggestion(suggestion)}
-                  onMouseEnter={() => setHighlightIndex(index)}
-                >
-                  <Icon name={iconName} size="sm" />
-                  <span className="text-body text-sm">{suggestion.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+              return (
+                <li key={suggestion.label} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={highlighted}
+                    className={`interactive-row flex w-full items-center gap-2 px-3 py-2 text-left ${
+                      highlighted ? "bg-muted" : ""
+                    }`}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectSuggestion(suggestion)}
+                    onMouseEnter={() => setHighlightIndex(index)}
+                  >
+                    <Icon name={iconName} size="sm" />
+                    <span className="text-body text-sm">{suggestion.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>

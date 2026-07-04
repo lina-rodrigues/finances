@@ -1,6 +1,7 @@
 import { Category, type ICategory } from "../models/Category.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
 import { effectiveAmount, type ILineItem, type LineItemType } from "../models/LineItem.js";
+import type { Types } from "mongoose";
 
 export interface LineItemResponse {
   id: string;
@@ -58,13 +59,14 @@ function toLineItemResponse(item: ILineItem): LineItemResponse {
 let legacyMigrationDone = false;
 
 /** Flatten legacy hierarchical categories (parentId) into a flat ordered list. */
-export async function flattenLegacyCategories(): Promise<void> {
+export async function flattenLegacyCategories(userId: Types.ObjectId | string): Promise<void> {
   if (legacyMigrationDone) {
     return;
   }
 
   const collection = Category.collection;
   const needsMigration = await collection.findOne({
+    userId,
     $or: [{ parentId: { $exists: true } }, { icon: { $exists: false } }],
   });
 
@@ -73,7 +75,10 @@ export async function flattenLegacyCategories(): Promise<void> {
     return;
   }
 
-  const categories = await collection.find({}).sort({ order: 1, name: 1 }).toArray();
+  const categories = await collection
+    .find({ userId })
+    .sort({ order: 1, name: 1 })
+    .toArray();
   let order = 0;
 
   for (const cat of categories) {
@@ -94,18 +99,23 @@ export async function flattenLegacyCategories(): Promise<void> {
   legacyMigrationDone = true;
 }
 
-export async function getAllCategoriesFlat(): Promise<FlatCategoryResponse[]> {
-  await flattenLegacyCategories();
-  const categories = await Category.find().sort({ order: 1, name: 1 });
+export async function getAllCategoriesFlat(
+  userId: Types.ObjectId | string,
+): Promise<FlatCategoryResponse[]> {
+  await flattenLegacyCategories(userId);
+  const categories = await Category.find({ userId }).sort({ order: 1, name: 1 });
   return categories.map(toFlatCategoryResponse);
 }
 
-export async function getCategoriesWithLineItems(lineItems: ILineItem[]): Promise<{
+export async function getCategoriesWithLineItems(
+  userId: Types.ObjectId | string,
+  lineItems: ILineItem[],
+): Promise<{
   categories: CategoryWithLineItems[];
   uncategorized: LineItemResponse[];
 }> {
-  await flattenLegacyCategories();
-  const categories = await Category.find().sort({ order: 1, name: 1 });
+  await flattenLegacyCategories(userId);
+  const categories = await Category.find({ userId }).sort({ order: 1, name: 1 });
 
   const uncategorized: ILineItem[] = [];
   const lineItemsByCategory = new Map<string, ILineItem[]>();
@@ -130,15 +140,16 @@ export async function getCategoriesWithLineItems(lineItems: ILineItem[]): Promis
 }
 
 export async function reorderCategories(
+  userId: Types.ObjectId | string,
   items: { id: string; order: number }[],
 ): Promise<FlatCategoryResponse[]> {
   await Category.bulkWrite(
     items.map((item) => ({
       updateOne: {
-        filter: { _id: item.id },
+        filter: { _id: item.id, userId },
         update: { $set: { order: item.order } },
       },
     })),
   );
-  return getAllCategoriesFlat();
+  return getAllCategoriesFlat(userId);
 }

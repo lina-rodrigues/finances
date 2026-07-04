@@ -2,9 +2,11 @@
 
 import { useCallback, useState } from "react";
 import { useToast } from "@/components/ui/pixelact-ui/toast";
+import { useTranslation, translateError } from "@/lib/i18n";
 
 export function useMutationFeedback() {
   const { showToast } = useToast();
+  const { t, locale } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const run = useCallback(
@@ -17,16 +19,14 @@ export function useMutationFeedback() {
         }
       } catch (err) {
         console.error(err);
-        const fallback =
-          err instanceof Error && err.message
-            ? err.message
-            : "Something went wrong. Please try again.";
-        showToast(options?.errorMessage ?? fallback, "error");
+        const code = err instanceof Error ? err.message : "";
+        const translated = code ? translateError(code, locale) : t("common.somethingWrong");
+        showToast(options?.errorMessage ?? translated, "error");
       } finally {
         setLoading(false);
       }
     },
-    [showToast],
+    [showToast, t, locale],
   );
 
   return { loading, run };

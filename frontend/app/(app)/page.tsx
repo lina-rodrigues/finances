@@ -1,6 +1,6 @@
 import { CategoriesSection } from "@/components/CategoriesSection";
 import { MonthSummary } from "@/components/MonthSummary";
-import { fetchMonthView } from "@/lib/api";
+import { fetchMonthView } from "@/lib/api-server";
 
 export default async function HomePage({
   searchParams,

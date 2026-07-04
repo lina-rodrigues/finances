@@ -1,99 +1,118 @@
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 import { connectDb } from "../db/connection.js";
+import { User } from "../models/User.js";
 import { Category } from "../models/Category.js";
 import { Month } from "../models/Month.js";
 import { LineItem, type LineItemType } from "../models/LineItem.js";
 import { computeEndingBalance } from "../services/balanceService.js";
+import {
+  DEFAULT_CATEGORY_DEFS,
+  getDefaultCategories,
+} from "../constants/defaultCategories.js";
 import { getCurrentYearMonth, nextYearMonth, previousYearMonth } from "../utils/yearMonth.js";
 
-const seedCategories = [
-  { name: "Salary", order: 0, icon: "income" },
-  { name: "Rent", order: 1, icon: "house" },
-  { name: "Utilities", order: 2, icon: "bolt" },
-  { name: "Groceries", order: 3, icon: "cartShopping" },
-  { name: "Dining Out", order: 4, icon: "utensils" },
-  { name: "Fuel", order: 5, icon: "car" },
-  { name: "Public Transit", order: 6, icon: "car" },
-  // Intentionally receives no line items in any month, to showcase a category's empty state.
-  { name: "Entertainment", order: 7, icon: "film" },
-  { name: "Other", order: 8, icon: "category" },
-];
-
 interface SeedLineItem {
-  category: string | null;
+  categoryKey: string | null;
   type: LineItemType;
   label: string;
   planned: number;
   realized: number | null;
 }
 
-// Previous month: everything realized, with actuals slightly off from plan.
 const previousMonthItems: SeedLineItem[] = [
-  { category: "Salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
-  { category: "Salary", type: "income", label: "Freelance project", planned: 400, realized: 550 },
-  { category: "Rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
-  { category: "Utilities", type: "expense", label: "Electricity", planned: 120, realized: 104.35 },
-  { category: "Utilities", type: "expense", label: "Internet", planned: 60, realized: 60 },
-  { category: "Groceries", type: "expense", label: "Supermarket runs", planned: 600, realized: 683.42 },
-  { category: "Dining Out", type: "expense", label: "Restaurants", planned: 250, realized: 312.8 },
-  { category: "Fuel", type: "expense", label: "Gas", planned: 150, realized: 138.5 },
-  { category: "Public Transit", type: "expense", label: "Transit pass", planned: 80, realized: 80 },
-  { category: "Other", type: "expense", label: "Miscellaneous", planned: 100, realized: 74.99 },
+  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
+  { categoryKey: "salary", type: "income", label: "Freelance project", planned: 400, realized: 550 },
+  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
+  { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: 104.35 },
+  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: 60 },
+  { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 600, realized: 683.42 },
+  { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: 312.8 },
+  { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: 138.5 },
+  { categoryKey: "publicTransit", type: "expense", label: "Transit pass", planned: 80, realized: 80 },
+  { categoryKey: "other", type: "expense", label: "Miscellaneous", planned: 100, realized: 74.99 },
 ];
 
-// Current month: a mix of realized and still-planned items.
 const currentMonthItems: SeedLineItem[] = [
-  { category: "Salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
-  { category: "Rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
-  { category: "Utilities", type: "expense", label: "Electricity", planned: 120, realized: 97.2 },
-  { category: "Utilities", type: "expense", label: "Internet", planned: 60, realized: null },
-  { category: "Groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: 289.75 },
-  { category: "Dining Out", type: "expense", label: "Restaurants", planned: 250, realized: null },
-  { category: "Fuel", type: "expense", label: "Gas", planned: 150, realized: 62.3 },
-  { category: "Public Transit", type: "expense", label: "Transit pass", planned: 80, realized: 80 },
-  { category: "Other", type: "expense", label: "Miscellaneous", planned: 100, realized: null },
-  { category: null, type: "expense", label: "One-off purchase", planned: 45, realized: null },
+  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
+  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
+  { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: 97.2 },
+  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: null },
+  { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: 289.75 },
+  { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: null },
+  { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: 62.3 },
+  { categoryKey: "publicTransit", type: "expense", label: "Transit pass", planned: 80, realized: 80 },
+  { categoryKey: "other", type: "expense", label: "Miscellaneous", planned: 100, realized: null },
+  { categoryKey: null, type: "expense", label: "One-off purchase", planned: 45, realized: null },
 ];
 
-// Next month: predictions only.
 const nextMonthItems: SeedLineItem[] = [
-  { category: "Salary", type: "income", label: "Monthly salary", planned: 5000, realized: null },
-  { category: "Rent", type: "expense", label: "Apartment rent", planned: 1800, realized: null },
-  { category: "Utilities", type: "expense", label: "Electricity", planned: 120, realized: null },
-  { category: "Utilities", type: "expense", label: "Internet", planned: 60, realized: null },
-  { category: "Groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: null },
-  { category: "Dining Out", type: "expense", label: "Restaurants", planned: 250, realized: null },
-  { category: "Fuel", type: "expense", label: "Gas", planned: 150, realized: null },
-  { category: "Public Transit", type: "expense", label: "Transit pass", planned: 80, realized: null },
-  { category: "Other", type: "expense", label: "Miscellaneous", planned: 100, realized: null },
+  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: null },
+  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: null },
+  { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: null },
+  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: null },
+  { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: null },
+  { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: null },
+  { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: null },
+  { categoryKey: "publicTransit", type: "expense", label: "Transit pass", planned: 80, realized: null },
+  { categoryKey: "other", type: "expense", label: "Miscellaneous", planned: 100, realized: null },
 ];
 
-async function seedCategoriesIfNeeded(): Promise<Map<string, string>> {
-  const existing = await Category.countDocuments();
-  if (existing > 0) {
-    console.log("Categories already seeded, skipping.");
-  } else {
-    await Category.insertMany(seedCategories);
-    console.log("Categories seeded successfully.");
+async function ensureDevUser(): Promise<string> {
+  const email = process.env.SEED_DEV_EMAIL ?? "dev@finance.local";
+  const password = process.env.SEED_DEV_PASSWORD ?? "password123";
+  const name = process.env.SEED_DEV_NAME ?? "Dev User";
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    const passwordHash = await bcrypt.hash(password, 12);
+    user = await User.create({
+      name,
+      email,
+      passwordHash,
+      preferences: { theme: null, currency: "USD", language: "en" },
+    });
+    console.log(`Created dev user: ${email}`);
   }
 
-  const categories = await Category.find();
-  return new Map(categories.map((cat) => [cat.name, cat._id.toString()]));
+  return user._id.toString();
+}
+
+async function seedCategoriesIfNeeded(userId: string): Promise<Map<string, string>> {
+  const existing = await Category.countDocuments({ userId });
+  if (existing === 0) {
+    const categories = getDefaultCategories("en").map((cat) => ({ ...cat, userId }));
+    await Category.insertMany(categories);
+    console.log("Categories seeded successfully.");
+  } else {
+    console.log("Categories already seeded for user, skipping.");
+  }
+
+  const byOrder = await Category.find({ userId }).sort({ order: 1 });
+  const map = new Map<string, string>();
+  DEFAULT_CATEGORY_DEFS.forEach((def, index) => {
+    const cat = byOrder[index];
+    if (cat) {
+      map.set(def.key, cat._id.toString());
+    }
+  });
+  return map;
 }
 
 async function seedMonth(
+  userId: string,
   yearMonth: string,
   lastMonthBalance: number,
   items: SeedLineItem[],
   categoryIds: Map<string, string>,
 ): Promise<number> {
-  const month = await Month.create({ yearMonth, lastMonthBalance });
+  const month = await Month.create({ userId, yearMonth, lastMonthBalance });
 
   await LineItem.insertMany(
     items.map((item) => {
-      const categoryId = item.category ? categoryIds.get(item.category) : null;
-      if (item.category && !categoryId) {
-        throw new Error(`Category "${item.category}" not found; cannot seed line items.`);
+      const categoryId = item.categoryKey ? categoryIds.get(item.categoryKey) : null;
+      if (item.categoryKey && !categoryId) {
+        throw new Error(`Category key "${item.categoryKey}" not found; cannot seed line items.`);
       }
       return {
         monthId: month._id,
@@ -121,13 +140,15 @@ async function seed() {
       LineItem.deleteMany({}),
       Month.deleteMany({}),
       Category.deleteMany({}),
+      User.deleteMany({}),
     ]);
-    console.log("Cleared existing categories, months, and line items.");
+    console.log("Cleared existing users, categories, months, and line items.");
   }
 
-  const categoryIds = await seedCategoriesIfNeeded();
+  const userId = await ensureDevUser();
+  const categoryIds = await seedCategoriesIfNeeded(userId);
 
-  const existingItems = await LineItem.countDocuments();
+  const existingItems = await LineItem.countDocuments({});
   if (existingItems > 0) {
     console.log("Line items already exist, skipping month seeding. Use --fresh to reseed from scratch.");
     process.exit(0);
@@ -138,9 +159,9 @@ async function seed() {
   const next = nextYearMonth(current);
 
   let balance = 1500;
-  balance = await seedMonth(previous, balance, previousMonthItems, categoryIds);
-  balance = await seedMonth(current, balance, currentMonthItems, categoryIds);
-  await seedMonth(next, balance, nextMonthItems, categoryIds);
+  balance = await seedMonth(userId, previous, balance, previousMonthItems, categoryIds);
+  balance = await seedMonth(userId, current, balance, currentMonthItems, categoryIds);
+  await seedMonth(userId, next, balance, nextMonthItems, categoryIds);
 
   console.log("Seed completed successfully.");
   process.exit(0);

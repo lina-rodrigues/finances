@@ -36,12 +36,20 @@ export interface FlatCategory {
   icon: string;
 }
 
-function getApiUrl(): string {
+export function getApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 }
 
 async function apiFetch(path: string, errorLabel: string, init?: RequestInit): Promise<Response> {
-  const res = await fetch(`${getApiUrl()}${path}`, init);
+  const res = await fetch(`${getApiUrl()}${path}`, {
+    credentials: "include",
+    ...init,
+  });
+
+  if (res.status === 401 && typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message =
@@ -57,12 +65,6 @@ function jsonInit(method: "POST" | "PATCH", data: unknown): RequestInit {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   };
-}
-
-export async function fetchMonthView(yearMonth?: string): Promise<MonthView> {
-  const path = yearMonth ? `/months/${yearMonth}` : "/months/current";
-  const res = await apiFetch(path, "fetch month view", { cache: "no-store" });
-  return res.json();
 }
 
 export async function fetchCategories(): Promise<FlatCategory[]> {
@@ -132,13 +134,19 @@ export async function deleteLineItem(id: string): Promise<void> {
   await apiFetch(`/line-items/${id}`, "delete line item", { method: "DELETE" });
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
+export function formatCurrency(
+  amount: number,
+  currency = "USD",
+  locale = "en-US",
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+  }).format(amount);
+}
 
-export function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
+export function getLocaleTag(language: "en" | "pt"): string {
+  return language === "pt" ? "pt-BR" : "en-US";
 }
 
 export function getCurrentYearMonth(): string {

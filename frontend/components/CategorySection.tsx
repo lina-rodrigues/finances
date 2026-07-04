@@ -15,14 +15,10 @@ import {
 } from "@/components/ui/pixelact-ui/collapsible";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import {
-  deleteLineItem,
-  formatCurrency,
-  updateLineItem,
-  type Category,
-  type LineItem,
-} from "@/lib/api";
+import { deleteLineItem, updateLineItem, type Category, type LineItem } from "@/lib/api";
 import { resolveCategoryIcon } from "@/lib/icons";
+import { useTranslation } from "@/lib/i18n";
+import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface LineItemRowProps {
@@ -30,6 +26,7 @@ interface LineItemRowProps {
 }
 
 function TypeBadge({ item }: { item: LineItem }) {
+  const { t } = useTranslation();
   const isIncome = item.type === "income";
   return (
     <Badge
@@ -38,7 +35,7 @@ function TypeBadge({ item }: { item: LineItem }) {
     >
       <span className="flex items-center gap-1">
         <Icon name={isIncome ? "income" : "expense"} size="xs" />
-        {item.type}
+        {isIncome ? t("categories.income") : t("categories.expense")}
       </span>
     </Badge>
   );
@@ -46,6 +43,8 @@ function TypeBadge({ item }: { item: LineItem }) {
 
 function LineItemRow({ item }: LineItemRowProps) {
   const router = useRouter();
+  const { t } = useTranslation();
+  const formatMoney = useFormatCurrency();
   const { loading, run } = useMutationFeedback();
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -66,7 +65,7 @@ function LineItemRow({ item }: LineItemRowProps) {
         setEditing(false);
         router.refresh();
       },
-      { successMessage: "Line item updated" },
+      { successMessage: t("categories.itemUpdated") },
     );
   }
 
@@ -77,7 +76,7 @@ function LineItemRow({ item }: LineItemRowProps) {
         setConfirmingDelete(false);
         router.refresh();
       },
-      { successMessage: "Line item deleted" },
+      { successMessage: t("categories.itemDeleted") },
     );
   }
 
@@ -89,13 +88,13 @@ function LineItemRow({ item }: LineItemRowProps) {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           disabled={loading}
-          placeholder="Label"
+          placeholder={t("addItem.label")}
         />
         <Input
           className="finance-form-field-sm"
           type="number"
           step="0.01"
-          placeholder="Planned"
+          placeholder={t("addItem.planned")}
           value={plannedAmount}
           onChange={(e) => setPlannedAmount(e.target.value)}
           disabled={loading}
@@ -104,7 +103,7 @@ function LineItemRow({ item }: LineItemRowProps) {
           className="finance-form-field-sm"
           type="number"
           step="0.01"
-          placeholder="Realized"
+          placeholder={t("categories.realized")}
           value={realizedAmount}
           onChange={(e) => setRealizedAmount(e.target.value)}
           disabled={loading}
@@ -118,7 +117,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             disabled={loading}
           >
             {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
-            Save
+            {t("common.save")}
           </Button>
           <Button
             variant="secondary"
@@ -128,7 +127,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             disabled={loading}
           >
             <Icon name="cancel" size="xs" />
-            Cancel
+            {t("common.cancel")}
           </Button>
         </div>
       </div>
@@ -151,7 +150,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             >
               <span className="flex items-center gap-1">
                 <Icon name="planned" size="xs" />
-                planned
+                {t("categories.plannedBadge")}
               </span>
             </Badge>
           )}
@@ -160,7 +159,7 @@ function LineItemRow({ item }: LineItemRowProps) {
       <div className="flex shrink-0 items-center gap-2">
         <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
           {isIncome ? "+" : "-"}
-          {formatCurrency(item.displayAmount)}
+          {formatMoney(item.displayAmount)}
         </span>
         <div className="row-actions flex items-center gap-1">
           <Button
@@ -169,7 +168,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             size="sm"
             className="pressable focus-ring h-auto p-1"
             onClick={() => setEditing(true)}
-            aria-label="Edit line item"
+            aria-label={t("categories.editCategory")}
           >
             <Icon name="edit" size="xs" />
           </Button>
@@ -180,7 +179,7 @@ function LineItemRow({ item }: LineItemRowProps) {
             className="pressable focus-ring h-auto p-1 text-destructive"
             onClick={() => setConfirmingDelete(true)}
             disabled={loading}
-            aria-label="Delete line item"
+            aria-label={t("categories.deleteItem")}
           >
             <Icon name="delete" size="xs" colorClass="text-destructive" />
           </Button>
@@ -189,8 +188,8 @@ function LineItemRow({ item }: LineItemRowProps) {
       <ConfirmDialog
         open={confirmingDelete}
         onOpenChange={setConfirmingDelete}
-        title="Delete line item?"
-        description={`"${item.label}" will be removed from this month.`}
+        title={t("categories.deleteItem")}
+        description={t("categories.deleteLineItemDescription", { label: item.label })}
         loading={loading}
         onConfirm={handleDelete}
       />
@@ -205,6 +204,8 @@ interface CategorySectionProps {
 }
 
 export function CategorySection({ category, onAddItem, addItemTestId }: CategorySectionProps) {
+  const { t } = useTranslation();
+  const formatMoney = useFormatCurrency();
   const iconName = resolveCategoryIcon(category.icon);
   const hasContent = category.lineItems.length > 0;
   const categoryTotal = sumCategoryAmounts(category);
@@ -212,7 +213,7 @@ export function CategorySection({ category, onAddItem, addItemTestId }: Category
 
   const totalClass =
     categoryTotal > 0 ? "text-income" : categoryTotal < 0 ? "text-expense" : "text-muted-finance";
-  const totalLabel = `${categoryTotal > 0 ? "+" : categoryTotal < 0 ? "-" : ""}${formatCurrency(
+  const totalLabel = `${categoryTotal > 0 ? "+" : categoryTotal < 0 ? "-" : ""}${formatMoney(
     Math.abs(categoryTotal),
   )}`;
 
@@ -244,7 +245,7 @@ export function CategorySection({ category, onAddItem, addItemTestId }: Category
             {hasContent ? (
               <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />
             ) : (
-              <p className="text-body text-muted-finance px-2 text-sm">Nothing planned yet.</p>
+              <p className="text-body text-muted-finance px-2 text-sm">{t("categories.nothingPlanned")}</p>
             )}
             {category.lineItems.map((item) => (
               <LineItemRow key={item.id} item={item} />
@@ -258,7 +259,7 @@ export function CategorySection({ category, onAddItem, addItemTestId }: Category
               onClick={onAddItem}
             >
               <Icon name="add" size="xs" />
-              Add item
+              {t("categories.addItem")}
             </Button>
           </CardContent>
         </CollapsibleContent>
