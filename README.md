@@ -20,6 +20,16 @@ The project is a **pnpm monorepo** with two independently deployable packages:
 
 There is no shared runtime between API and frontend — the frontend never accesses the database directly.
 
+## Contributing
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages. Use the format `type(scope): description`, for example:
+
+- `feat(frontend): add month navigation`
+- `fix(api): correct balance cascade`
+- `docs: update setup instructions`
+
+Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, and `build`.
+
 ## Design
 
 See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's design system — themes, colors, icons, typography, and interaction patterns.
