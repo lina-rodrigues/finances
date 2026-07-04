@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 /**
- * Capture full-page screenshots at common viewports.
+ * Capture full-page screenshots at common viewports, in light and dark
+ * mode, across the three seeded months (previous, current, next).
  * Requires the dev server at http://localhost:3000 (pnpm dev).
  *
  * Usage: pnpm responsive-check
- * Output: .responsive-audit/*.png
+ * Output: .responsive-audit/<theme>/<month>/<viewport>.png
  */
 
 import { chromium } from "playwright";
-import { mkdir } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -27,6 +28,23 @@ const viewports = [
   { name: "wide", width: 1920, height: 1080 },
 ];
 
+const themes = ["light", "dark"];
+
+// Mirrors getCurrentYearMonth / prevYearMonth / nextYearMonth in frontend/lib/api.ts
+function shiftYearMonth(offset) {
+  const now = new Date();
+  const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+const months = [
+  { name: "current-month", query: "" },
+  { name: "previous-month", query: `?month=${shiftYearMonth(-1)}` },
+  { name: "next-month", query: `?month=${shiftYearMonth(1)}` },
+];
+
 async function assertDevServer() {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -40,22 +58,34 @@ async function assertDevServer() {
 }
 
 await assertDevServer();
-await mkdir(outDir, { recursive: true });
+await rm(outDir, { recursive: true, force: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
 
-console.log(`Capturing ${viewports.length} viewports from ${url}`);
+const total = themes.length * months.length * viewports.length;
+console.log(
+  `Capturing ${total} screenshots (${themes.length} themes x ${months.length} months x ${viewports.length} viewports) from ${url}`,
+);
 console.log(`Output: ${outDir}/\n`);
 
-for (const vp of viewports) {
-  await page.setViewportSize({ width: vp.width, height: vp.height });
-  await page.goto(url, { waitUntil: "networkidle" });
-  await page.waitForTimeout(500);
+for (const theme of themes) {
+  await page.emulateMedia({ colorScheme: theme });
 
-  const file = path.join(outDir, `${vp.name}-${vp.width}x${vp.height}.png`);
-  await page.screenshot({ path: file, fullPage: true });
-  console.log(`saved ${path.relative(root, file)}`);
+  for (const month of months) {
+    const dir = path.join(outDir, theme, month.name);
+    await mkdir(dir, { recursive: true });
+
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(`${url}/${month.query}`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(500);
+
+      const file = path.join(dir, `${vp.name}-${vp.width}x${vp.height}.png`);
+      await page.screenshot({ path: file, fullPage: true });
+      console.log(`saved ${path.relative(root, file)}`);
+    }
+  }
 }
 
 await browser.close();

@@ -24,7 +24,21 @@ From the repo root:
 pnpm responsive-check
 ```
 
-This saves 8 full-page PNGs to `.responsive-audit/`:
+This saves 48 full-page PNGs (2 themes x 3 months x 8 viewports) to `.responsive-audit/`:
+
+```
+.responsive-audit/
+  light/
+    current-month/
+    previous-month/
+    next-month/
+  dark/
+    current-month/
+    previous-month/
+    next-month/
+```
+
+Each folder contains one PNG per viewport:
 
 - `iphone-se-375x667.png`
 - `iphone-14-390x844.png`
@@ -34,6 +48,8 @@ This saves 8 full-page PNGs to `.responsive-audit/`:
 - `laptop-1280x800.png`
 - `desktop-1440x900.png`
 - `wide-1920x1080.png`
+
+The months map to the seeded states: `previous-month` is fully realized, `current-month` is a mix of realized and planned, `next-month` is planned-only.
 
 Read every screenshot and inspect the actual rendered layout — do not rely on code alone.
 
@@ -63,6 +79,8 @@ Primary sources:
 - Dialogs (`CategoryManager`): fit narrow screens (`max-w-md` or similar)
 - Touch targets and spacing
 - Horizontal overflow or clipped text
+- Dark mode: contrast and readability of amounts/badges, no broken or unthemed colors
+- Month states: previous (all realized), current (mixed), next (planned-only) — badges, balances, and empty realized amounts render correctly in each
 
 ## Step 4 — Report (do not implement yet)
 
