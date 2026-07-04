@@ -6,9 +6,14 @@
     "dev:api": "pnpm --filter api dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "seed": "pnpm --filter api seed",
-    "build": "pnpm --filter api build && pnpm --filter frontend build"
+    "build": "pnpm --filter api build && pnpm --filter frontend build",
+    "contrast-check": "node scripts/contrast-check.mjs",
+    "responsive-check": "node scripts/responsive-check.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "playwright": "^1.51.0"
   }
 }
