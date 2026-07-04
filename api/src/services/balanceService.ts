@@ -1,28 +1,22 @@
-import { Month } from "../models/Month.js";
+import { Month, type IMonth } from "../models/Month.js";
 import { LineItem, effectiveAmount } from "../models/LineItem.js";
 import { nextYearMonth } from "../utils/yearMonth.js";
 
-export async function computeEndingBalance(monthId: string): Promise<number> {
-  const month = await Month.findById(monthId);
-  if (!month) {
-    throw new Error("Month not found");
-  }
-
-  const lineItems = await LineItem.find({ monthId: month._id });
-
-  let totalIncome = 0;
-  let totalExpense = 0;
-
+export function computeBalance(
+  lastMonthBalance: number,
+  lineItems: { type: string; plannedAmount: number; realizedAmount: number | null }[],
+): number {
+  let balance = lastMonthBalance;
   for (const item of lineItems) {
     const amount = effectiveAmount(item);
-    if (item.type === "income") {
-      totalIncome += amount;
-    } else {
-      totalExpense += amount;
-    }
+    balance += item.type === "income" ? amount : -amount;
   }
+  return balance;
+}
 
-  return month.lastMonthBalance + totalIncome - totalExpense;
+export async function computeEndingBalance(month: IMonth): Promise<number> {
+  const lineItems = await LineItem.find({ monthId: month._id });
+  return computeBalance(month.lastMonthBalance, lineItems);
 }
 
 export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
@@ -31,7 +25,7 @@ export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
     return;
   }
 
-  let endingBalance = await computeEndingBalance(month._id.toString());
+  let endingBalance = await computeEndingBalance(month);
   let currentYearMonth = yearMonth;
 
   while (true) {
@@ -47,28 +41,19 @@ export async function cascadeBalanceFrom(yearMonth: string): Promise<void> {
       await nextMonth.save();
     }
 
-    endingBalance = await computeEndingBalance(nextMonth._id.toString());
+    endingBalance = await computeEndingBalance(nextMonth);
     currentYearMonth = next;
   }
 }
 
-export async function ensureMonth(yearMonth: string): Promise<typeof Month.prototype> {
-  let month = await Month.findOne({ yearMonth });
-
-  if (month) {
-    return month;
+export async function ensureMonth(yearMonth: string): Promise<IMonth> {
+  const existing = await Month.findOne({ yearMonth });
+  if (existing) {
+    return existing;
   }
 
-  const previousMonths = await Month.find({ yearMonth: { $lt: yearMonth } })
-    .sort({ yearMonth: -1 })
-    .limit(1);
+  const prev = await Month.findOne({ yearMonth: { $lt: yearMonth } }).sort({ yearMonth: -1 });
+  const lastMonthBalance = prev ? await computeEndingBalance(prev) : 0;
 
-  let lastMonthBalance = 0;
-  if (previousMonths.length > 0) {
-    const prev = previousMonths[0];
-    lastMonthBalance = await computeEndingBalance(prev._id.toString());
-  }
-
-  month = await Month.create({ yearMonth, lastMonthBalance });
-  return month;
+  return Month.create({ yearMonth, lastMonthBalance });
 }

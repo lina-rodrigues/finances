@@ -1,77 +1,58 @@
 import { Router } from "express";
-import { z } from "zod";
-import mongoose from "mongoose";
+import type { Types } from "mongoose";
 import { LineItem } from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import { cascadeBalanceFrom } from "../services/balanceService.js";
+import {
+  toLineItemMutationResponse,
+  updateLineItemSchema,
+} from "../schemas/lineItem.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 
-const updateLineItemSchema = z.object({
-  categoryId: z.string().min(1).optional(),
-  type: z.enum(["income", "expense"]).optional(),
-  label: z.string().min(1).optional(),
-  plannedAmount: z.number().optional(),
-  realizedAmount: z.number().nullable().optional(),
-});
-
-router.patch("/:id", async (req, res, next) => {
-  try {
-    const body = updateLineItemSchema.parse(req.body);
-    const lineItem = await LineItem.findById(req.params.id);
-
-    if (!lineItem) {
-      res.status(404).json({ error: "Line item not found" });
-      return;
-    }
-
-    if (body.categoryId !== undefined) {
-      lineItem.categoryId = new mongoose.Types.ObjectId(body.categoryId);
-    }
-    if (body.type !== undefined) lineItem.type = body.type;
-    if (body.label !== undefined) lineItem.label = body.label;
-    if (body.plannedAmount !== undefined) lineItem.plannedAmount = body.plannedAmount;
-    if (body.realizedAmount !== undefined) lineItem.realizedAmount = body.realizedAmount;
-
-    await lineItem.save();
-
-    const month = await Month.findById(lineItem.monthId);
-    if (month) {
-      await cascadeBalanceFrom(month.yearMonth);
-    }
-
-    res.json({
-      id: lineItem._id.toString(),
-      type: lineItem.type,
-      label: lineItem.label,
-      plannedAmount: lineItem.plannedAmount,
-      realizedAmount: lineItem.realizedAmount,
-    });
-  } catch (err) {
-    next(err);
+async function cascadeForMonth(monthId: Types.ObjectId): Promise<void> {
+  const month = await Month.findById(monthId);
+  if (month) {
+    await cascadeBalanceFrom(month.yearMonth);
   }
-});
+}
 
-router.delete("/:id", async (req, res, next) => {
-  try {
-    const lineItem = await LineItem.findById(req.params.id);
+router.patch(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const body = updateLineItemSchema.parse(req.body);
+    const lineItem = await LineItem.findByIdAndUpdate(
+      req.params.id,
+      { $set: body },
+      { new: true, runValidators: true },
+    );
 
     if (!lineItem) {
       res.status(404).json({ error: "Line item not found" });
       return;
     }
 
-    const month = await Month.findById(lineItem.monthId);
-    await lineItem.deleteOne();
+    await cascadeForMonth(lineItem.monthId);
 
-    if (month) {
-      await cascadeBalanceFrom(month.yearMonth);
+    res.json(toLineItemMutationResponse(lineItem));
+  }),
+);
+
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const lineItem = await LineItem.findByIdAndDelete(req.params.id);
+
+    if (!lineItem) {
+      res.status(404).json({ error: "Line item not found" });
+      return;
     }
+
+    await cascadeForMonth(lineItem.monthId);
 
     res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
-});
+  }),
+);
 
 export default router;

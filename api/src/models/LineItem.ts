@@ -23,6 +23,9 @@ const lineItemSchema = new Schema<ILineItem>(
   { timestamps: true },
 );
 
+lineItemSchema.index({ monthId: 1, createdAt: 1 });
+lineItemSchema.index({ categoryId: 1 });
+
 export const LineItem = mongoose.model<ILineItem>("LineItem", lineItemSchema);
 
 export function effectiveAmount(item: {

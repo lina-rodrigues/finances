@@ -4,7 +4,6 @@ import { ArrowUp } from "pixelarticons/react/ArrowUp";
 import { Briefcase } from "pixelarticons/react/Briefcase";
 import { Car } from "pixelarticons/react/Car";
 import { Check } from "pixelarticons/react/Check";
-import { ChevronDown } from "pixelarticons/react/ChevronDown";
 import { ChevronLeft } from "pixelarticons/react/ChevronLeft";
 import { ChevronRight } from "pixelarticons/react/ChevronRight";
 import { Clock } from "pixelarticons/react/Clock";
@@ -63,10 +62,8 @@ export type IconName =
   | "arrowDown"
   | "themeLight"
   | "themeDark"
-  | "chevron"
   | "chevronLeft"
-  | "chevronRight"
-  | "logo";
+  | "chevronRight";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -98,10 +95,8 @@ export const iconMap: Record<IconName, PixelIcon> = {
   arrowDown: ArrowDown,
   themeLight: CloudSun,
   themeDark: Moon,
-  chevron: ChevronDown,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
-  logo: Coins,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -134,10 +129,8 @@ export const iconColorMap: Record<IconName, string> = {
   arrowDown: "text-muted-foreground",
   themeLight: "text-warning",
   themeDark: "text-info",
-  chevron: "text-muted-finance",
   chevronLeft: "text-muted-finance",
   chevronRight: "text-muted-finance",
-  logo: "text-link",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

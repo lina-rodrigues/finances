@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { CoinCounter } from "@/components/CoinCounter";
-import { Frame } from "@/components/Frame";
 import { Icon } from "@/components/Icon";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
+import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import {
   formatCurrency,
-  formatYearMonthLabel,
   monthPagePath,
   nextYearMonth,
   prevYearMonth,
@@ -18,11 +17,11 @@ interface MonthSummaryProps {
 }
 
 function monthParts(yearMonth: string) {
-  const label = formatYearMonthLabel(yearMonth);
-  const parts = label.split(" ");
+  const [year, month] = yearMonth.split("-");
+  const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
   return {
-    month: parts[0]?.toUpperCase() ?? label.toUpperCase(),
-    year: parts[1] ?? "",
+    month: date.toLocaleDateString("en-US", { month: "long" }).toUpperCase(),
+    year,
   };
 }
 
@@ -33,8 +32,8 @@ export function MonthSummary({ month }: MonthSummaryProps) {
   const followingMonth = nextYearMonth(month.yearMonth);
 
   return (
-    <Frame>
-      <div className="flex flex-col items-center gap-4 text-center">
+    <Card>
+      <CardContent className="flex flex-col items-center gap-4 p-4 text-center">
         <div className="flex items-center justify-center gap-4">
           <Button variant="secondary" size="sm" className="pressable focus-ring" asChild>
             <Link href={monthPagePath(previousMonth)} aria-label="Previous month">
@@ -77,7 +76,7 @@ export function MonthSummary({ month }: MonthSummaryProps) {
             icon="endingBalance"
           />
         </div>
-      </div>
-    </Frame>
+      </CardContent>
+    </Card>
   );
 }

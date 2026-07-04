@@ -41,7 +41,7 @@ function TypeBadge({ item }: { item: LineItem }) {
   );
 }
 
-export function LineItemRow({ item }: LineItemRowProps) {
+function LineItemRow({ item }: LineItemRowProps) {
   const router = useRouter();
   const { loading, run } = useMutationFeedback();
   const [editing, setEditing] = useState(false);

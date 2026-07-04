@@ -12,17 +12,6 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function readThemeVars(filePath) {
-  const css = readFileSync(filePath, "utf8");
-  const vars = {};
-
-  for (const match of css.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-    vars[match[1]] = match[2].trim();
-  }
-
-  return vars;
-}
-
 function blockVars(css, selector) {
   const pattern = new RegExp(`${selector.replace(".", "\\.")}\\s*\\{([^}]+)\\}`, "s");
   const block = css.match(pattern)?.[1] ?? "";

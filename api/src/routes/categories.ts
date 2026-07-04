@@ -2,15 +2,13 @@ import { Router } from "express";
 import { z } from "zod";
 import { Category } from "../models/Category.js";
 import { LineItem } from "../models/LineItem.js";
-import {
-  ALLOWED_CATEGORY_ICONS,
-  DEFAULT_CATEGORY_ICON,
-  isAllowedCategoryIcon,
-} from "../constants/categoryIcons.js";
+import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
 import {
   getAllCategoriesFlat,
   reorderCategories,
+  toFlatCategoryResponse,
 } from "../services/categoryService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 
@@ -40,27 +38,24 @@ const reorderSchema = z.object({
   ),
 });
 
-router.get("/", async (_req, res, next) => {
-  try {
-    const data = await getAllCategoriesFlat();
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-});
+router.get(
+  "/",
+  asyncHandler(async (_req, res) => {
+    res.json(await getAllCategoriesFlat());
+  }),
+);
 
-router.patch("/reorder", async (req, res, next) => {
-  try {
+router.patch(
+  "/reorder",
+  asyncHandler(async (req, res) => {
     const body = reorderSchema.parse(req.body);
-    const data = await reorderCategories(body.items);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-});
+    res.json(await reorderCategories(body.items));
+  }),
+);
 
-router.post("/", async (req, res, next) => {
-  try {
+router.post(
+  "/",
+  asyncHandler(async (req, res) => {
     const body = createCategorySchema.parse(req.body);
 
     let order = body.order;
@@ -75,19 +70,13 @@ router.post("/", async (req, res, next) => {
       order,
     });
 
-    res.status(201).json({
-      id: category._id.toString(),
-      name: category.name,
-      order: category.order,
-      icon: category.icon,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+    res.status(201).json(toFlatCategoryResponse(category));
+  }),
+);
 
-router.patch("/:id", async (req, res, next) => {
-  try {
+router.patch(
+  "/:id",
+  asyncHandler(async (req, res) => {
     const body = updateCategorySchema.parse(req.body);
     const category = await Category.findByIdAndUpdate(
       req.params.id,
@@ -100,19 +89,13 @@ router.patch("/:id", async (req, res, next) => {
       return;
     }
 
-    res.json({
-      id: category._id.toString(),
-      name: category.name,
-      order: category.order,
-      icon: category.icon,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+    res.json(toFlatCategoryResponse(category));
+  }),
+);
 
-router.delete("/:id", async (req, res, next) => {
-  try {
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
     const lineItemCount = await LineItem.countDocuments({ categoryId: req.params.id });
     if (lineItemCount > 0) {
       res.status(409).json({
@@ -128,11 +111,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 
     res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
-});
-
-export { ALLOWED_CATEGORY_ICONS };
+  }),
+);
 
 export default router;

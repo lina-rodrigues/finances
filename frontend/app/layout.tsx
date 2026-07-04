@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AppToaster } from "@/components/AppToaster";
+import { Toaster } from "@/components/ui/sonner";
 import { jetbrainsMono, nunito, pressStart } from "@/lib/fonts";
 import "./globals.css";
 
@@ -25,7 +25,7 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${pressStart.variable} ${jetbrainsMono.variable} bg-dots min-h-screen font-sans`}
       >
-        <AppToaster />
+        <Toaster position="top-right" />
         <div className="phone-shell">
           <header className="app-header relative flex items-center justify-center px-4 py-4">
             <div className="pill-title">

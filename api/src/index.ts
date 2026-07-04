@@ -8,11 +8,10 @@ import lineItemsRouter from "./routes/lineItems.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const PORT = parseInt(process.env.PORT ?? "4000", 10);
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/finance";
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 
 async function main() {
-  await connectDb(MONGODB_URI);
+  await connectDb();
 
   const app = express();
   app.use(cors({ origin: CORS_ORIGIN }));

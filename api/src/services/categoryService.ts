@@ -1,7 +1,6 @@
-import type { Types } from "mongoose";
 import { Category, type ICategory } from "../models/Category.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
-import { LineItem, type ILineItem, type LineItemType } from "../models/LineItem.js";
+import { effectiveAmount, type ILineItem, type LineItemType } from "../models/LineItem.js";
 
 export interface LineItemResponse {
   id: string;
@@ -35,7 +34,7 @@ function normalizeIcon(icon: string | undefined): string {
   return DEFAULT_CATEGORY_ICON;
 }
 
-function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
+export function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
   return {
     id: cat._id.toString(),
     name: cat.name,
@@ -45,26 +44,32 @@ function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
 }
 
 function toLineItemResponse(item: ILineItem): LineItemResponse {
-  const isRealized = item.realizedAmount !== null;
   return {
     id: item._id.toString(),
     type: item.type,
     label: item.label,
     plannedAmount: item.plannedAmount,
     realizedAmount: item.realizedAmount,
-    displayAmount: isRealized ? item.realizedAmount! : item.plannedAmount,
-    isRealized,
+    displayAmount: effectiveAmount(item),
+    isRealized: item.realizedAmount !== null,
   };
 }
 
+let legacyMigrationDone = false;
+
 /** Flatten legacy hierarchical categories (parentId) into a flat ordered list. */
 export async function flattenLegacyCategories(): Promise<void> {
+  if (legacyMigrationDone) {
+    return;
+  }
+
   const collection = Category.collection;
   const needsMigration = await collection.findOne({
     $or: [{ parentId: { $exists: true } }, { icon: { $exists: false } }],
   });
 
   if (!needsMigration) {
+    legacyMigrationDone = true;
     return;
   }
 
@@ -85,6 +90,8 @@ export async function flattenLegacyCategories(): Promise<void> {
       },
     );
   }
+
+  legacyMigrationDone = true;
 }
 
 export async function getAllCategoriesFlat(): Promise<FlatCategoryResponse[]> {
@@ -94,11 +101,10 @@ export async function getAllCategoriesFlat(): Promise<FlatCategoryResponse[]> {
 }
 
 export async function getCategoriesWithLineItems(
-  monthId: Types.ObjectId,
+  lineItems: ILineItem[],
 ): Promise<CategoryWithLineItems[]> {
   await flattenLegacyCategories();
   const categories = await Category.find().sort({ order: 1, name: 1 });
-  const lineItems = await LineItem.find({ monthId }).sort({ createdAt: 1 });
 
   const lineItemsByCategory = new Map<string, ILineItem[]>();
   for (const item of lineItems) {
@@ -117,8 +123,13 @@ export async function getCategoriesWithLineItems(
 export async function reorderCategories(
   items: { id: string; order: number }[],
 ): Promise<FlatCategoryResponse[]> {
-  for (const item of items) {
-    await Category.findByIdAndUpdate(item.id, { order: item.order });
-  }
+  await Category.bulkWrite(
+    items.map((item) => ({
+      updateOne: {
+        filter: { _id: item.id },
+        update: { $set: { order: item.order } },
+      },
+    })),
+  );
   return getAllCategoriesFlat();
 }

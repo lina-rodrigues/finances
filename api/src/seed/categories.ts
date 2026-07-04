@@ -1,9 +1,6 @@
 import "dotenv/config";
 import { connectDb } from "../db/connection.js";
 import { Category } from "../models/Category.js";
-import { DEFAULT_CATEGORY_ICON } from "../constants/categoryIcons.js";
-
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/finance";
 
 const seedCategories = [
   { name: "Salary", order: 0, icon: "income" },
@@ -17,7 +14,7 @@ const seedCategories = [
 ];
 
 async function seed() {
-  await connectDb(MONGODB_URI);
+  await connectDb();
 
   const existing = await Category.countDocuments();
   if (existing > 0) {
@@ -25,13 +22,7 @@ async function seed() {
     process.exit(0);
   }
 
-  for (const cat of seedCategories) {
-    await Category.create({
-      name: cat.name,
-      order: cat.order,
-      icon: cat.icon ?? DEFAULT_CATEGORY_ICON,
-    });
-  }
+  await Category.insertMany(seedCategories);
 
   console.log("Categories seeded successfully.");
   process.exit(0);

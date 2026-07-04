@@ -23,7 +23,6 @@ import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   createCategory,
   deleteCategory,
-  fetchCategories,
   reorderCategories,
   updateCategory,
   type FlatCategory,
@@ -51,6 +50,10 @@ function toEditable(cat: FlatCategory): EditableCategory {
     draftName: cat.name,
     draftIcon: resolveCategoryIcon(cat.icon),
   };
+}
+
+function sortToEditable(cats: FlatCategory[]): EditableCategory[] {
+  return [...cats].sort((a, b) => a.order - b.order).map(toEditable);
 }
 
 function IconSelect({
@@ -85,22 +88,16 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const { loading, run } = useMutationFeedback();
   const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState<EditableCategory[]>(() =>
-    [...initialCategories].sort((a, b) => a.order - b.order).map(toEditable),
+    sortToEditable(initialCategories),
   );
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState<IconName>("category");
 
+  // router.refresh() re-runs the server page, which feeds fresh categories
+  // back through initialCategories and this effect.
   useEffect(() => {
-    setCategories(
-      [...initialCategories].sort((a, b) => a.order - b.order).map(toEditable),
-    );
+    setCategories(sortToEditable(initialCategories));
   }, [initialCategories]);
-
-  async function refreshCategories() {
-    const fresh = await fetchCategories();
-    setCategories([...fresh].sort((a, b) => a.order - b.order).map(toEditable));
-    router.refresh();
-  }
 
   async function handleSave(cat: EditableCategory) {
     if (!cat.draftName.trim()) return;
@@ -111,7 +108,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           name: cat.draftName.trim(),
           icon: cat.draftIcon,
         });
-        await refreshCategories();
+        router.refresh();
       },
       { successMessage: "Category updated" },
     );
@@ -131,7 +128,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     await run(
       async () => {
         await reorderCategories(items);
-        await refreshCategories();
+        router.refresh();
       },
       { successMessage: "Categories reordered" },
     );
@@ -145,7 +142,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         await createCategory({ name: newName.trim(), icon: newIcon });
         setNewName("");
         setNewIcon("category");
-        await refreshCategories();
+        router.refresh();
       },
       { successMessage: "Category created" },
     );
@@ -157,12 +154,9 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     await run(
       async () => {
         await deleteCategory(cat.id);
-        await refreshCategories();
+        router.refresh();
       },
-      {
-        successMessage: "Category deleted",
-        errorMessage: "Could not delete category. Remove line items first.",
-      },
+      { successMessage: "Category deleted" },
     );
   }
 

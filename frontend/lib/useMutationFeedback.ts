@@ -17,7 +17,11 @@ export function useMutationFeedback() {
         }
       } catch (err) {
         console.error(err);
-        showToast(options?.errorMessage ?? "Something went wrong. Please try again.", "error");
+        const fallback =
+          err instanceof Error && err.message
+            ? err.message
+            : "Something went wrong. Please try again.";
+        showToast(options?.errorMessage ?? fallback, "error");
       } finally {
         setLoading(false);
       }

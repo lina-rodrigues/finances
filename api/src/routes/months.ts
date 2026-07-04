@@ -1,13 +1,16 @@
 import { Router } from "express";
-import { z } from "zod";
-import { Month } from "../models/Month.js";
 import { LineItem } from "../models/LineItem.js";
 import {
   cascadeBalanceFrom,
-  computeEndingBalance,
+  computeBalance,
   ensureMonth,
 } from "../services/balanceService.js";
 import { getCategoriesWithLineItems } from "../services/categoryService.js";
+import {
+  createLineItemSchema,
+  toLineItemMutationResponse,
+} from "../schemas/lineItem.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getCurrentYearMonth,
   isValidYearMonth,
@@ -15,62 +18,47 @@ import {
 
 const router = Router();
 
+router.param("yearMonth", (req, res, next, value) => {
+  if (!isValidYearMonth(value)) {
+    res.status(400).json({ error: "Invalid yearMonth format. Use YYYY-MM." });
+    return;
+  }
+  next();
+});
+
 async function buildMonthView(yearMonth: string) {
   const month = await ensureMonth(yearMonth);
-  const endingBalance = await computeEndingBalance(month._id.toString());
-  const categories = await getCategoriesWithLineItems(month._id);
+  const lineItems = await LineItem.find({ monthId: month._id }).sort({ createdAt: 1 });
 
   return {
     month: {
       id: month._id.toString(),
       yearMonth: month.yearMonth,
       lastMonthBalance: month.lastMonthBalance,
-      endingBalance,
+      endingBalance: computeBalance(month.lastMonthBalance, lineItems),
     },
-    categories,
+    categories: await getCategoriesWithLineItems(lineItems),
   };
 }
 
-router.get("/current", async (_req, res, next) => {
-  try {
-    const yearMonth = getCurrentYearMonth();
-    const data = await buildMonthView(yearMonth);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-});
+router.get(
+  "/current",
+  asyncHandler(async (_req, res) => {
+    res.json(await buildMonthView(getCurrentYearMonth()));
+  }),
+);
 
-router.get("/:yearMonth", async (req, res, next) => {
-  try {
+router.get(
+  "/:yearMonth",
+  asyncHandler(async (req, res) => {
+    res.json(await buildMonthView(req.params.yearMonth));
+  }),
+);
+
+router.post(
+  "/:yearMonth/line-items",
+  asyncHandler(async (req, res) => {
     const { yearMonth } = req.params;
-    if (!isValidYearMonth(yearMonth)) {
-      res.status(400).json({ error: "Invalid yearMonth format. Use YYYY-MM." });
-      return;
-    }
-    const data = await buildMonthView(yearMonth);
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-});
-
-const createLineItemSchema = z.object({
-  categoryId: z.string().min(1),
-  type: z.enum(["income", "expense"]),
-  label: z.string().min(1),
-  plannedAmount: z.number(),
-  realizedAmount: z.number().nullable().optional(),
-});
-
-router.post("/:yearMonth/line-items", async (req, res, next) => {
-  try {
-    const { yearMonth } = req.params;
-    if (!isValidYearMonth(yearMonth)) {
-      res.status(400).json({ error: "Invalid yearMonth format. Use YYYY-MM." });
-      return;
-    }
-
     const body = createLineItemSchema.parse(req.body);
     const month = await ensureMonth(yearMonth);
 
@@ -85,16 +73,8 @@ router.post("/:yearMonth/line-items", async (req, res, next) => {
 
     await cascadeBalanceFrom(yearMonth);
 
-    res.status(201).json({
-      id: lineItem._id.toString(),
-      type: lineItem.type,
-      label: lineItem.label,
-      plannedAmount: lineItem.plannedAmount,
-      realizedAmount: lineItem.realizedAmount,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+    res.status(201).json(toLineItemMutationResponse(lineItem));
+  }),
+);
 
 export default router;
