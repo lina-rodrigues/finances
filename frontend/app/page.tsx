@@ -6,8 +6,13 @@ import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import { fetchMonthView } from "@/lib/api";
 
-export default async function HomePage() {
-  const data = await fetchMonthView();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month: monthParam } = await searchParams;
+  const data = await fetchMonthView(monthParam);
   const flatCategories = data.categories.map(({ id, name, order, icon }) => ({
     id,
     name,
@@ -18,7 +23,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-6">
       <MonthSummary month={data.month} />
-      <section>
+      <section className="pt-6">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-display text-sm">Categories</h2>
           <CategoryManager initialCategories={flatCategories} />

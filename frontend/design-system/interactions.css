@@ -91,14 +91,6 @@
   animation: sparkle-pop 600ms var(--finance-ease-out);
 }
 
-.card-hover-lift {
-  transition: transform var(--finance-duration-normal) var(--finance-ease-out);
-}
-
-.card-hover-lift:hover {
-  transform: translateY(-2px);
-}
-
 .btn-add-item {
   font-weight: 600;
 }
@@ -110,15 +102,13 @@
   .pressable,
   .fade-in,
   .sparkle-pop,
-  .card-hover-lift,
   .btn-add-item {
     animation: none;
     transition: none;
   }
 
   .interactive-surface:active,
-  .pressable:active:not(:disabled),
-  .card-hover-lift:hover {
+  .pressable:active:not(:disabled) {
     transform: none;
   }
 }

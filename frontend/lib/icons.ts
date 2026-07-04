@@ -5,6 +5,8 @@ import { Briefcase } from "pixelarticons/react/Briefcase";
 import { Car } from "pixelarticons/react/Car";
 import { Check } from "pixelarticons/react/Check";
 import { ChevronDown } from "pixelarticons/react/ChevronDown";
+import { ChevronLeft } from "pixelarticons/react/ChevronLeft";
+import { ChevronRight } from "pixelarticons/react/ChevronRight";
 import { Clock } from "pixelarticons/react/Clock";
 import { Close } from "pixelarticons/react/Close";
 import { CloudSun } from "pixelarticons/react/CloudSun";
@@ -19,7 +21,6 @@ import { MapPin } from "pixelarticons/react/MapPin";
 import { Moon } from "pixelarticons/react/Moon";
 import { PenSquare } from "pixelarticons/react/PenSquare";
 import { Plus } from "pixelarticons/react/Plus";
-import { Scale } from "pixelarticons/react/Scale";
 import { Shirt } from "pixelarticons/react/Shirt";
 import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
 import { Trash } from "pixelarticons/react/Trash";
@@ -63,6 +64,8 @@ export type IconName =
   | "themeLight"
   | "themeDark"
   | "chevron"
+  | "chevronLeft"
+  | "chevronRight"
   | "logo";
 
 export const iconMap: Record<IconName, PixelIcon> = {
@@ -70,7 +73,7 @@ export const iconMap: Record<IconName, PixelIcon> = {
   expense: WavesArrowDown,
   planned: Clock,
   balance: Wallet,
-  endingBalance: Scale,
+  endingBalance: Coins,
   category: Folder,
   house: Home,
   utensils: Coffee,
@@ -96,6 +99,8 @@ export const iconMap: Record<IconName, PixelIcon> = {
   themeLight: CloudSun,
   themeDark: Moon,
   chevron: ChevronDown,
+  chevronLeft: ChevronLeft,
+  chevronRight: ChevronRight,
   logo: Coins,
 };
 
@@ -130,6 +135,8 @@ export const iconColorMap: Record<IconName, string> = {
   themeLight: "text-warning",
   themeDark: "text-info",
   chevron: "text-muted-finance",
+  chevronLeft: "text-muted-finance",
+  chevronRight: "text-muted-finance",
   logo: "text-primary",
 };
 

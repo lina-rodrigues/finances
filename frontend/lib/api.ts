@@ -177,3 +177,36 @@ export function formatYearMonthLabel(yearMonth: string): string {
   const date = new Date(parseInt(yearStr, 10), parseInt(monthStr, 10) - 1, 1);
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
+
+export function getCurrentYearMonth(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+export function prevYearMonth(yearMonth: string): string {
+  const [yearStr, monthStr] = yearMonth.split("-");
+  let year = parseInt(yearStr, 10);
+  let month = parseInt(monthStr, 10) - 1;
+  if (month < 1) {
+    month = 12;
+    year -= 1;
+  }
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+export function nextYearMonth(yearMonth: string): string {
+  const [yearStr, monthStr] = yearMonth.split("-");
+  let year = parseInt(yearStr, 10);
+  let month = parseInt(monthStr, 10) + 1;
+  if (month > 12) {
+    month = 1;
+    year += 1;
+  }
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+export function monthPagePath(yearMonth: string): string {
+  return yearMonth === getCurrentYearMonth() ? "/" : `/?month=${yearMonth}`;
+}

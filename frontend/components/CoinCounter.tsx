@@ -1,32 +1,31 @@
-import Image from "next/image";
+import { Icon } from "@/components/Icon";
+import type { IconName } from "@/lib/icons";
 
 interface CoinCounterProps {
   amount: string;
   label: string;
   highlight?: boolean;
+  icon?: IconName;
 }
 
-export function CoinCounter({ amount, label, highlight = false }: CoinCounterProps) {
+export function CoinCounter({ amount, label, highlight = false, icon }: CoinCounterProps) {
   return (
-    <div className="inventory-slot flex items-center justify-between gap-3">
-      <div>
+    <div className="inventory-slot flex min-w-0 items-center gap-3">
+      {icon && (
+        <div className="icon-slot shrink-0">
+          <Icon name={icon} size="lg" />
+        </div>
+      )}
+      <div className="min-w-0 text-left">
         <div className="text-muted-finance text-body text-xs font-semibold uppercase tracking-wide">
           {label}
         </div>
         <div
-          className={`text-amount-hero text-lg ${highlight ? "text-balance" : "text-foreground"}`}
+          className={`text-amount-hero truncate text-lg ${highlight ? "text-balance" : "text-foreground"}`}
         >
           {amount}
         </div>
       </div>
-      <Image
-        src="/assets/coin.svg"
-        alt=""
-        width={28}
-        height={28}
-        className="shrink-0"
-        aria-hidden
-      />
     </div>
   );
 }
