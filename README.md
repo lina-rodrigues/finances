@@ -9,7 +9,7 @@ The project is a **pnpm monorepo** with two independently deployable packages:
 | Package | Tech | Port | Role |
 |---------|------|------|------|
 | [`api/`](api/) | Express, Mongoose, TypeScript | 4000 | REST API, MongoDB access, balance recalculation |
-| [`frontend/`](frontend/) | Next.js (App Router), React, DaisyUI | 3000 | SSR UI, calls API over HTTP |
+| [`frontend/`](frontend/) | Next.js (App Router), React, Tailwind CSS 4, Pixelact UI | 3000 | SSR UI, calls API over HTTP |
 
 ```
 ┌─────────────┐     HTTP      ┌─────────────┐     MongoDB    ┌─────────────┐
@@ -36,8 +36,8 @@ See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's desig
 
 ## Features (v1)
 
-- **Monthly view** for the current month
-- **Flat categories** with custom Font Awesome icons and drag-free reordering (up/down)
+- **Monthly view** with previous/next month navigation
+- **Flat categories** with custom pixel-art icons ([Pixelarticons](https://pixelarticons.com/)) and drag-free reordering (up/down)
 - **Category management** — rename, pick icons, reorder, add, and delete via **Manage** on the Categories header
 - **Light and dark themes** — toggle in the navbar; preference saved in the browser
 - **Income and expense line items** with planned and realized amounts
@@ -217,20 +217,26 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | `pnpm dev:api` | Run API only |
 | `pnpm dev:frontend` | Run frontend only |
 | `pnpm seed` | Seed default categories |
+| `pnpm seed:fresh` | Drop existing data and reseed |
 | `pnpm build` | Build both packages |
+| `pnpm contrast-check` | WCAG AA contrast audit of the theme colors |
+| `pnpm responsive-check` | Playwright screenshots (2 themes x 3 months x 8 viewports) into `.responsive-audit/` — requires `pnpm dev` running |
 
 ## Project Structure
 
 ```
 finance/
+├── AGENTS.md                   # Guidance for AI agents working in this repo
 ├── docker-compose.yml          # MongoDB
 ├── .env.example
 ├── pnpm-workspace.yaml
+├── scripts/                    # contrast-check, responsive-check
 ├── api/
 │   └── src/
 │       ├── constants/          # Allowed category icon keys
 │       ├── models/             # Category, Month, LineItem
 │       ├── routes/             # REST endpoints
+│       ├── schemas/            # Zod request validation
 │       ├── services/           # Balance cascade, flat categories
 │       └── seed/               # Default flat categories
 └── frontend/
@@ -238,12 +244,12 @@ finance/
     ├── design-system/          # CSS tokens and themes
     ├── app/                    # Next.js App Router (SSR page)
     ├── components/             # UI (CategoryManager, CategorySection, …)
+    │   └── ui/pixelact-ui/     # Pixel-art component wrappers
     └── lib/                    # API client, icons, fonts
 ```
 
 ## Future Extensions
 
-- Month navigation (browse past/future months)
 - Authentication and multi-user support
 - Charts and spending summaries
 - Dockerize API and frontend services

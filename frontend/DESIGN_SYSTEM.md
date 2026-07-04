@@ -68,7 +68,7 @@ Pastels (`--pastel-*`) are for fills, borders, and badges. Text uses darker `--f
 | Income | `.text-income` | `.bg-income-subtle` |
 | Expense | `.text-expense` | `.bg-expense-subtle` |
 | Planned | `.text-planned` | `.bg-planned-subtle` |
-| Balance | `.text-balance` | — |
+| Balance | `.text-fin-balance` | — |
 
 **Rule:** status is always **icon + color + text label**.
 
@@ -76,7 +76,7 @@ Pastels (`--pastel-*`) are for fills, borders, and badges. Text uses darker `--f
 
 | Role | Font | Class |
 |------|------|-------|
-| Headings | Press Start 2P | `.text-display`, `.text-pixel` |
+| Headings | Press Start 2P | `.text-display` |
 | Body | Nunito | `.text-body` |
 | Amounts | JetBrains Mono | `.text-amount` |
 | Hero amounts | Press Start 2P | `.text-amount-hero` |
@@ -85,6 +85,6 @@ Pastels (`--pastel-*`) are for fills, borders, and badges. Text uses darker `--f
 
 | Do | Don't |
 |----|-------|
-| Use Pixelact UI components | Use DaisyUI classes |
+| Import from `components/ui/pixelact-ui/` | Import the raw shadcn bases in `components/ui/` directly |
 | Pair icons with color and text | Use color alone for status |
 | Use `.text-amount` for row values | Use pixel font on dense rows |
