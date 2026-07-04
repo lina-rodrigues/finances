@@ -43,7 +43,7 @@ export function MonthSummary({ month }: MonthSummaryProps) {
           </Button>
 
           <div>
-            <div className="text-display text-pixel text-2xl text-primary">{monthName}</div>
+            <div className="text-display text-pixel text-2xl text-balance">{monthName}</div>
             {year && (
               <div className="text-muted-finance text-body mt-1 text-sm font-semibold tracking-widest">
                 {year}

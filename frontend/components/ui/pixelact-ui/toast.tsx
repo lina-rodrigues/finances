@@ -11,7 +11,7 @@ type ToastType = "success" | "error" | "info";
 const variantClass: Record<ToastType, string> = {
   success: "bg-income-subtle",
   error: "bg-expense-subtle",
-  info: "bg-primary/40",
+  info: "bg-planned-subtle",
 };
 
 export function toast(message: string, type: ToastType = "info") {

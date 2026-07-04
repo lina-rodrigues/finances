@@ -82,7 +82,7 @@
   --success-foreground: #14532d;
   --warning: #fde68a;
   --warning-foreground: #713f12;
-  --link: #a855f7;
+  --link: #7e22ce;
   --radius: 0px;
   --chart-1: #c084fc;
   --chart-2: #86efac;
@@ -113,9 +113,9 @@
   --muted: #2d1f40;
   --muted-foreground: #c4b5fd;
   --accent: #f472b6;
-  --accent-foreground: #fce7f3;
+  --accent-foreground: #3b0718;
   --destructive: #be4a62;
-  --destructive-foreground: #fce7f3;
+  --destructive-foreground: #ffffff;
   --border: #c4b5fd;
   --input: #251a33;
   --ring: #e9d5ff;

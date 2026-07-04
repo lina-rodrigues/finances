@@ -3,6 +3,14 @@
   --finance-expense: var(--pastel-rose, #fda4af);
   --finance-planned: var(--pastel-lavender, #e9d5ff);
   --finance-balance: var(--primary);
+
+  /* Readable text tints — pastels above stay for fills and borders */
+  --finance-income-text: #047857;
+  --finance-expense-text: #be123c;
+  --finance-planned-text: #6d28d9;
+  --finance-balance-text: #7e22ce;
+  --finance-subtle-mix: 55%;
+
   --finance-muted: var(--muted-foreground);
   --finance-hover: color-mix(in srgb, var(--primary) 18%, var(--card));
   --finance-hover-strong: color-mix(in srgb, var(--primary) 28%, var(--card));
@@ -15,25 +23,31 @@
 }
 
 .dark {
+  --finance-income-text: var(--pastel-mint, #bbf7d0);
+  --finance-expense-text: var(--pastel-rose, #fda4af);
+  --finance-planned-text: var(--pastel-lavender, #e9d5ff);
+  --finance-balance-text: var(--primary);
+  --finance-subtle-mix: 16%;
+
   --finance-hover: color-mix(in srgb, var(--primary) 15%, var(--card));
   --finance-hover-strong: color-mix(in srgb, var(--primary) 25%, var(--card));
   --dot-color: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 .text-income {
-  color: var(--finance-income);
+  color: var(--finance-income-text);
 }
 
 .text-expense {
-  color: var(--finance-expense);
+  color: var(--finance-expense-text);
 }
 
 .text-planned {
-  color: var(--finance-planned);
+  color: var(--finance-planned-text);
 }
 
 .text-balance {
-  color: var(--finance-balance);
+  color: var(--finance-balance-text);
 }
 
 .text-muted-finance {
@@ -41,11 +55,19 @@
 }
 
 .bg-income-subtle {
-  background-color: color-mix(in srgb, var(--finance-income) 55%, var(--card));
+  background-color: color-mix(
+    in srgb,
+    var(--finance-income) var(--finance-subtle-mix),
+    var(--card)
+  );
 }
 
 .bg-expense-subtle {
-  background-color: color-mix(in srgb, var(--finance-expense) 55%, var(--card));
+  background-color: color-mix(
+    in srgb,
+    var(--finance-expense) var(--finance-subtle-mix),
+    var(--card)
+  );
 }
 
 .bg-expense {
@@ -57,7 +79,11 @@
 }
 
 .bg-planned-subtle {
-  background-color: color-mix(in srgb, var(--finance-planned) 55%, var(--card));
+  background-color: color-mix(
+    in srgb,
+    var(--finance-planned) var(--finance-subtle-mix),
+    var(--card)
+  );
 }
 
 .pill-title {

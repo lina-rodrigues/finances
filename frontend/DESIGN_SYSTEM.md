@@ -61,12 +61,14 @@ Button variants: `default`, `secondary`, `success`, `warning`, `destructive`, `l
 
 ## Meaningful Colors
 
-| Meaning | Utility class |
-|---------|---------------|
-| Income | `.text-income` / `.bg-income-subtle` |
-| Expense | `.text-expense` / `.bg-expense-subtle` |
-| Planned | `.text-planned` / `.bg-planned-subtle` |
-| Balance | `.text-balance` |
+Pastels (`--pastel-*`) are for fills, borders, and badges. Text uses darker `--finance-*-text` tokens in light mode so amounts and labels meet WCAG AA.
+
+| Meaning | Text class | Background class |
+|---------|------------|------------------|
+| Income | `.text-income` | `.bg-income-subtle` |
+| Expense | `.text-expense` | `.bg-expense-subtle` |
+| Planned | `.text-planned` | `.bg-planned-subtle` |
+| Balance | `.text-balance` | — |
 
 **Rule:** status is always **icon + color + text label**.
 
