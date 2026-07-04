@@ -2,6 +2,7 @@
 /**
  * Capture full-page screenshots at common viewports, in light and dark
  * mode, across the three seeded months (previous, current, next).
+ * Also captures add-item modal and combobox-open states on current-month.
  * Requires the dev server at http://localhost:3000 (pnpm dev).
  *
  * Playwright reports env(safe-area-inset-*) as 0, so phone-sized viewports
@@ -10,7 +11,10 @@
  * Usage: pnpm responsive-check
  * Output:
  *   .responsive-audit/<theme>/<month>/<viewport>.png
- *   .responsive-audit/<theme>/<month>/safe-area/<viewport>.png  (phones only)
+ *   .responsive-audit/<theme>/<month>/add-item-modal/<viewport>-modal.png
+ *   .responsive-audit/<theme>/<month>/add-item-modal/<viewport>-combobox-open.png
+ *   .responsive-audit/<theme>/<month>/safe-area/<viewport>.png
+ *   .responsive-audit/<theme>/<month>/safe-area/add-item-modal/...
  */
 
 import { chromium } from "playwright";
@@ -55,6 +59,8 @@ const months = [
   { name: "next-month", query: `?month=${shiftYearMonth(1)}` },
 ];
 
+const currentMonth = months[0];
+
 async function assertDevServer() {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -67,10 +73,7 @@ async function assertDevServer() {
   }
 }
 
-async function captureViewport(page, { theme, month, vp, subdir, simulateSafeArea = false }) {
-  const dir = path.join(outDir, theme, month.name, subdir);
-  await mkdir(dir, { recursive: true });
-
+async function applySafeArea(page, simulateSafeArea) {
   await page.evaluate(() => {
     document.getElementById("responsive-check-safe-area")?.remove();
   });
@@ -84,7 +87,60 @@ async function captureViewport(page, { theme, month, vp, subdir, simulateSafeAre
       `,
     });
   }
+}
 
+async function openAddItemModal(page, vp) {
+  if (vp.width <= 430) {
+    await page.locator('[data-testid="add-item-trigger-fab"]').click({ force: true });
+    return;
+  }
+
+  if (vp.width >= 640) {
+    await page.locator('[data-testid="add-item-trigger-header"]').click({ force: true });
+    return;
+  }
+
+  // 431–639px: global triggers hidden — use first category link.
+  await page.locator('[data-testid="add-item-trigger-category"]').click({ force: true });
+}
+
+async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea = false }) {
+  const dir = path.join(outDir, theme, currentMonth.name, subdir, "add-item-modal");
+  await mkdir(dir, { recursive: true });
+
+  await applySafeArea(page, simulateSafeArea);
+  await page.setViewportSize({ width: vp.width, height: vp.height });
+  await page.emulateMedia({ colorScheme: theme });
+  await page.goto(`${url}/${currentMonth.query}`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+
+  await openAddItemModal(page, vp);
+  await page.getByRole("dialog", { name: "Add item" }).waitFor({ state: "visible" });
+  await page.waitForTimeout(200);
+
+  const baseName = `${vp.name}-${vp.width}x${vp.height}`;
+  const modalFile = path.join(dir, `${baseName}-modal.png`);
+  await page.screenshot({ path: modalFile });
+  console.log(`saved ${path.relative(root, modalFile)}`);
+
+  const comboboxInput = page.locator('[data-testid="category-combobox-input"]');
+  await comboboxInput.click();
+  await page.locator('[data-testid="category-combobox-listbox"]').waitFor({ state: "visible" });
+  await page.waitForTimeout(200);
+
+  const comboboxFile = path.join(dir, `${baseName}-combobox-open.png`);
+  await page.screenshot({ path: comboboxFile });
+  console.log(`saved ${path.relative(root, comboboxFile)}`);
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+}
+
+async function captureViewport(page, { theme, month, vp, subdir, simulateSafeArea = false }) {
+  const dir = path.join(outDir, theme, month.name, subdir);
+  await mkdir(dir, { recursive: true });
+
+  await applySafeArea(page, simulateSafeArea);
   await page.setViewportSize({ width: vp.width, height: vp.height });
   await page.emulateMedia({ colorScheme: theme });
   await page.goto(`${url}/${month.query}`, { waitUntil: "networkidle" });
@@ -93,6 +149,14 @@ async function captureViewport(page, { theme, month, vp, subdir, simulateSafeAre
   const file = path.join(dir, `${vp.name}-${vp.width}x${vp.height}.png`);
   await page.screenshot({ path: file, fullPage: true });
   console.log(`saved ${path.relative(root, file)}`);
+
+  if (month.name === currentMonth.name && subdir === "") {
+    await captureAddItemModal(page, { theme, vp, subdir: "", simulateSafeArea: false });
+  }
+
+  if (month.name === currentMonth.name && subdir === "safe-area") {
+    await captureAddItemModal(page, { theme, vp, subdir: "safe-area", simulateSafeArea: true });
+  }
 }
 
 await assertDevServer();
@@ -103,16 +167,18 @@ const page = await browser.newPage();
 
 const baseTotal = themes.length * months.length * viewports.length;
 const safeAreaTotal = themes.length * months.length * phoneViewports.length;
-const total = baseTotal + safeAreaTotal;
+const modalTotal = themes.length * (viewports.length * 2 + phoneViewports.length * 2);
+const total = baseTotal + safeAreaTotal + modalTotal;
 
-console.log(
-  `Capturing ${total} screenshots from ${url}`,
-);
+console.log(`Capturing ${total} screenshots from ${url}`);
 console.log(
   `  ${baseTotal} standard (${themes.length} themes x ${months.length} months x ${viewports.length} viewports)`,
 );
 console.log(
   `  ${safeAreaTotal} safe-area (${themes.length} themes x ${months.length} months x ${phoneViewports.length} phone viewports)`,
+);
+console.log(
+  `  ${modalTotal} modal (${themes.length} themes x (${viewports.length} + ${phoneViewports.length} safe-area) viewports x 2 states)`,
 );
 console.log(`Output: ${outDir}/\n`);
 

@@ -24,7 +24,6 @@ import {
 } from "@/lib/api";
 import { resolveCategoryIcon } from "@/lib/icons";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
-import { AddLineItemForm } from "./AddLineItemForm";
 
 interface LineItemRowProps {
   item: LineItem;
@@ -201,10 +200,11 @@ function LineItemRow({ item }: LineItemRowProps) {
 
 interface CategorySectionProps {
   category: Category;
-  yearMonth: string;
+  onAddItem: () => void;
+  addItemTestId?: string;
 }
 
-export function CategorySection({ category, yearMonth }: CategorySectionProps) {
+export function CategorySection({ category, onAddItem, addItemTestId }: CategorySectionProps) {
   const iconName = resolveCategoryIcon(category.icon);
   const hasContent = category.lineItems.length > 0;
   const categoryTotal = sumCategoryAmounts(category);
@@ -225,7 +225,9 @@ export function CategorySection({ category, yearMonth }: CategorySectionProps) {
               <span className="icon-slot shrink-0">
                 <Icon name={iconName} size="sm" />
               </span>
-              <h3 className="text-display truncate text-xs normal-case">{category.name}</h3>
+              <h3 className="text-display min-w-0 text-xs normal-case leading-snug break-words">
+                {category.name}
+              </h3>
             </span>
             <span className="flex shrink-0 items-center gap-2">
               <span className={`text-amount text-sm ${totalClass}`}>{totalLabel}</span>
@@ -247,7 +249,17 @@ export function CategorySection({ category, yearMonth }: CategorySectionProps) {
             {category.lineItems.map((item) => (
               <LineItemRow key={item.id} item={item} />
             ))}
-            <AddLineItemForm categoryId={category.id} yearMonth={yearMonth} />
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="btn-add-item focus-ring mt-1 gap-1"
+              data-testid={addItemTestId}
+              onClick={onAddItem}
+            >
+              <Icon name="add" size="xs" />
+              Add item
+            </Button>
           </CardContent>
         </CollapsibleContent>
       </Card>

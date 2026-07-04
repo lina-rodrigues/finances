@@ -26,6 +26,7 @@ export interface MonthView {
     endingBalance: number;
   };
   categories: Category[];
+  uncategorized: LineItem[];
 }
 
 export interface FlatCategory {
@@ -104,7 +105,7 @@ export async function deleteCategory(id: string): Promise<void> {
 export async function createLineItem(
   yearMonth: string,
   data: {
-    categoryId: string;
+    categoryId: string | null;
     type: LineItemType;
     label: string;
     plannedAmount: number;
@@ -117,7 +118,7 @@ export async function createLineItem(
 export async function updateLineItem(
   id: string,
   data: Partial<{
-    categoryId: string;
+    categoryId: string | null;
     type: LineItemType;
     label: string;
     plannedAmount: number;

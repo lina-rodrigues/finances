@@ -20,7 +20,7 @@ const seedCategories = [
 ];
 
 interface SeedLineItem {
-  category: string;
+  category: string | null;
   type: LineItemType;
   label: string;
   planned: number;
@@ -52,6 +52,7 @@ const currentMonthItems: SeedLineItem[] = [
   { category: "Fuel", type: "expense", label: "Gas", planned: 150, realized: 62.3 },
   { category: "Public Transit", type: "expense", label: "Transit pass", planned: 80, realized: 80 },
   { category: "Other", type: "expense", label: "Miscellaneous", planned: 100, realized: null },
+  { category: null, type: "expense", label: "One-off purchase", planned: 45, realized: null },
 ];
 
 // Next month: predictions only.
@@ -90,8 +91,8 @@ async function seedMonth(
 
   await LineItem.insertMany(
     items.map((item) => {
-      const categoryId = categoryIds.get(item.category);
-      if (!categoryId) {
+      const categoryId = item.category ? categoryIds.get(item.category) : null;
+      if (item.category && !categoryId) {
         throw new Error(`Category "${item.category}" not found; cannot seed line items.`);
       }
       return {

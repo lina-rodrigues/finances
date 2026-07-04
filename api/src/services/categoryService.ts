@@ -100,24 +100,33 @@ export async function getAllCategoriesFlat(): Promise<FlatCategoryResponse[]> {
   return categories.map(toFlatCategoryResponse);
 }
 
-export async function getCategoriesWithLineItems(
-  lineItems: ILineItem[],
-): Promise<CategoryWithLineItems[]> {
+export async function getCategoriesWithLineItems(lineItems: ILineItem[]): Promise<{
+  categories: CategoryWithLineItems[];
+  uncategorized: LineItemResponse[];
+}> {
   await flattenLegacyCategories();
   const categories = await Category.find().sort({ order: 1, name: 1 });
 
+  const uncategorized: ILineItem[] = [];
   const lineItemsByCategory = new Map<string, ILineItem[]>();
   for (const item of lineItems) {
+    if (!item.categoryId) {
+      uncategorized.push(item);
+      continue;
+    }
     const key = item.categoryId.toString();
     const list = lineItemsByCategory.get(key) ?? [];
     list.push(item);
     lineItemsByCategory.set(key, list);
   }
 
-  return categories.map((cat) => ({
-    ...toFlatCategoryResponse(cat),
-    lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map(toLineItemResponse),
-  }));
+  return {
+    categories: categories.map((cat) => ({
+      ...toFlatCategoryResponse(cat),
+      lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map(toLineItemResponse),
+    })),
+    uncategorized: uncategorized.map(toLineItemResponse),
+  };
 }
 
 export async function reorderCategories(

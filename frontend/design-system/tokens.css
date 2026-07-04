@@ -222,3 +222,26 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Modal forms — pixel shadow margin lives on the field slot, not the control */
+.finance-dialog-form {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.finance-dialog-field {
+  margin: var(--box-shadow-width);
+  min-width: 0;
+}
+
+.finance-dialog-field .pixel__input,
+.finance-dialog-field > .relative {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.finance-dialog-field .pixel__input {
+  display: block;
+}

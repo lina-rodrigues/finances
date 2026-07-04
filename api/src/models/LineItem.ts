@@ -4,7 +4,7 @@ export type LineItemType = "income" | "expense";
 
 export interface ILineItem extends Document {
   monthId: Types.ObjectId;
-  categoryId: Types.ObjectId;
+  categoryId: Types.ObjectId | null;
   type: LineItemType;
   label: string;
   plannedAmount: number;
@@ -14,7 +14,7 @@ export interface ILineItem extends Document {
 const lineItemSchema = new Schema<ILineItem>(
   {
     monthId: { type: Schema.Types.ObjectId, ref: "Month", required: true },
-    categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    categoryId: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     type: { type: String, enum: ["income", "expense"], required: true },
     label: { type: String, required: true },
     plannedAmount: { type: Number, required: true },

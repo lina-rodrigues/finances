@@ -30,6 +30,8 @@ async function buildMonthView(yearMonth: string) {
   const month = await ensureMonth(yearMonth);
   const lineItems = await LineItem.find({ monthId: month._id }).sort({ createdAt: 1 });
 
+  const { categories, uncategorized } = await getCategoriesWithLineItems(lineItems);
+
   return {
     month: {
       id: month._id.toString(),
@@ -37,7 +39,8 @@ async function buildMonthView(yearMonth: string) {
       lastMonthBalance: month.lastMonthBalance,
       endingBalance: computeBalance(month.lastMonthBalance, lineItems),
     },
-    categories: await getCategoriesWithLineItems(lineItems),
+    categories,
+    uncategorized,
   };
 }
 
@@ -64,7 +67,7 @@ router.post(
 
     const lineItem = await LineItem.create({
       monthId: month._id,
-      categoryId: body.categoryId,
+      categoryId: body.categoryId ?? null,
       type: body.type,
       label: body.label,
       plannedAmount: body.plannedAmount,

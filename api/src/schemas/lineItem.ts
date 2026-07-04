@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { ILineItem } from "../models/LineItem.js";
 
 const lineItemFields = z.object({
-  categoryId: z.string().min(1),
+  categoryId: z.string().min(1).nullable().optional(),
   type: z.enum(["income", "expense"]),
   label: z.string().min(1),
   plannedAmount: z.number(),
