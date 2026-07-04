@@ -23,8 +23,8 @@ export default async function HomePage({
   return (
     <div className="space-y-6">
       <MonthSummary month={data.month} />
-      <section className="pt-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="pt-4">
+        <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-display text-sm">Categories</h2>
           <CategoryManager initialCategories={flatCategories} />
         </div>
@@ -46,7 +46,7 @@ export default async function HomePage({
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0">
             {data.categories.map((category) => (
               <CategorySection
                 key={category.id}
