@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import {
@@ -70,12 +69,9 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="fade-in mt-2 flex flex-wrap items-end gap-2 bg-muted p-3"
-    >
+    <form onSubmit={handleSubmit} className="fade-in finance-form mt-2 bg-muted p-3">
       <Select value={type} onValueChange={(v) => setType(v as LineItemType)} disabled={loading}>
-        <SelectTrigger className="w-28" size="sm">
+        <SelectTrigger className="finance-form-field-type" size="sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -84,7 +80,7 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
         </SelectContent>
       </Select>
       <Input
-        className="min-w-0 flex-1"
+        className="finance-form-field-grow"
         placeholder="Label"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
@@ -92,7 +88,7 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
         disabled={loading}
       />
       <Input
-        className="w-24"
+        className="finance-form-field-sm"
         type="number"
         step="0.01"
         placeholder="Planned"
@@ -102,7 +98,7 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
         disabled={loading}
       />
       <Input
-        className="w-24"
+        className="finance-form-field-sm"
         type="number"
         step="0.01"
         placeholder="Realized"
@@ -110,21 +106,29 @@ export function AddLineItemForm({ categoryId, yearMonth }: AddLineItemFormProps)
         onChange={(e) => setRealizedAmount(e.target.value)}
         disabled={loading}
       />
-      <Button type="submit" variant="default" size="sm" className="pressable focus-ring gap-1" disabled={loading}>
-        {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-        Add
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        className="pressable focus-ring gap-1"
-        onClick={() => setOpen(false)}
-        disabled={loading}
-      >
-        <Icon name="cancel" size="xs" />
-        Cancel
-      </Button>
+      <div className="finance-form-actions">
+        <Button
+          type="submit"
+          variant="default"
+          size="sm"
+          className="pressable focus-ring gap-1"
+          disabled={loading}
+        >
+          {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
+          Add
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="pressable focus-ring gap-1"
+          onClick={() => setOpen(false)}
+          disabled={loading}
+        >
+          <Icon name="cancel" size="xs" />
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

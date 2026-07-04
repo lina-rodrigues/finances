@@ -79,15 +79,16 @@ export function LineItemRow({ item }: LineItemRowProps) {
 
   if (editing) {
     return (
-      <div className="fade-in flex flex-wrap items-center gap-2 bg-muted p-2">
+      <div className="fade-in finance-form bg-muted p-3">
         <Input
-          className="min-w-0 flex-1"
+          className="finance-form-field-grow"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           disabled={loading}
+          placeholder="Label"
         />
         <Input
-          className="w-24"
+          className="finance-form-field-sm"
           type="number"
           step="0.01"
           placeholder="Planned"
@@ -96,7 +97,7 @@ export function LineItemRow({ item }: LineItemRowProps) {
           disabled={loading}
         />
         <Input
-          className="w-24"
+          className="finance-form-field-sm"
           type="number"
           step="0.01"
           placeholder="Realized"
@@ -104,26 +105,28 @@ export function LineItemRow({ item }: LineItemRowProps) {
           onChange={(e) => setRealizedAmount(e.target.value)}
           disabled={loading}
         />
-        <Button
-          variant="default"
-          size="sm"
-          className="pressable focus-ring gap-1"
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
-          Save
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="pressable focus-ring gap-1"
-          onClick={() => setEditing(false)}
-          disabled={loading}
-        >
-          <Icon name="cancel" size="xs" />
-          Cancel
-        </Button>
+        <div className="finance-form-actions">
+          <Button
+            variant="default"
+            size="sm"
+            className="pressable focus-ring gap-1"
+            onClick={handleSave}
+            disabled={loading}
+          >
+            {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
+            Save
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="pressable focus-ring gap-1"
+            onClick={() => setEditing(false)}
+            disabled={loading}
+          >
+            <Icon name="cancel" size="xs" />
+            Cancel
+          </Button>
+        </div>
       </div>
     );
   }
@@ -131,10 +134,10 @@ export function LineItemRow({ item }: LineItemRowProps) {
   const isIncome = item.type === "income";
 
   return (
-    <div className="interactive-row flex items-center justify-between gap-2 px-2 py-1">
-      <div className="flex items-center gap-2">
+    <div className="interactive-row flex flex-col gap-2 px-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <TypeBadge item={item} />
-        <span className="text-body">{item.label}</span>
+        <span className="text-body min-w-0 break-words">{item.label}</span>
         {!item.isRealized && (
           <Badge variant="outline" className="bg-planned-subtle text-foreground">
             <span className="flex items-center gap-1">
@@ -144,7 +147,7 @@ export function LineItemRow({ item }: LineItemRowProps) {
           </Badge>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
         <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
           {isIncome ? "+" : "-"}
           {formatCurrency(item.displayAmount)}
@@ -192,15 +195,15 @@ export function CategorySection({ category, yearMonth }: CategorySectionProps) {
     <Collapsible defaultOpen className="mb-3">
       <Card>
         <CollapsibleTrigger className="w-full cursor-pointer px-4 py-3 text-left">
-          <div className="flex w-full items-center justify-between gap-2">
-            <span className="flex items-center gap-2">
-              <span className="icon-slot">
+          <div className="flex w-full flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="icon-slot shrink-0">
                 <Icon name={iconName} size="sm" />
               </span>
-              <span className="text-display text-xs normal-case">{category.name}</span>
+              <span className="text-display truncate text-xs normal-case">{category.name}</span>
             </span>
             {hasContent && (
-              <span className="text-amount text-sm text-muted-finance">
+              <span className="text-amount shrink-0 text-sm text-muted-finance sm:text-right">
                 {formatCurrency(categoryTotal)}
               </span>
             )}

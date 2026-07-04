@@ -184,7 +184,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         <Icon name="edit" size="xs" />
         Manage
       </Button>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Manage categories</DialogTitle>
         </DialogHeader>

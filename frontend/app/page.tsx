@@ -24,7 +24,7 @@ export default async function HomePage({
     <div className="space-y-6">
       <MonthSummary month={data.month} />
       <section className="pt-6">
-        <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-display text-sm">Categories</h2>
           <CategoryManager initialCategories={flatCategories} />
         </div>

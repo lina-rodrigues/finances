@@ -125,3 +125,79 @@
   margin: 2px;
   background: var(--muted);
 }
+
+/* Phone-app shell — full bleed on mobile, framed column on desktop */
+.phone-shell {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  background: var(--background);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .phone-shell {
+    min-height: calc(100dvh - 3rem);
+    margin-block: 1.5rem;
+    box-shadow: var(--pixel-box-shadow, 4px 4px 0 0 var(--foreground));
+    outline: 2px solid var(--foreground);
+    outline-offset: 0;
+  }
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--background);
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 2px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.app-main {
+  flex: 1;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Responsive inline forms (add / edit line items) */
+.finance-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .finance-form {
+    flex-flow: row wrap;
+    align-items: flex-end;
+  }
+
+  .finance-form .finance-form-field-sm {
+    width: 6rem;
+    flex-shrink: 0;
+  }
+
+  .finance-form .finance-form-field-type {
+    width: 7rem;
+    flex-shrink: 0;
+  }
+
+  .finance-form .finance-form-field-grow {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+}
+
+.finance-form .finance-form-field-sm,
+.finance-form .finance-form-field-type,
+.finance-form .finance-form-field-grow {
+  width: 100%;
+}
+
+.finance-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

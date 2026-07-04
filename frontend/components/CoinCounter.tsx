@@ -17,11 +17,11 @@ export function CoinCounter({ amount, label, highlight = false, icon }: CoinCoun
         </div>
       )}
       <div className="min-w-0 text-left">
-        <div className="text-muted-finance text-body text-xs font-semibold uppercase tracking-wide">
+        <div className="text-muted-finance text-body text-[0.65rem] font-semibold uppercase tracking-wide sm:text-xs">
           {label}
         </div>
         <div
-          className={`text-amount-hero truncate text-lg ${highlight ? "text-balance" : "text-foreground"}`}
+          className={`text-amount-hero text-base sm:text-lg ${highlight ? "text-balance" : "text-foreground"}`}
         >
           {amount}
         </div>

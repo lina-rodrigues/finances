@@ -64,14 +64,14 @@ export function MonthSummary({ month }: MonthSummaryProps) {
           </Badge>
         )}
 
-        <div className="grid w-full grid-cols-2 gap-3">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
           <CoinCounter
-            label="Last month balance"
+            label="Last month"
             amount={formatCurrency(month.lastMonthBalance)}
             icon="balance"
           />
           <CoinCounter
-            label="Ending balance"
+            label="Ending"
             amount={formatCurrency(month.endingBalance)}
             highlight
             icon="endingBalance"
