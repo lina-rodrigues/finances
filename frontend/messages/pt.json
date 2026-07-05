@@ -129,6 +129,33 @@
     "realized": "Realizado (opcional)",
     "submit": "Adicionar item"
   },
+  "repeat": {
+    "mode": "Repetir",
+    "none": "Não repetir",
+    "forever": "Para sempre até cancelar",
+    "count": "Repetir um número de vezes",
+    "until": "Repetir até o mês",
+    "startMonth": "Mês inicial",
+    "endMonth": "Mês final",
+    "occurrenceCount": "Número de meses",
+    "badge": "repete",
+    "makeRecurring": "Tornar recorrente",
+    "makeRecurringTitle": "Tornar item recorrente",
+    "makeRecurringSubmit": "Começar a repetir",
+    "scopePrompt": "Aplicar a quais meses?",
+    "scopeThis": "Somente este mês",
+    "scopeFuture": "Este mês e meses futuros",
+    "scopeAll": "Todos os meses da série",
+    "scopeThisEditDescription": "Os outros meses mantêm os valores atuais.",
+    "scopeFutureEditDescription": "Atualiza este mês e meses futuros não realizados.",
+    "scopeAllEditDescription": "Atualiza todos os meses da série. Valores realizados não mudam.",
+    "scopeThisDeleteDescription": "Remove apenas a instância deste mês.",
+    "scopeFutureDeleteDescription": "Remove este mês e todas as instâncias futuras.",
+    "scopeAllDeleteDescription": "Remove todas as instâncias e encerra a série.",
+    "editScopeTitle": "Editar item recorrente",
+    "deleteScopeTitle": "Excluir item recorrente",
+    "seriesMadeRecurring": "Item agora é recorrente"
+  },
   "budget": {
     "plannedOf": "{spent} de {planned} planejado"
   },

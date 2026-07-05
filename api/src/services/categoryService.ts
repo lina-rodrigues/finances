@@ -1,6 +1,7 @@
 import { Category, type ICategory } from "../models/Category.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
 import { effectiveAmount, type ILineItem, type LineItemType } from "../models/LineItem.js";
+import type { IRecurringSeries, RecurrenceEndType } from "../models/RecurringSeries.js";
 import type { Types } from "mongoose";
 
 export interface LineItemResponse {
@@ -11,6 +12,12 @@ export interface LineItemResponse {
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
+  seriesId: string | null;
+  seriesOccurrenceIndex: number | null;
+  seriesEndType: RecurrenceEndType | null;
+  seriesOccurrenceCount: number | null;
+  seriesEndYearMonth: string | null;
+  isSeriesException: boolean;
 }
 
 export interface CategoryWithLineItems {
@@ -44,7 +51,14 @@ export function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
   };
 }
 
-function toLineItemResponse(item: ILineItem): LineItemResponse {
+function toLineItemResponse(
+  item: ILineItem,
+  seriesById?: Map<string, IRecurringSeries>,
+): LineItemResponse {
+  const series = item.seriesId
+    ? seriesById?.get(item.seriesId.toString())
+    : undefined;
+
   return {
     id: item._id.toString(),
     type: item.type,
@@ -53,6 +67,12 @@ function toLineItemResponse(item: ILineItem): LineItemResponse {
     realizedAmount: item.realizedAmount,
     displayAmount: effectiveAmount(item),
     isRealized: item.realizedAmount !== null,
+    seriesId: item.seriesId?.toString() ?? null,
+    seriesOccurrenceIndex: item.seriesOccurrenceIndex,
+    seriesEndType: series?.endType ?? null,
+    seriesOccurrenceCount: series?.occurrenceCount ?? null,
+    seriesEndYearMonth: series?.endYearMonth ?? null,
+    isSeriesException: item.seriesException,
   };
 }
 
@@ -110,6 +130,7 @@ export async function getAllCategoriesFlat(
 export async function getCategoriesWithLineItems(
   userId: Types.ObjectId | string,
   lineItems: ILineItem[],
+  seriesById?: Map<string, IRecurringSeries>,
 ): Promise<{
   categories: CategoryWithLineItems[];
   uncategorized: LineItemResponse[];
@@ -133,9 +154,11 @@ export async function getCategoriesWithLineItems(
   return {
     categories: categories.map((cat) => ({
       ...toFlatCategoryResponse(cat),
-      lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map(toLineItemResponse),
+      lineItems: (lineItemsByCategory.get(cat._id.toString()) ?? []).map((item) =>
+        toLineItemResponse(item, seriesById),
+      ),
     })),
-    uncategorized: uncategorized.map(toLineItemResponse),
+    uncategorized: uncategorized.map((item) => toLineItemResponse(item, seriesById)),
   };
 }
 

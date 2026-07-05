@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { CategoryCombobox } from "@/components/CategoryCombobox";
 import { Icon } from "@/components/Icon";
+import { RepeatConfigFields } from "@/components/RepeatConfigFields";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import {
   Dialog,
@@ -27,6 +28,7 @@ import {
   type FlatCategory,
   type LineItemType,
 } from "@/lib/api";
+import { buildRecurrencePayload, type RepeatMode } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -56,6 +58,10 @@ export function AddLineItemDialog({
   const [label, setLabel] = useState("");
   const [plannedAmount, setPlannedAmount] = useState("");
   const [realizedAmount, setRealizedAmount] = useState("");
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
+  const [startYearMonth, setStartYearMonth] = useState(yearMonth);
+  const [occurrenceCount, setOccurrenceCount] = useState("12");
+  const [endYearMonth, setEndYearMonth] = useState(yearMonth);
 
   useEffect(() => {
     if (open) {
@@ -64,8 +70,12 @@ export function AddLineItemDialog({
       setLabel("");
       setPlannedAmount("");
       setRealizedAmount("");
+      setRepeatMode("none");
+      setStartYearMonth(yearMonth);
+      setOccurrenceCount("12");
+      setEndYearMonth(yearMonth);
     }
-  }, [open, initialCategoryName, uncategorizedLabel]);
+  }, [open, initialCategoryName, uncategorizedLabel, yearMonth]);
 
   async function resolveCategoryId(trimmed: string): Promise<string | null> {
     if (trimmed.toLowerCase() === uncategorizedLabel.toLowerCase()) {
@@ -88,6 +98,17 @@ export function AddLineItemDialog({
       return;
     }
 
+    const recurrence = buildRecurrencePayload(
+      repeatMode,
+      startYearMonth,
+      occurrenceCount,
+      endYearMonth,
+    );
+
+    if (repeatMode !== "none" && !recurrence) {
+      return;
+    }
+
     await run(
       async () => {
         const categoryId = await resolveCategoryId(trimmedCategory);
@@ -97,6 +118,7 @@ export function AddLineItemDialog({
           label,
           plannedAmount: parseFloat(plannedAmount),
           realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
+          recurrence,
         });
         onOpenChange(false);
         router.refresh();
@@ -191,6 +213,19 @@ export function AddLineItemDialog({
               />
             </div>
           </div>
+
+          <RepeatConfigFields
+            idPrefix={labelFieldId}
+            mode={repeatMode}
+            onModeChange={setRepeatMode}
+            startYearMonth={startYearMonth}
+            onStartYearMonthChange={setStartYearMonth}
+            occurrenceCount={occurrenceCount}
+            onOccurrenceCountChange={setOccurrenceCount}
+            endYearMonth={endYearMonth}
+            onEndYearMonthChange={setEndYearMonth}
+            disabled={loading}
+          />
 
           <DialogFooter className="gap-2 pt-1 sm:justify-end">
             <Button

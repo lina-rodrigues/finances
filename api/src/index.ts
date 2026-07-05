@@ -8,6 +8,7 @@ import usersRouter from "./routes/users.js";
 import categoriesRouter from "./routes/categories.js";
 import monthsRouter from "./routes/months.js";
 import lineItemsRouter from "./routes/lineItems.js";
+import recurrenceSeriesRouter from "./routes/recurrenceSeries.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const PORT = parseInt(process.env.PORT ?? "4000", 10);
@@ -28,6 +29,7 @@ app.use("/users", usersRouter);
 app.use("/categories", categoriesRouter);
 app.use("/months", monthsRouter);
 app.use("/line-items", lineItemsRouter);
+app.use("/recurrence-series", recurrenceSeriesRouter);
 
 app.use(errorHandler);
 

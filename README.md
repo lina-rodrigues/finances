@@ -153,11 +153,37 @@ Income or expense belonging to a month and category:
   "type": "expense",
   "label": "Groceries",
   "plannedAmount": 400.00,
-  "realizedAmount": null
+  "realizedAmount": null,
+  "seriesId": "...",
+  "seriesOccurrenceIndex": 1,
+  "seriesException": false
 }
 ```
 
 When `realizedAmount` is `null`, the UI displays `plannedAmount` with a "planned" indicator.
+
+### Recurring series
+
+Recurring line items use a `RecurringSeries` template that materializes one `LineItem` per calendar month:
+
+```json
+{
+  "startYearMonth": "2026-03",
+  "endType": "never",
+  "occurrenceCount": null,
+  "endYearMonth": null,
+  "cancelledAt": null,
+  "generatedThroughYearMonth": "2027-02"
+}
+```
+
+End modes:
+
+- `never` — repeats until cancelled (generates up to 12 months ahead, extended on month view)
+- `count` — total months including start (e.g. 3 → Mar, Apr, May)
+- `until` — inclusive start and end months
+
+Edit and delete on recurring instances support Google Calendar-style scopes: `this`, `future`, or `all`.
 
 ## Balance Calculation
 
@@ -197,9 +223,11 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | DELETE | `/categories/:id` | Delete category (no line items) |
 | GET | `/months/current` | Current month view (auto-creates month) |
 | GET | `/months/:yearMonth` | Specific month view (`YYYY-MM`) |
-| POST | `/months/:yearMonth/line-items` | Add income/expense |
-| PATCH | `/line-items/:id` | Update line item |
-| DELETE | `/line-items/:id` | Delete line item |
+| POST | `/months/:yearMonth/line-items` | Add income/expense (optional `recurrence` block) |
+| PATCH | `/line-items/:id` | Update line item (optional `scope` for recurring items) |
+| DELETE | `/line-items/:id` | Delete line item (optional `scope` for recurring items) |
+| POST | `/line-items/:id/recurrence` | Convert one-off item to a recurring series |
+| POST | `/recurrence-series/:id/cancel` | Cancel series (delete future unrealized instances) |
 
 ### Monthly view response
 
@@ -225,7 +253,13 @@ The first month in the system starts with `lastMonthBalance: 0`.
           "plannedAmount": 5000,
           "realizedAmount": null,
           "displayAmount": 5000,
-          "isRealized": false
+          "isRealized": false,
+          "seriesId": "...",
+          "seriesOccurrenceIndex": 1,
+          "seriesEndType": "never",
+          "seriesOccurrenceCount": null,
+          "seriesEndYearMonth": null,
+          "isSeriesException": false
         }
       ]
     }

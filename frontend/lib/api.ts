@@ -1,5 +1,16 @@
 export type LineItemType = "income" | "expense";
 
+export type RecurrenceEndType = "never" | "count" | "until";
+
+export type RecurrenceScope = "this" | "future" | "all";
+
+export interface RecurrenceInput {
+  startYearMonth: string;
+  endType: RecurrenceEndType;
+  occurrenceCount?: number;
+  endYearMonth?: string;
+}
+
 export interface LineItem {
   id: string;
   type: LineItemType;
@@ -8,6 +19,12 @@ export interface LineItem {
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
+  seriesId: string | null;
+  seriesOccurrenceIndex: number | null;
+  seriesEndType: RecurrenceEndType | null;
+  seriesOccurrenceCount: number | null;
+  seriesEndYearMonth: string | null;
+  isSeriesException: boolean;
 }
 
 export interface Category {
@@ -112,6 +129,7 @@ export async function createLineItem(
     label: string;
     plannedAmount: number;
     realizedAmount?: number | null;
+    recurrence?: RecurrenceInput;
   },
 ): Promise<void> {
   await apiFetch(`/months/${yearMonth}/line-items`, "create line item", jsonInit("POST", data));
@@ -125,13 +143,39 @@ export async function updateLineItem(
     label: string;
     plannedAmount: number;
     realizedAmount: number | null;
+    scope: RecurrenceScope;
   }>,
 ): Promise<void> {
   await apiFetch(`/line-items/${id}`, "update line item", jsonInit("PATCH", data));
 }
 
-export async function deleteLineItem(id: string): Promise<void> {
-  await apiFetch(`/line-items/${id}`, "delete line item", { method: "DELETE" });
+export async function deleteLineItem(
+  id: string,
+  options?: { scope?: RecurrenceScope },
+): Promise<void> {
+  await apiFetch(`/line-items/${id}`, "delete line item", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(options ?? {}),
+  });
+}
+
+export async function convertLineItemToRecurrence(
+  id: string,
+  recurrence: RecurrenceInput,
+): Promise<void> {
+  await apiFetch(`/line-items/${id}/recurrence`, "convert line item to recurrence", jsonInit("POST", recurrence));
+}
+
+export async function cancelRecurrenceSeries(
+  id: string,
+  fromYearMonth: string,
+): Promise<void> {
+  await apiFetch(
+    `/recurrence-series/${id}/cancel`,
+    "cancel recurrence series",
+    jsonInit("POST", { fromYearMonth }),
+  );
 }
 
 export function formatCurrency(

@@ -5,7 +5,9 @@ import { User } from "../models/User.js";
 import { Category } from "../models/Category.js";
 import { Month } from "../models/Month.js";
 import { LineItem, type LineItemType } from "../models/LineItem.js";
-import { computeEndingBalance } from "../services/balanceService.js";
+import { RecurringSeries } from "../models/RecurringSeries.js";
+import { computeEndingBalance, cascadeBalanceFrom } from "../services/balanceService.js";
+import { createRecurringSeries } from "../services/recurrenceService.js";
 import {
   DEFAULT_CATEGORY_DEFS,
   getDefaultCategories,
@@ -21,11 +23,8 @@ interface SeedLineItem {
 }
 
 const previousMonthItems: SeedLineItem[] = [
-  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
   { categoryKey: "salary", type: "income", label: "Freelance project", planned: 400, realized: 550 },
-  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
   { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: 104.35 },
-  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: 60 },
   { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 600, realized: 683.42 },
   { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: 312.8 },
   { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: 138.5 },
@@ -34,10 +33,7 @@ const previousMonthItems: SeedLineItem[] = [
 ];
 
 const currentMonthItems: SeedLineItem[] = [
-  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: 5000 },
-  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: 1800 },
   { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: 97.2 },
-  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: null },
   { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: 289.75 },
   { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: null },
   { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: 62.3 },
@@ -47,10 +43,7 @@ const currentMonthItems: SeedLineItem[] = [
 ];
 
 const nextMonthItems: SeedLineItem[] = [
-  { categoryKey: "salary", type: "income", label: "Monthly salary", planned: 5000, realized: null },
-  { categoryKey: "rent", type: "expense", label: "Apartment rent", planned: 1800, realized: null },
   { categoryKey: "utilities", type: "expense", label: "Electricity", planned: 120, realized: null },
-  { categoryKey: "utilities", type: "expense", label: "Internet", planned: 60, realized: null },
   { categoryKey: "groceries", type: "expense", label: "Supermarket runs", planned: 650, realized: null },
   { categoryKey: "diningOut", type: "expense", label: "Restaurants", planned: 250, realized: null },
   { categoryKey: "fuel", type: "expense", label: "Gas", planned: 150, realized: null },
@@ -130,6 +123,77 @@ async function seedMonth(
   return Math.round(endingBalance * 100) / 100;
 }
 
+async function setSeriesRealizedForMonth(
+  userId: string,
+  label: string,
+  yearMonth: string,
+  realizedAmount: number,
+): Promise<void> {
+  const month = await Month.findOne({ userId, yearMonth });
+  if (!month) {
+    return;
+  }
+
+  await LineItem.updateOne(
+    { monthId: month._id, label, seriesId: { $ne: null } },
+    { $set: { realizedAmount } },
+  );
+}
+
+async function seedRecurringSeries(
+  userId: string,
+  categoryIds: Map<string, string>,
+  startYearMonth: string,
+): Promise<void> {
+  const salaryCategoryId = categoryIds.get("salary");
+  const rentCategoryId = categoryIds.get("rent");
+  const utilitiesCategoryId = categoryIds.get("utilities");
+
+  if (!salaryCategoryId || !rentCategoryId || !utilitiesCategoryId) {
+    throw new Error("Missing category ids for recurring seed data.");
+  }
+
+  await createRecurringSeries(userId, {
+    categoryId: salaryCategoryId,
+    type: "income",
+    label: "Monthly salary",
+    plannedAmount: 5000,
+    realizedAmount: null,
+    recurrence: { startYearMonth, endType: "never" },
+  });
+
+  await createRecurringSeries(userId, {
+    categoryId: rentCategoryId,
+    type: "expense",
+    label: "Apartment rent",
+    plannedAmount: 1800,
+    realizedAmount: null,
+    recurrence: { startYearMonth, endType: "never" },
+  });
+
+  await createRecurringSeries(userId, {
+    categoryId: utilitiesCategoryId,
+    type: "expense",
+    label: "Internet",
+    plannedAmount: 60,
+    realizedAmount: null,
+    recurrence: { startYearMonth, endType: "count", occurrenceCount: 6 },
+  });
+
+  const current = getCurrentYearMonth();
+  await setSeriesRealizedForMonth(userId, "Monthly salary", startYearMonth, 5000);
+  await setSeriesRealizedForMonth(userId, "Apartment rent", startYearMonth, 1800);
+  await setSeriesRealizedForMonth(userId, "Internet", startYearMonth, 60);
+
+  if (startYearMonth !== current) {
+    await setSeriesRealizedForMonth(userId, "Monthly salary", current, 5000);
+    await setSeriesRealizedForMonth(userId, "Apartment rent", current, 1800);
+  }
+
+  await cascadeBalanceFrom(userId, startYearMonth);
+  console.log("Seeded recurring salary, rent, and Internet series.");
+}
+
 async function seed() {
   const fresh = process.argv.includes("--fresh");
 
@@ -138,6 +202,7 @@ async function seed() {
   if (fresh) {
     await Promise.all([
       LineItem.deleteMany({}),
+      RecurringSeries.deleteMany({}),
       Month.deleteMany({}),
       Category.deleteMany({}),
       User.deleteMany({}),
@@ -162,6 +227,8 @@ async function seed() {
   balance = await seedMonth(userId, previous, balance, previousMonthItems, categoryIds);
   balance = await seedMonth(userId, current, balance, currentMonthItems, categoryIds);
   await seedMonth(userId, next, balance, nextMonthItems, categoryIds);
+
+  await seedRecurringSeries(userId, categoryIds, previous);
 
   console.log("Seed completed successfully.");
   process.exit(0);

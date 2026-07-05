@@ -9,6 +9,9 @@ export interface ILineItem extends Document {
   label: string;
   plannedAmount: number;
   realizedAmount: number | null;
+  seriesId: Types.ObjectId | null;
+  seriesOccurrenceIndex: number | null;
+  seriesException: boolean;
 }
 
 const lineItemSchema = new Schema<ILineItem>(
@@ -19,12 +22,16 @@ const lineItemSchema = new Schema<ILineItem>(
     label: { type: String, required: true },
     plannedAmount: { type: Number, required: true },
     realizedAmount: { type: Number, default: null },
+    seriesId: { type: Schema.Types.ObjectId, ref: "RecurringSeries", default: null },
+    seriesOccurrenceIndex: { type: Number, default: null },
+    seriesException: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
 
 lineItemSchema.index({ monthId: 1, createdAt: 1 });
 lineItemSchema.index({ categoryId: 1 });
+lineItemSchema.index({ seriesId: 1, seriesOccurrenceIndex: 1 });
 
 export const LineItem = mongoose.model<ILineItem>("LineItem", lineItemSchema);
 

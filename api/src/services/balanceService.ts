@@ -1,5 +1,6 @@
 import { Month, type IMonth } from "../models/Month.js";
 import { LineItem, effectiveAmount } from "../models/LineItem.js";
+import { isDuplicateKeyError } from "../db/migrations.js";
 import { nextYearMonth } from "../utils/yearMonth.js";
 import type { Types } from "mongoose";
 
@@ -56,5 +57,15 @@ export async function ensureMonth(userId: Types.ObjectId | string, yearMonth: st
   const prev = await Month.findOne({ userId, yearMonth: { $lt: yearMonth } }).sort({ yearMonth: -1 });
   const lastMonthBalance = prev ? await computeEndingBalance(prev) : 0;
 
-  return Month.create({ userId, yearMonth, lastMonthBalance });
+  try {
+    return await Month.create({ userId, yearMonth, lastMonthBalance });
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      const raced = await Month.findOne({ userId, yearMonth });
+      if (raced) {
+        return raced;
+      }
+    }
+    throw err;
+  }
 }

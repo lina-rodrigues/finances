@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { LineItem } from "../models/LineItem.js";
+import { RecurringSeries } from "../models/RecurringSeries.js";
 import {
   cascadeBalanceFrom,
   computeBalance,
@@ -7,6 +8,11 @@ import {
 } from "../services/balanceService.js";
 import { getCategoriesWithLineItems } from "../services/categoryService.js";
 import { assertCategoryOwnedByUser } from "../services/ownershipService.js";
+import {
+  createRecurringSeries,
+  cascadeFromEarliest,
+  extendSeriesForMonthView,
+} from "../services/recurrenceService.js";
 import {
   createLineItemSchema,
   toLineItemMutationResponse,
@@ -30,10 +36,34 @@ router.param("yearMonth", (req, res, next, value) => {
 });
 
 async function buildMonthView(userId: string, yearMonth: string) {
+  const extendFrom = await extendSeriesForMonthView(userId, yearMonth);
+  if (extendFrom) {
+    await cascadeFromEarliest(userId, extendFrom);
+  }
+
   const month = await ensureMonth(userId, yearMonth);
   const lineItems = await LineItem.find({ monthId: month._id }).sort({ createdAt: 1 });
 
-  const { categories, uncategorized } = await getCategoriesWithLineItems(userId, lineItems);
+  const seriesIds = [
+    ...new Set(
+      lineItems
+        .filter((item) => item.seriesId)
+        .map((item) => item.seriesId!.toString()),
+    ),
+  ];
+
+  const seriesList =
+    seriesIds.length > 0
+      ? await RecurringSeries.find({ _id: { $in: seriesIds }, userId })
+      : [];
+
+  const seriesById = new Map(seriesList.map((series) => [series._id.toString(), series]));
+
+  const { categories, uncategorized } = await getCategoriesWithLineItems(
+    userId,
+    lineItems,
+    seriesById,
+  );
 
   return {
     month: {
@@ -64,9 +94,7 @@ router.get(
 router.post(
   "/:yearMonth/line-items",
   asyncHandler(async (req, res) => {
-    const { yearMonth } = req.params;
     const body = createLineItemSchema.parse(req.body);
-    const month = await ensureMonth(req.userId!, yearMonth);
 
     if (body.categoryId) {
       const owned = await assertCategoryOwnedByUser(body.categoryId, req.userId!);
@@ -75,6 +103,25 @@ router.post(
         return;
       }
     }
+
+    if (body.recurrence) {
+      const { firstItem, cascadeFrom } = await createRecurringSeries(req.userId!, {
+        categoryId: body.categoryId ?? null,
+        type: body.type,
+        label: body.label,
+        plannedAmount: body.plannedAmount,
+        realizedAmount: body.realizedAmount ?? null,
+        recurrence: body.recurrence,
+      });
+
+      await cascadeFromEarliest(req.userId!, cascadeFrom);
+
+      res.status(201).json(toLineItemMutationResponse(firstItem));
+      return;
+    }
+
+    const { yearMonth } = req.params;
+    const month = await ensureMonth(req.userId!, yearMonth);
 
     const lineItem = await LineItem.create({
       monthId: month._id,

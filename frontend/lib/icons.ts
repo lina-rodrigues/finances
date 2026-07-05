@@ -25,6 +25,7 @@ import { MapPin } from "pixelarticons/react/MapPin";
 import { Moon } from "pixelarticons/react/Moon";
 import { PenSquare } from "pixelarticons/react/PenSquare";
 import { Plus } from "pixelarticons/react/Plus";
+import { Reload } from "pixelarticons/react/Reload";
 import { Shirt } from "pixelarticons/react/Shirt";
 import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
 import { SquareAlert } from "pixelarticons/react/SquareAlert";
@@ -77,7 +78,8 @@ export type IconName =
   | "settings"
   | "navFinance"
   | "navCategories"
-  | "navReports";
+  | "navReports"
+  | "repeat";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -118,6 +120,7 @@ export const iconMap: Record<IconName, PixelIcon> = {
   navFinance: ListBox,
   navCategories: Grid3x3,
   navReports: Chart,
+  repeat: Reload,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -161,6 +164,7 @@ export const iconColorMap: Record<IconName, string> = {
   navFinance: "text-muted-finance",
   navCategories: "text-muted-finance",
   navReports: "text-muted-finance",
+  repeat: "text-link",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

@@ -84,6 +84,7 @@ export function CategoriesSection({
             <CategorySection
               key={category.id}
               category={category}
+              yearMonth={yearMonth}
               onAddItem={() => openAddItem(category.name)}
               addItemTestId={index === 0 ? "add-item-trigger-category" : undefined}
             />
@@ -92,6 +93,7 @@ export function CategoriesSection({
             <CategorySection
               key={uncategorizedCategory.id}
               category={uncategorizedCategory}
+              yearMonth={yearMonth}
               onAddItem={() => openAddItem(uncategorizedLabel)}
             />
           )}

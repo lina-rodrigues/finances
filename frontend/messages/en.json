@@ -129,6 +129,33 @@
     "realized": "Realized (optional)",
     "submit": "Add item"
   },
+  "repeat": {
+    "mode": "Repeat",
+    "none": "Does not repeat",
+    "forever": "Forever until cancelled",
+    "count": "Repeat a number of times",
+    "until": "Repeat until month",
+    "startMonth": "Start month",
+    "endMonth": "End month",
+    "occurrenceCount": "Number of months",
+    "badge": "repeats",
+    "makeRecurring": "Make recurring",
+    "makeRecurringTitle": "Make item recurring",
+    "makeRecurringSubmit": "Start repeating",
+    "scopePrompt": "Apply to which months?",
+    "scopeThis": "This month only",
+    "scopeFuture": "This month and future months",
+    "scopeAll": "All months in the series",
+    "scopeThisEditDescription": "Other months keep their current values.",
+    "scopeFutureEditDescription": "Updates this month and later unrealized months.",
+    "scopeAllEditDescription": "Updates every month in the series. Realized amounts stay unchanged.",
+    "scopeThisDeleteDescription": "Removes only this month's instance.",
+    "scopeFutureDeleteDescription": "Removes this month and all future instances.",
+    "scopeAllDeleteDescription": "Removes every instance and stops the series.",
+    "editScopeTitle": "Edit recurring item",
+    "deleteScopeTitle": "Delete recurring item",
+    "seriesMadeRecurring": "Item is now recurring"
+  },
   "budget": {
     "plannedOf": "{spent} of {planned} planned"
   },
