@@ -41,6 +41,7 @@ import {
   resolveCategoryIcon,
   type IconName,
 } from "@/lib/icons";
+import { buildOptimisticCategory, createTempCategoryId } from "@/lib/categoryMappers";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -106,8 +107,15 @@ export function CategoryManager() {
   const router = useRouter();
   const { t } = useTranslation();
   const monthView = useMonthView();
-  const { setFromServer, reorderCategories: reorderCategoriesInView } = useMonthViewActions();
-  const { loading, run, runOptimistic } = useMutationFeedback();
+  const {
+    setFromServer,
+    reorderCategories: reorderCategoriesInView,
+    patchCategory,
+    addCategory,
+    removeCategory,
+    replaceCategoryId,
+  } = useMonthViewActions();
+  const { loading, runOptimistic } = useMutationFeedback();
   const [open, setOpen] = useState(false);
   const [reordering, setReordering] = useState(false);
   const [categories, setCategories] = useState<EditableCategory[]>(() =>
@@ -121,19 +129,38 @@ export function CategoryManager() {
     setCategories(sortToEditable(monthView.flatCategories));
   }, [monthView.flatCategories]);
 
+  function restoreFromSnapshot(snapshot: ReturnType<typeof captureMonthViewState>) {
+    setFromServer(snapshot);
+    setCategories(sortToEditable(snapshot.flatCategories));
+  }
+
   async function handleSave(cat: EditableCategory) {
     if (!cat.draftName.trim()) return;
 
-    await run(
-      async () => {
-        await updateCategory(cat.id, {
-          name: cat.draftName.trim(),
-          icon: cat.draftIcon,
-        });
-        router.refresh();
+    const trimmedName = cat.draftName.trim();
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        patchCategory(cat.id, { name: trimmedName, icon: cat.draftIcon });
+        setCategories((prev) =>
+          prev.map((entry) =>
+            entry.id === cat.id
+              ? {
+                  ...entry,
+                  name: trimmedName,
+                  icon: cat.draftIcon,
+                  draftName: trimmedName,
+                  draftIcon: cat.draftIcon,
+                }
+              : entry,
+          ),
+        );
       },
-      { successMessage: t("categories.categoryUpdated") },
-    );
+      mutate: () => updateCategory(cat.id, { name: trimmedName, icon: cat.draftIcon }),
+      reconcile: () => backgroundReconcile(router),
+      rollback: restoreFromSnapshot,
+      successMessage: t("categories.categoryUpdated"),
+    });
   }
 
   async function handleMove(index: number, direction: -1 | 1) {
@@ -157,8 +184,7 @@ export function CategoryManager() {
       mutate: () => reorderCategories(items),
       reconcile: () => backgroundReconcile(router),
       rollback: (snapshot) => {
-        setCategories(sortToEditable(snapshot.flatCategories));
-        setFromServer(snapshot);
+        restoreFromSnapshot(snapshot);
       },
       successMessage: t("categories.categoryReordered"),
     });
@@ -168,26 +194,56 @@ export function CategoryManager() {
   async function handleAdd() {
     if (!newName.trim()) return;
 
-    await run(
-      async () => {
-        await createCategory({ name: newName.trim(), icon: newIcon });
+    const trimmedName = newName.trim();
+    const tempId = createTempCategoryId();
+    const order = categories.length;
+    const { category, flatCategory } = buildOptimisticCategory(tempId, trimmedName, newIcon, order);
+
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        addCategory(category, flatCategory);
+        setCategories((prev) => [...prev, toEditable(flatCategory)]);
         setNewName("");
         setNewIcon("category");
-        router.refresh();
       },
-      { successMessage: t("categories.categoryAdded") },
-    );
+      mutate: async () => {
+        const created = await createCategory({ name: trimmedName, icon: newIcon });
+        replaceCategoryId(
+          tempId,
+          { ...created, lineItems: [] },
+          created,
+        );
+        setCategories((prev) =>
+          prev.map((entry) =>
+            entry.id === tempId
+              ? toEditable(created)
+              : entry,
+          ),
+        );
+      },
+      reconcile: () => backgroundReconcile(router),
+      rollback: restoreFromSnapshot,
+      successMessage: t("categories.categoryAdded"),
+    });
   }
 
   async function handleDelete(cat: EditableCategory) {
-    await run(
-      async () => {
-        await deleteCategory(cat.id);
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        removeCategory(cat.id);
+        setCategories((prev) => prev.filter((entry) => entry.id !== cat.id));
         setDeletingCategory(null);
-        router.refresh();
       },
-      { successMessage: t("categories.categoryDeleted") },
-    );
+      mutate: () => deleteCategory(cat.id),
+      reconcile: () => backgroundReconcile(router),
+      rollback: (snapshot) => {
+        restoreFromSnapshot(snapshot);
+        setDeletingCategory(null);
+      },
+      successMessage: t("categories.categoryDeleted"),
+    });
   }
 
   function updateDraft(id: string, patch: Partial<Pick<EditableCategory, "draftName" | "draftIcon">>) {

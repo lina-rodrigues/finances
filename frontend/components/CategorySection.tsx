@@ -78,25 +78,31 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
   const formatMoney = useFormatCurrency();
   const monthView = useMonthView();
   const { setFromServer, removeLineItem } = useMonthViewActions();
-  const { loading, run, runOptimistic } = useMutationFeedback();
+  const { run, runOptimistic } = useMutationFeedback();
   const isPending = useRowPending(item.id);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
   const [scope, setScope] = useState<RecurrenceScope>("this");
+  const [pessimisticDeleting, setPessimisticDeleting] = useState(false);
 
   async function performDeletePessimistic(selectedScope?: RecurrenceScope) {
-    await run(
-      async () => {
-        await deleteLineItem(
-          item.id,
-          item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
-        );
-        setConfirmingDelete(false);
-        setScopeDialogOpen(false);
-        router.refresh();
-      },
-      { successMessage: t("categories.itemDeleted") },
-    );
+    setPessimisticDeleting(true);
+    try {
+      await run(
+        async () => {
+          await deleteLineItem(
+            item.id,
+            item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
+          );
+          setConfirmingDelete(false);
+          setScopeDialogOpen(false);
+          router.refresh();
+        },
+        { successMessage: t("categories.itemDeleted") },
+      );
+    } finally {
+      setPessimisticDeleting(false);
+    }
   }
 
   async function performDeleteOptimistic(selectedScope?: RecurrenceScope) {
@@ -191,7 +197,7 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
                 setConfirmingDelete(true);
               }
             }}
-            disabled={loading}
+            disabled={pessimisticDeleting}
             aria-label={t("categories.deleteItem")}
           >
             <Icon name="delete" size="xs" colorClass="text-destructive" />
@@ -203,7 +209,7 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
         onOpenChange={setConfirmingDelete}
         title={t("categories.deleteItem")}
         description={t("categories.deleteLineItemDescription", { label: item.label })}
-        loading={loading}
+        loading={pessimisticDeleting}
         onConfirm={handleDelete}
       />
       <RepeatScopeDialog
@@ -216,7 +222,8 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
         mode="delete"
         scope={scope}
         onScopeChange={setScope}
-        loading={loading}
+        loading={pessimisticDeleting}
+        loadingDescription={t("repeat.updatingSeries")}
         onConfirm={() => performDelete(scope)}
       />
     </div>

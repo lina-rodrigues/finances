@@ -1,13 +1,31 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { MonthViewProvider, type MonthViewState } from "@/lib/MonthViewProvider";
+import { useLayoutEffect, useState, type ReactNode } from "react";
+import { getCurrentYearMonth } from "@/lib/api";
+import {
+  createEmptyMonthViewState,
+  MonthViewProvider,
+  monthViewDataKey,
+  seedMonthViewFromServer,
+  useMonthView,
+  useMonthViewActions,
+  type MonthViewState,
+} from "@/lib/MonthViewProvider";
 
-interface MonthViewShellProps {
-  initialData: MonthViewState;
-  children: ReactNode;
+export function AppMonthViewProvider({ children }: { children: ReactNode }) {
+  const [initialData] = useState(() => createEmptyMonthViewState(getCurrentYearMonth()));
+
+  return <MonthViewProvider initialData={initialData}>{children}</MonthViewProvider>;
 }
 
-export function MonthViewShell({ initialData, children }: MonthViewShellProps) {
-  return <MonthViewProvider initialData={initialData}>{children}</MonthViewProvider>;
+export function MonthViewSeed({ initialData }: { initialData: MonthViewState }) {
+  const { pendingItemIds } = useMonthView();
+  const { setFromServer } = useMonthViewActions();
+  const dataKey = monthViewDataKey(initialData);
+
+  useLayoutEffect(() => {
+    seedMonthViewFromServer(initialData, pendingItemIds, setFromServer);
+  }, [dataKey, initialData, pendingItemIds, setFromServer]);
+
+  return null;
 }

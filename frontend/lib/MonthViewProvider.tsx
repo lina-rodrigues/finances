@@ -14,6 +14,29 @@ import { recomputeEndingBalance } from "@/lib/monthViewMath";
 
 export type MonthViewState = MonthView & { flatCategories: FlatCategory[] };
 
+export function createEmptyMonthViewState(yearMonth: string): MonthViewState {
+  return {
+    month: {
+      id: "",
+      yearMonth,
+      lastMonthBalance: 0,
+      endingBalance: 0,
+    },
+    categories: [],
+    uncategorized: [],
+    flatCategories: [],
+  };
+}
+
+export function monthViewDataKey(data: MonthViewState): string {
+  const itemIds = [
+    ...data.categories.flatMap((category) => category.lineItems.map((item) => item.id)),
+    ...data.uncategorized.map((item) => item.id),
+  ].join(",");
+  const categoryIds = data.flatCategories.map((category) => category.id).join(",");
+  return `${data.month.yearMonth}:${data.month.lastMonthBalance}:${data.month.endingBalance}:${categoryIds}:${itemIds}`;
+}
+
 type LineItemLocation =
   | { kind: "category"; categoryIndex: number; itemIndex: number }
   | { kind: "uncategorized"; itemIndex: number };
@@ -29,7 +52,10 @@ type MonthViewAction =
       type: "PATCH_CATEGORY";
       id: string;
       patch: Partial<Pick<Category, "name" | "icon" | "order">>;
-    };
+    }
+  | { type: "ADD_CATEGORY"; category: Category; flatCategory: FlatCategory }
+  | { type: "REMOVE_CATEGORY"; id: string }
+  | { type: "REPLACE_CATEGORY_ID"; tempId: string; category: Category; flatCategory: FlatCategory };
 
 interface MonthViewContextValue {
   month: MonthView["month"];
@@ -48,6 +74,9 @@ interface MonthViewActionsValue {
   replaceLineItem: (itemId: string, item: LineItem) => void;
   reorderCategories: (categories: Category[]) => void;
   patchCategory: (id: string, patch: Partial<Pick<Category, "name" | "icon" | "order">>) => void;
+  addCategory: (category: Category, flatCategory: FlatCategory) => void;
+  removeCategory: (id: string) => void;
+  replaceCategoryId: (tempId: string, category: Category, flatCategory: FlatCategory) => void;
 }
 
 const MonthViewContext = createContext<MonthViewContextValue | null>(null);
@@ -181,18 +210,33 @@ function monthViewReducer(state: MonthViewState, action: MonthViewAction): Month
       return { ...state, categories, flatCategories };
     }
 
+    case "ADD_CATEGORY": {
+      return {
+        ...state,
+        categories: [...state.categories, action.category],
+        flatCategories: [...state.flatCategories, action.flatCategory],
+      };
+    }
+
+    case "REMOVE_CATEGORY": {
+      const categories = state.categories.filter((category) => category.id !== action.id);
+      const flatCategories = state.flatCategories.filter((category) => category.id !== action.id);
+      return withRecomputedBalance({ ...state, categories, flatCategories });
+    }
+
+    case "REPLACE_CATEGORY_ID": {
+      const categories = state.categories.map((category) =>
+        category.id === action.tempId ? action.category : category,
+      );
+      const flatCategories = state.flatCategories.map((category) =>
+        category.id === action.tempId ? action.flatCategory : category,
+      );
+      return { ...state, categories, flatCategories };
+    }
+
     default:
       return state;
   }
-}
-
-function monthViewDataKey(data: MonthViewState): string {
-  const itemIds = [
-    ...data.categories.flatMap((category) => category.lineItems.map((item) => item.id)),
-    ...data.uncategorized.map((item) => item.id),
-  ].join(",");
-  const categoryIds = data.flatCategories.map((category) => category.id).join(",");
-  return `${data.month.yearMonth}:${data.month.lastMonthBalance}:${data.month.endingBalance}:${categoryIds}:${itemIds}`;
 }
 
 interface MonthViewProviderProps {
@@ -217,8 +261,6 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
 
   const serverDataKey = monthViewDataKey(initialData);
 
-  // Re-seed from RSC when router.refresh() delivers new server data.
-  // Skip sync while optimistic mutations are in flight.
   useEffect(() => {
     if (pendingItemIds.size > 0) {
       return;
@@ -258,6 +300,21 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
     [],
   );
 
+  const addCategory = useCallback((category: Category, flatCategory: FlatCategory) => {
+    dispatch({ type: "ADD_CATEGORY", category, flatCategory });
+  }, []);
+
+  const removeCategory = useCallback((id: string) => {
+    dispatch({ type: "REMOVE_CATEGORY", id });
+  }, []);
+
+  const replaceCategoryId = useCallback(
+    (tempId: string, category: Category, flatCategory: FlatCategory) => {
+      dispatch({ type: "REPLACE_CATEGORY_ID", tempId, category, flatCategory });
+    },
+    [],
+  );
+
   const isItemPending = useCallback((id: string) => pendingItemIds.has(id), [pendingItemIds]);
 
   const viewValue = useMemo<MonthViewContextValue>(
@@ -281,6 +338,9 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
       replaceLineItem,
       reorderCategories,
       patchCategory,
+      addCategory,
+      removeCategory,
+      replaceCategoryId,
     }),
     [
       setFromServer,
@@ -290,6 +350,9 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
       replaceLineItem,
       reorderCategories,
       patchCategory,
+      addCategory,
+      removeCategory,
+      replaceCategoryId,
     ],
   );
 
@@ -330,4 +393,15 @@ export function captureMonthViewState(view: MonthViewContextValue): MonthViewSta
     uncategorized: view.uncategorized,
     flatCategories: view.flatCategories,
   });
+}
+
+export function seedMonthViewFromServer(
+  data: MonthViewState,
+  pendingItemIds: ReadonlySet<string>,
+  setFromServer: (data: MonthViewState) => void,
+): void {
+  if (pendingItemIds.size > 0) {
+    return;
+  }
+  setFromServer(data);
 }

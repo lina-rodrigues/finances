@@ -159,7 +159,8 @@
     "scopeAllDeleteDescription": "Remove todas as instâncias e encerra a série.",
     "editScopeTitle": "Editar item recorrente",
     "deleteScopeTitle": "Excluir item recorrente",
-    "seriesMadeRecurring": "Item agora é recorrente"
+    "seriesMadeRecurring": "Item agora é recorrente",
+    "updatingSeries": "Atualizando série…"
   },
   "budget": {
     "plannedOf": "{spent} de {planned} planejado"

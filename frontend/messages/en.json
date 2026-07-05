@@ -159,7 +159,8 @@
     "scopeAllDeleteDescription": "Removes every instance and stops the series.",
     "editScopeTitle": "Edit recurring item",
     "deleteScopeTitle": "Delete recurring item",
-    "seriesMadeRecurring": "Item is now recurring"
+    "seriesMadeRecurring": "Item is now recurring",
+    "updatingSeries": "Updating series…"
   },
   "budget": {
     "plannedOf": "{spent} of {planned} planned"

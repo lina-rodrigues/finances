@@ -58,6 +58,26 @@ import { useMutationFeedback } from "@/lib/useMutationFeedback";
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";
 
+interface DialogFormSnapshot {
+  editSubFlow: EditSubFlow;
+  categoryName: string;
+  type: LineItemType;
+  label: string;
+  plannedAmount: string;
+  realizedAmount: string;
+  repeatMode: RepeatMode;
+  startYearMonth: string;
+  occurrenceCount: string;
+  endYearMonth: string;
+  scope: RecurrenceScope;
+  scopeDialogOpen: boolean;
+}
+
+interface LineItemOptimisticSnapshot {
+  monthView: ReturnType<typeof captureMonthViewState>;
+  form: DialogFormSnapshot;
+}
+
 interface LineItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -99,6 +119,39 @@ export function LineItemDialog({
   const [startYearMonth, setStartYearMonth] = useState(yearMonth);
   const [occurrenceCount, setOccurrenceCount] = useState("12");
   const [endYearMonth, setEndYearMonth] = useState(yearMonth);
+
+  function captureDialogForm(): DialogFormSnapshot {
+    return {
+      editSubFlow,
+      categoryName,
+      type,
+      label,
+      plannedAmount,
+      realizedAmount,
+      repeatMode,
+      startYearMonth,
+      occurrenceCount,
+      endYearMonth,
+      scope,
+      scopeDialogOpen,
+    };
+  }
+
+  function restoreDialogForm(form: DialogFormSnapshot) {
+    setEditSubFlow(form.editSubFlow);
+    setCategoryName(form.categoryName);
+    setType(form.type);
+    setLabel(form.label);
+    setPlannedAmount(form.plannedAmount);
+    setRealizedAmount(form.realizedAmount);
+    setRepeatMode(form.repeatMode);
+    setStartYearMonth(form.startYearMonth);
+    setOccurrenceCount(form.occurrenceCount);
+    setEndYearMonth(form.endYearMonth);
+    setScope(form.scope);
+    setScopeDialogOpen(form.scopeDialogOpen);
+    onOpenChange(true);
+  }
 
   useEffect(() => {
     if (!open) {
@@ -180,7 +233,10 @@ export function LineItemDialog({
     });
 
     await runOptimistic({
-      snapshot: () => captureMonthViewState(monthView),
+      snapshot: () => ({
+        monthView: captureMonthViewState(monthView),
+        form: captureDialogForm(),
+      }),
       apply: () => {
         replaceLineItem(item.id, optimisticItem);
         setPending(item.id, true);
@@ -193,9 +249,10 @@ export function LineItemDialog({
         setPending(item.id, false);
       },
       reconcile: () => backgroundReconcile(router),
-      rollback: (snapshot) => {
+      rollback: ({ monthView: monthSnapshot, form }) => {
         setPending(item.id, false);
-        setFromServer(snapshot);
+        setFromServer(monthSnapshot);
+        restoreDialogForm(form);
       },
       successMessage: t("categories.itemUpdated"),
     });
@@ -254,7 +311,10 @@ export function LineItemDialog({
     });
 
     await runOptimistic({
-      snapshot: () => captureMonthViewState(monthView),
+      snapshot: () => ({
+        monthView: captureMonthViewState(monthView),
+        form: captureDialogForm(),
+      }),
       apply: () => {
         addLineItem(categoryId, optimisticItem);
         setPending(tempId, true);
@@ -272,9 +332,10 @@ export function LineItemDialog({
         setPending(tempId, false);
       },
       reconcile: () => backgroundReconcile(router),
-      rollback: (snapshot) => {
+      rollback: ({ monthView: monthSnapshot, form }) => {
         setPending(tempId, false);
-        setFromServer(snapshot);
+        setFromServer(monthSnapshot);
+        restoreDialogForm(form);
       },
       successMessage: t("categories.itemAdded"),
     });
@@ -587,6 +648,11 @@ export function LineItemDialog({
               />
 
               <DialogFooter className="gap-2 pt-1 sm:justify-end">
+                {loading && (
+                  <p className="text-body text-muted-finance mr-auto text-sm">
+                    {t("repeat.updatingSeries")}
+                  </p>
+                )}
                 <Button
                   type="button"
                   variant="secondary"
@@ -626,6 +692,7 @@ export function LineItemDialog({
           scope={scope}
           onScopeChange={setScope}
           loading={loading}
+          loadingDescription={t("repeat.updatingSeries")}
           onConfirm={() => performEditSave(scope)}
         />
       )}

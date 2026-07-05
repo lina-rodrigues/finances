@@ -1,5 +1,5 @@
 import { FinanceOverview } from "@/components/FinanceOverview";
-import { MonthViewShell } from "@/components/MonthViewShell";
+import { MonthViewSeed } from "@/components/MonthViewShell";
 import { fetchMonthView } from "@/lib/api-server";
 
 export default async function FinancePage() {
@@ -12,8 +12,9 @@ export default async function FinancePage() {
   }));
 
   return (
-    <MonthViewShell initialData={{ ...data, flatCategories }}>
+    <>
+      <MonthViewSeed initialData={{ ...data, flatCategories }} />
       <FinanceOverview />
-    </MonthViewShell>
+    </>
   );
 }

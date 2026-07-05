@@ -2,7 +2,7 @@
 
 This document plans optimistic (instant-feedback) updates across the finance app. It separates work into **three tiers** by UX fit, complexity, and risk. Each tier builds on shared foundation work described in [Foundation](#foundation-shared-across-tiers).
 
-> **Status:** Tier 1 complete (2026-07-05). Tier 2 not started.
+> **Status:** Tier 1 complete (2026-07-05). Tier 2 complete (2026-07-05). Tier 3 pessimistic flows unchanged; scoped loading copy added.
 
 For architecture context, see [AGENTS.md](../AGENTS.md) and the existing pessimistic mutation flow in [`useMutationFeedback.ts`](../frontend/lib/useMutationFeedback.ts).
 
@@ -251,10 +251,10 @@ Close dialog immediately on submit; run mutation in background. If mutation fail
 
 ### Tier 2 success criteria
 
-- [ ] Manage categories: add/rename/delete feel instant on grid and in dialog.
-- [ ] Finance overview balances match categories tab after mutations (same session).
-- [ ] Upcoming payments add/remove rows without refresh.
-- [ ] Failed category delete restores category card.
+- [x] Manage categories: add/rename/delete feel instant on grid and in dialog.
+- [x] Finance overview balances match categories tab after mutations (same session).
+- [x] Upcoming payments add/remove rows without refresh.
+- [x] Failed category delete restores category card.
 
 ---
 
@@ -275,9 +275,9 @@ Close dialog immediately on submit; run mutation in background. If mutation fail
 
 ### Tier 3 UX improvements (without optimism)
 
-- Scoped loading indicators on confirm buttons instead of freezing entire lists.
-- Disable only the affected row's actions during in-flight delete.
-- Clear copy for recurrence operations ("Updating future months…").
+- [x] Scoped loading indicators on confirm buttons instead of freezing entire lists.
+- [x] Disable only the affected row's actions during in-flight pessimistic delete.
+- [x] Clear copy for recurrence operations ("Updating series…").
 
 ---
 

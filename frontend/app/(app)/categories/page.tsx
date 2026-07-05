@@ -1,5 +1,5 @@
 import { CategoriesSection } from "@/components/CategoriesSection";
-import { MonthViewShell } from "@/components/MonthViewShell";
+import { MonthViewSeed } from "@/components/MonthViewShell";
 import { fetchMonthView } from "@/lib/api-server";
 
 export default async function CategoriesPage({
@@ -17,8 +17,9 @@ export default async function CategoriesPage({
   }));
 
   return (
-    <MonthViewShell initialData={{ ...data, flatCategories }}>
+    <>
+      <MonthViewSeed initialData={{ ...data, flatCategories }} />
       <CategoriesSection />
-    </MonthViewShell>
+    </>
   );
 }

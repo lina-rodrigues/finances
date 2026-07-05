@@ -21,6 +21,7 @@ interface RepeatScopeDialogProps {
   scope: RecurrenceScope;
   onScopeChange: (scope: RecurrenceScope) => void;
   loading?: boolean;
+  loadingDescription?: string;
   onConfirm: () => void;
 }
 
@@ -31,6 +32,7 @@ export function RepeatScopeDialog({
   scope,
   onScopeChange,
   loading = false,
+  loadingDescription,
   onConfirm,
 }: RepeatScopeDialogProps) {
   const { t } = useTranslation();
@@ -66,7 +68,7 @@ export function RepeatScopeDialog({
             {mode === "edit" ? t("repeat.editScopeTitle") : t("repeat.deleteScopeTitle")}
           </DialogTitle>
           <DialogDescription className="text-body text-muted-finance pt-2">
-            {t("repeat.scopePrompt")}
+            {loading && loadingDescription ? loadingDescription : t("repeat.scopePrompt")}
           </DialogDescription>
         </DialogHeader>
 
