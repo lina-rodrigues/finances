@@ -322,3 +322,12 @@ export function useRowPending(id: string): boolean {
   const pendingIds = useContext(PendingIdsContext);
   return pendingIds.has(id);
 }
+
+export function captureMonthViewState(view: MonthViewContextValue): MonthViewState {
+  return structuredClone({
+    month: view.month,
+    categories: view.categories,
+    uncategorized: view.uncategorized,
+    flatCategories: view.flatCategories,
+  });
+}

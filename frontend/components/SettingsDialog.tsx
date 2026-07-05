@@ -44,10 +44,17 @@ function optionToTheme(option: ThemeOption): ThemePreference {
   return option === "system" ? null : option;
 }
 
+type SettingsSnapshot = {
+  name: string;
+  themeOption: ThemeOption;
+  currency: string;
+  language: AppLanguage;
+};
+
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { user, updateLocalPreferences, updateLocalName, logout } = useAuth();
   const { t, setLocale } = useTranslation();
-  const { loading, run } = useMutationFeedback();
+  const { loading, runOptimistic } = useMutationFeedback();
   const currencyListId = useId();
 
   const [name, setName] = useState(user?.name ?? "");
@@ -95,50 +102,106 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [currencyOpen]);
 
-  async function savePreferences(patch: {
-    name?: string;
-    preferences?: Partial<{ theme: ThemePreference; currency: string; language: AppLanguage }>;
-  }) {
-    await run(
-      async () => {
-        const updated = await updateUserProfile(patch);
-        updateLocalName(updated.name);
-        updateLocalPreferences(updated.preferences);
-        if (updated.preferences.language !== language) {
-          setLocale(updated.preferences.language);
-        }
-      },
-      { successMessage: t("settings.saved") },
-    );
+  function captureSettingsSnapshot(): SettingsSnapshot {
+    return { name, themeOption, currency, language };
+  }
+
+  function rollbackSettings(snapshot: SettingsSnapshot) {
+    setName(snapshot.name);
+    setThemeOption(snapshot.themeOption);
+    setCurrency(snapshot.currency);
+    setLanguage(snapshot.language);
+    updateLocalName(snapshot.name);
+    updateLocalPreferences({
+      theme: optionToTheme(snapshot.themeOption),
+      currency: snapshot.currency,
+      language: snapshot.language,
+    });
+    setLocale(snapshot.language);
   }
 
   async function handleNameBlur() {
     if (!user || name.trim() === user.name) {
       return;
     }
-    await savePreferences({ name: name.trim() });
+
+    const trimmed = name.trim();
+    await runOptimistic({
+      snapshot: (): SettingsSnapshot => ({
+        name: user.name,
+        themeOption,
+        currency,
+        language,
+      }),
+      apply: () => updateLocalName(trimmed),
+      mutate: async () => {
+        const updated = await updateUserProfile({ name: trimmed });
+        updateLocalName(updated.name);
+        setName(updated.name);
+      },
+      rollback: rollbackSettings,
+      successMessage: t("settings.saved"),
+    });
   }
 
   async function handleThemeChange(option: ThemeOption) {
     const next = optionToTheme(option);
-    setThemeOption(option);
-    updateLocalPreferences({ theme: next });
-    await savePreferences({ preferences: { theme: next } });
+    await runOptimistic({
+      snapshot: captureSettingsSnapshot,
+      apply: () => {
+        setThemeOption(option);
+        updateLocalPreferences({ theme: next });
+      },
+      mutate: async () => {
+        const updated = await updateUserProfile({ preferences: { theme: next } });
+        updateLocalName(updated.name);
+        updateLocalPreferences(updated.preferences);
+      },
+      rollback: rollbackSettings,
+      successMessage: t("settings.saved"),
+    });
   }
 
   async function handleLanguageChange(next: AppLanguage) {
-    setLanguage(next);
-    updateLocalPreferences({ language: next });
-    setLocale(next);
-    await savePreferences({ preferences: { language: next } });
+    await runOptimistic({
+      snapshot: captureSettingsSnapshot,
+      apply: () => {
+        setLanguage(next);
+        updateLocalPreferences({ language: next });
+        setLocale(next);
+      },
+      mutate: async () => {
+        const updated = await updateUserProfile({ preferences: { language: next } });
+        updateLocalName(updated.name);
+        updateLocalPreferences(updated.preferences);
+        setLocale(updated.preferences.language);
+      },
+      rollback: rollbackSettings,
+      successMessage: t("settings.saved"),
+    });
   }
 
   async function handleCurrencySelect(code: string) {
-    setCurrency(code);
-    setCurrencyOpen(false);
-    setCurrencyQuery("");
-    updateLocalPreferences({ currency: code });
-    await savePreferences({ preferences: { currency: code } });
+    await runOptimistic({
+      snapshot: captureSettingsSnapshot,
+      apply: () => {
+        setCurrency(code);
+        setCurrencyOpen(false);
+        setCurrencyQuery("");
+        updateLocalPreferences({ currency: code });
+      },
+      mutate: async () => {
+        const updated = await updateUserProfile({ preferences: { currency: code } });
+        updateLocalName(updated.name);
+        updateLocalPreferences(updated.preferences);
+      },
+      rollback: (snapshot) => {
+        rollbackSettings(snapshot);
+        setCurrencyOpen(false);
+        setCurrencyQuery("");
+      },
+      successMessage: t("settings.saved"),
+    });
   }
 
   const selectedCurrency = currencyOptions.find((c) => c.code === currency);

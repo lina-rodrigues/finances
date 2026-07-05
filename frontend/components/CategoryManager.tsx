@@ -26,8 +26,15 @@ import {
   deleteCategory,
   reorderCategories,
   updateCategory,
+  type Category,
   type FlatCategory,
 } from "@/lib/api";
+import { backgroundReconcile } from "@/lib/backgroundReconcile";
+import {
+  captureMonthViewState,
+  useMonthView,
+  useMonthViewActions,
+} from "@/lib/MonthViewProvider";
 import {
   categoryIcons,
   formatIconLabel,
@@ -36,10 +43,6 @@ import {
 } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
-
-interface CategoryManagerProps {
-  initialCategories: FlatCategory[];
-}
 
 interface EditableCategory extends FlatCategory {
   draftName: string;
@@ -56,6 +59,20 @@ function toEditable(cat: FlatCategory): EditableCategory {
 
 function sortToEditable(cats: FlatCategory[]): EditableCategory[] {
   return [...cats].sort((a, b) => a.order - b.order).map(toEditable);
+}
+
+function buildReorderedCategories(
+  editableOrder: EditableCategory[],
+  fullCategories: Category[],
+): Category[] {
+  const byId = new Map(fullCategories.map((category) => [category.id, category]));
+  return editableOrder.map((editable, order) => {
+    const full = byId.get(editable.id);
+    if (!full) {
+      throw new Error(`Category ${editable.id} not found in month view`);
+    }
+    return { ...full, order };
+  });
 }
 
 function IconSelect({
@@ -85,21 +102,24 @@ function IconSelect({
   );
 }
 
-export function CategoryManager({ initialCategories }: CategoryManagerProps) {
+export function CategoryManager() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { loading, run } = useMutationFeedback();
+  const monthView = useMonthView();
+  const { setFromServer, reorderCategories: reorderCategoriesInView } = useMonthViewActions();
+  const { loading, run, runOptimistic } = useMutationFeedback();
   const [open, setOpen] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [categories, setCategories] = useState<EditableCategory[]>(() =>
-    sortToEditable(initialCategories),
+    sortToEditable(monthView.flatCategories),
   );
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState<IconName>("category");
   const [deletingCategory, setDeletingCategory] = useState<EditableCategory | null>(null);
 
   useEffect(() => {
-    setCategories(sortToEditable(initialCategories));
-  }, [initialCategories]);
+    setCategories(sortToEditable(monthView.flatCategories));
+  }, [monthView.flatCategories]);
 
   async function handleSave(cat: EditableCategory) {
     if (!cat.draftName.trim()) return;
@@ -125,15 +145,24 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     reordered.splice(targetIndex, 0, moved);
 
     const items = reordered.map((cat, order) => ({ id: cat.id, order }));
-    setCategories(reordered);
+    const reorderedFull = buildReorderedCategories(reordered, monthView.categories);
 
-    await run(
-      async () => {
-        await reorderCategories(items);
-        router.refresh();
+    setReordering(true);
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        setCategories(reordered);
+        reorderCategoriesInView(reorderedFull);
       },
-      { successMessage: t("categories.categoryReordered") },
-    );
+      mutate: () => reorderCategories(items),
+      reconcile: () => backgroundReconcile(router),
+      rollback: (snapshot) => {
+        setCategories(sortToEditable(snapshot.flatCategories));
+        setFromServer(snapshot);
+      },
+      successMessage: t("categories.categoryReordered"),
+    });
+    setReordering(false);
   }
 
   async function handleAdd() {
@@ -167,6 +196,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     );
   }
 
+  const moveDisabled = loading || reordering;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
@@ -197,8 +228,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                   variant="link"
                   size="sm"
                   className="pressable focus-ring h-auto p-1"
-                  onClick={() => handleMove(index, -1)}
-                  disabled={loading || index === 0}
+                  onClick={() => void handleMove(index, -1)}
+                  disabled={moveDisabled || index === 0}
                   aria-label={t("categories.moveUp")}
                 >
                   <Icon name="arrowUp" size="xs" />
@@ -208,8 +239,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                   variant="link"
                   size="sm"
                   className="pressable focus-ring h-auto p-1"
-                  onClick={() => handleMove(index, 1)}
-                  disabled={loading || index === categories.length - 1}
+                  onClick={() => void handleMove(index, 1)}
+                  disabled={moveDisabled || index === categories.length - 1}
                   aria-label={t("categories.moveDown")}
                 >
                   <Icon name="arrowDown" size="xs" />

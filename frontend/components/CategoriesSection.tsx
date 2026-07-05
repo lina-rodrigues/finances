@@ -65,7 +65,7 @@ export function CategoriesSection() {
             <Icon name="add" size="xs" />
             {t("categories.addItem")}
           </Button>
-          <CategoryManager initialCategories={flatCategories} />
+          <CategoryManager />
         </div>
       </div>
 

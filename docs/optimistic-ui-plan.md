@@ -2,7 +2,7 @@
 
 This document plans optimistic (instant-feedback) updates across the finance app. It separates work into **three tiers** by UX fit, complexity, and risk. Each tier builds on shared foundation work described in [Foundation](#foundation-shared-across-tiers).
 
-> **Status:** Foundation complete (2026-07-05). Tier 1 not started.
+> **Status:** Tier 1 complete (2026-07-05). Tier 2 not started.
 
 For architecture context, see [AGENTS.md](../AGENTS.md) and the existing pessimistic mutation flow in [`useMutationFeedback.ts`](../frontend/lib/useMutationFeedback.ts).
 
@@ -141,6 +141,8 @@ Run `pnpm contrast-check` and `pnpm responsive-check` after adding pending style
 ---
 
 ## Tier 1 — High impact, good UX fit
+
+> **Detailed implementation plan:** [optimistic-ui-tier1-plan.md](./optimistic-ui-tier1-plan.md)
 
 **Theme:** Frequent actions on the categories page; state is derivable; rollback is a toast + list restore.
 

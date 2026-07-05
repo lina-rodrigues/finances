@@ -25,7 +25,9 @@ import { resolveCategoryIcon } from "@/lib/icons";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
-import { useRowPending } from "@/lib/MonthViewProvider";
+import { useRowPending, captureMonthViewState, useMonthView, useMonthViewActions } from "@/lib/MonthViewProvider";
+import { backgroundReconcile } from "@/lib/backgroundReconcile";
+import { canOptimisticallyDelete } from "@/lib/optimisticGates";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface LineItemRowProps {
@@ -74,13 +76,15 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
-  const { loading, run } = useMutationFeedback();
+  const monthView = useMonthView();
+  const { setFromServer, removeLineItem } = useMonthViewActions();
+  const { loading, run, runOptimistic } = useMutationFeedback();
   const isPending = useRowPending(item.id);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
   const [scope, setScope] = useState<RecurrenceScope>("this");
 
-  async function performDelete(selectedScope?: RecurrenceScope) {
+  async function performDeletePessimistic(selectedScope?: RecurrenceScope) {
     await run(
       async () => {
         await deleteLineItem(
@@ -93,6 +97,33 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
       },
       { successMessage: t("categories.itemDeleted") },
     );
+  }
+
+  async function performDeleteOptimistic(selectedScope?: RecurrenceScope) {
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        removeLineItem(item.id);
+        setConfirmingDelete(false);
+        setScopeDialogOpen(false);
+      },
+      mutate: () =>
+        deleteLineItem(
+          item.id,
+          item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
+        ),
+      reconcile: () => backgroundReconcile(router),
+      rollback: (snapshot) => setFromServer(snapshot),
+      successMessage: t("categories.itemDeleted"),
+    });
+  }
+
+  async function performDelete(selectedScope?: RecurrenceScope) {
+    if (canOptimisticallyDelete(selectedScope)) {
+      await performDeleteOptimistic(selectedScope);
+      return;
+    }
+    await performDeletePessimistic(selectedScope);
   }
 
   async function handleDelete() {

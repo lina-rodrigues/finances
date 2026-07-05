@@ -36,3 +36,71 @@ export function toLineItemFromMutation(
     isSeriesException: response.isSeriesException,
   };
 }
+
+export function buildOptimisticLineItem(
+  base: LineItem,
+  patch: {
+    label: string;
+    plannedAmount: number;
+    realizedAmount: number | null;
+    type?: LineItem["type"];
+  },
+): LineItem {
+  const plannedAmount = patch.plannedAmount;
+  const realizedAmount = patch.realizedAmount;
+  return {
+    ...base,
+    type: patch.type ?? base.type,
+    label: patch.label,
+    plannedAmount,
+    realizedAmount,
+    displayAmount: effectiveAmount({ plannedAmount, realizedAmount }),
+    isRealized: realizedAmount !== null,
+  };
+}
+
+export function buildOptimisticCreateLineItem(input: {
+  id: string;
+  type: LineItem["type"];
+  label: string;
+  plannedAmount: number;
+  realizedAmount: number | null;
+}): LineItem {
+  return {
+    id: input.id,
+    type: input.type,
+    label: input.label,
+    plannedAmount: input.plannedAmount,
+    realizedAmount: input.realizedAmount,
+    displayAmount: effectiveAmount(input),
+    isRealized: input.realizedAmount !== null,
+    seriesId: null,
+    seriesOccurrenceIndex: null,
+    seriesEndType: null,
+    seriesOccurrenceCount: null,
+    seriesEndYearMonth: null,
+    isSeriesException: false,
+  };
+}
+
+export function extractLineItemSeriesMeta(item: LineItem): Partial<LineItemSeriesMeta> {
+  return {
+    seriesEndType: item.seriesEndType,
+    seriesOccurrenceCount: item.seriesOccurrenceCount,
+    seriesEndYearMonth: item.seriesEndYearMonth,
+  };
+}
+
+/** `undefined` means a new category must be created (not optimistically safe). */
+export function resolveCategoryIdSync(
+  trimmed: string,
+  categories: { id: string; name: string }[],
+  uncategorizedLabel: string,
+): string | null | undefined {
+  if (trimmed.toLowerCase() === uncategorizedLabel.toLowerCase()) {
+    return null;
+  }
+
+  const existing = categories.find((cat) => cat.name.toLowerCase() === trimmed.toLowerCase());
+  return existing?.id ?? undefined;
+}

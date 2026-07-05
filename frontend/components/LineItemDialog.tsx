@@ -37,6 +37,21 @@ import {
   type RecurrenceScope,
   type RepeatMode,
 } from "@/lib/recurrence";
+import { backgroundReconcile } from "@/lib/backgroundReconcile";
+import {
+  buildOptimisticCreateLineItem,
+  buildOptimisticLineItem,
+  createTempLineItemId,
+  extractLineItemSeriesMeta,
+  resolveCategoryIdSync,
+  toLineItemFromMutation,
+} from "@/lib/lineItemMappers";
+import {
+  captureMonthViewState,
+  useMonthView,
+  useMonthViewActions,
+} from "@/lib/MonthViewProvider";
+import { canOptimisticallyCreate, canOptimisticallyEdit } from "@/lib/optimisticGates";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -65,7 +80,9 @@ export function LineItemDialog({
   const router = useRouter();
   const { t } = useTranslation();
   const uncategorizedLabel = t("common.uncategorized");
-  const { loading, run } = useMutationFeedback();
+  const monthView = useMonthView();
+  const { setFromServer, setPending, addLineItem, replaceLineItem } = useMonthViewActions();
+  const { loading, run, runOptimistic } = useMutationFeedback();
   const categoryFieldId = useId();
   const labelFieldId = useId();
 
@@ -133,20 +150,55 @@ export function LineItemDialog({
       return;
     }
 
-    await run(
-      async () => {
-        await updateLineItem(item.id, {
-          label,
-          plannedAmount: parseFloat(plannedAmount),
-          realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
-          ...(item.seriesId && selectedScope ? { scope: selectedScope } : {}),
-        });
+    const planned = parseFloat(plannedAmount);
+    const realized = realizedAmount === "" ? null : parseFloat(realizedAmount);
+    const updatePayload = {
+      label,
+      plannedAmount: planned,
+      realizedAmount: realized,
+      ...(item.seriesId && selectedScope ? { scope: selectedScope } : {}),
+    };
+
+    if (!canOptimisticallyEdit(selectedScope)) {
+      await run(
+        async () => {
+          await updateLineItem(item.id, updatePayload);
+          onOpenChange(false);
+          setScopeDialogOpen(false);
+          router.refresh();
+        },
+        { successMessage: t("categories.itemUpdated") },
+      );
+      return;
+    }
+
+    const seriesMeta = extractLineItemSeriesMeta(item);
+    const optimisticItem = buildOptimisticLineItem(item, {
+      label,
+      plannedAmount: planned,
+      realizedAmount: realized,
+    });
+
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        replaceLineItem(item.id, optimisticItem);
+        setPending(item.id, true);
         onOpenChange(false);
         setScopeDialogOpen(false);
-        router.refresh();
       },
-      { successMessage: t("categories.itemUpdated") },
-    );
+      mutate: async () => {
+        const response = await updateLineItem(item.id, updatePayload);
+        replaceLineItem(item.id, toLineItemFromMutation(response, seriesMeta));
+        setPending(item.id, false);
+      },
+      reconcile: () => backgroundReconcile(router),
+      rollback: (snapshot) => {
+        setPending(item.id, false);
+        setFromServer(snapshot);
+      },
+      successMessage: t("categories.itemUpdated"),
+    });
   }
 
   async function handleCreateSubmit(event: React.FormEvent) {
@@ -167,22 +219,65 @@ export function LineItemDialog({
       return;
     }
 
-    await run(
-      async () => {
-        const categoryId = await resolveCategoryId(trimmedCategory);
-        await createLineItem(yearMonth, {
+    const categoryId = resolveCategoryIdSync(trimmedCategory, categories, uncategorizedLabel);
+    const needsNewCategory = categoryId === undefined;
+
+    if (!canOptimisticallyCreate(repeatMode, needsNewCategory) || categoryId === undefined) {
+      await run(
+        async () => {
+          const resolvedCategoryId = await resolveCategoryId(trimmedCategory);
+          await createLineItem(yearMonth, {
+            categoryId: resolvedCategoryId,
+            type,
+            label,
+            plannedAmount: parseFloat(plannedAmount),
+            realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
+            recurrence,
+          });
+          onOpenChange(false);
+          router.refresh();
+        },
+        { successMessage: t("categories.itemAdded") },
+      );
+      return;
+    }
+
+    const planned = parseFloat(plannedAmount);
+    const realized = realizedAmount === "" ? null : parseFloat(realizedAmount);
+    const tempId = createTempLineItemId();
+    const optimisticItem = buildOptimisticCreateLineItem({
+      id: tempId,
+      type,
+      label,
+      plannedAmount: planned,
+      realizedAmount: realized,
+    });
+
+    await runOptimistic({
+      snapshot: () => captureMonthViewState(monthView),
+      apply: () => {
+        addLineItem(categoryId, optimisticItem);
+        setPending(tempId, true);
+        onOpenChange(false);
+      },
+      mutate: async () => {
+        const response = await createLineItem(yearMonth, {
           categoryId,
           type,
           label,
-          plannedAmount: parseFloat(plannedAmount),
-          realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
-          recurrence,
+          plannedAmount: planned,
+          realizedAmount: realized,
         });
-        onOpenChange(false);
-        router.refresh();
+        replaceLineItem(tempId, toLineItemFromMutation(response));
+        setPending(tempId, false);
       },
-      { successMessage: t("categories.itemAdded") },
-    );
+      reconcile: () => backgroundReconcile(router),
+      rollback: (snapshot) => {
+        setPending(tempId, false);
+        setFromServer(snapshot);
+      },
+      successMessage: t("categories.itemAdded"),
+    });
   }
 
   async function handleEditSubmit(event: React.FormEvent) {
