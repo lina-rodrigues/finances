@@ -314,19 +314,3 @@
   max-width: min(24rem, calc(100% - 2rem));
 }
 
-/* Match phone-shell width/center for portaled overlays inside the app */
-.app-shell-column {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: var(--app-shell-left, 50%);
-  width: var(--app-shell-width, min(100%, 28rem));
-  transform: none;
-}
-
-.dialog-in-app-shell {
-  position: fixed;
-  top: 50%;
-  left: calc(var(--app-shell-left, 50%) + var(--app-shell-width, 28rem) / 2);
-  transform: translate(-50%, -50%);
-}

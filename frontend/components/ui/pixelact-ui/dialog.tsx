@@ -46,7 +46,7 @@ const DialogOverlay = React.forwardRef<
     ref={ref}
     className={cn(
       // Must sit above the sticky app header (z-40) and the add-item FAB (z-30)
-      inAppShell ? "app-shell-column z-50" : "fixed inset-0 z-50",
+      inAppShell ? "absolute inset-0 z-50" : "fixed inset-0 z-50",
       "bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
@@ -76,7 +76,9 @@ const DialogContent = React.forwardRef<
           ref={ref}
           className={cn(
             "dialog-content-frame pixel-font rounded-none shadow-(--pixel-box-shadow) bg-background grid max-h-[calc(100%-2rem)] gap-4 overflow-visible border p-6 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-            inAppShell ? "dialog-in-app-shell z-50" : "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            inAppShell
+              ? "absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
+              : "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
             className,
           )}
           {...props}
