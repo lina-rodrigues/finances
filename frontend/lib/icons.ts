@@ -17,7 +17,10 @@ import { Gift } from "pixelarticons/react/Gift";
 import { Heart } from "pixelarticons/react/Heart";
 import { Home } from "pixelarticons/react/Home";
 import { InfoBox } from "pixelarticons/react/InfoBox";
+import { Chart } from "pixelarticons/react/Chart";
+import { Grid3x3 } from "pixelarticons/react/Grid3x3";
 import { HumanArmsUp } from "pixelarticons/react/HumanArmsUp";
+import { ListBox } from "pixelarticons/react/ListBox";
 import { MapPin } from "pixelarticons/react/MapPin";
 import { Moon } from "pixelarticons/react/Moon";
 import { PenSquare } from "pixelarticons/react/PenSquare";
@@ -71,7 +74,10 @@ export type IconName =
   | "chevronDown"
   | "alert"
   | "info"
-  | "settings";
+  | "settings"
+  | "navFinance"
+  | "navCategories"
+  | "navReports";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -109,6 +115,9 @@ export const iconMap: Record<IconName, PixelIcon> = {
   alert: SquareAlert,
   info: InfoBox,
   settings: ToolCase,
+  navFinance: ListBox,
+  navCategories: Grid3x3,
+  navReports: Chart,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -149,6 +158,9 @@ export const iconColorMap: Record<IconName, string> = {
   alert: "text-expense",
   info: "text-planned",
   settings: "text-muted-finance",
+  navFinance: "text-muted-finance",
+  navCategories: "text-muted-finance",
+  navReports: "text-muted-finance",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

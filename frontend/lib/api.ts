@@ -178,6 +178,25 @@ export function nextYearMonth(yearMonth: string): string {
   return `${year}-${String(month).padStart(2, "0")}`;
 }
 
-export function monthPagePath(yearMonth: string): string {
-  return yearMonth === getCurrentYearMonth() ? "/" : `/?month=${yearMonth}`;
+export function monthPagePath(
+  yearMonth: string,
+  tab: "categories" | "reports" = "categories",
+): string {
+  return navPath(tab, yearMonth);
+}
+
+export type AppTab = "finance" | "categories" | "reports";
+
+export function navPath(tab: AppTab, yearMonth?: string): string {
+  const month = yearMonth ?? getCurrentYearMonth();
+  const current = getCurrentYearMonth();
+
+  switch (tab) {
+    case "finance":
+      return "/";
+    case "categories":
+      return month === current ? "/categories" : `/categories?month=${month}`;
+    case "reports":
+      return month === current ? "/reports" : `/reports?month=${month}`;
+  }
 }

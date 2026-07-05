@@ -50,7 +50,7 @@ export function CategoriesSection({
   const showCategoryGrid = categories.length > 0 || uncategorizedCategory !== null;
 
   return (
-    <section className="pt-4">
+    <section>
       <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-display text-sm">{t("categories.title")}</h2>
         <div className="flex flex-wrap items-center gap-2">
@@ -97,18 +97,6 @@ export function CategoriesSection({
           )}
         </div>
       )}
-
-      <Button
-        type="button"
-        variant="default"
-        size="lg"
-        className="add-item-fab pressable focus-ring box-shadow-margin sm:hidden"
-        data-testid="add-item-trigger-fab"
-        aria-label={t("categories.addItem")}
-        onClick={() => openAddItem()}
-      >
-        <Icon name="add" size="md" />
-      </Button>
 
       <AddLineItemDialog
         open={dialogOpen}

@@ -58,9 +58,9 @@ function shiftYearMonth(offset) {
 }
 
 const months = [
-  { name: "current-month", query: "" },
-  { name: "previous-month", query: `?month=${shiftYearMonth(-1)}` },
-  { name: "next-month", query: `?month=${shiftYearMonth(1)}` },
+  { name: "current-month", query: "categories" },
+  { name: "previous-month", query: `categories?month=${shiftYearMonth(-1)}` },
+  { name: "next-month", query: `categories?month=${shiftYearMonth(1)}` },
 ];
 
 const currentMonth = months[0];
@@ -179,7 +179,7 @@ async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea =
   await applySafeArea(page, simulateSafeArea);
   await page.setViewportSize({ width: vp.width, height: vp.height });
   await page.emulateMedia({ colorScheme: theme });
-  await page.goto(`${url}/${currentMonth.query}`, { waitUntil: "networkidle" });
+  await page.goto(`${url}/`, { waitUntil: "networkidle" });
   await page.waitForTimeout(500);
 
   await openAddItemModal(page, vp);

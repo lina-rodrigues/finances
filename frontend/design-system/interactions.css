@@ -98,7 +98,7 @@
 .add-item-fab {
   position: fixed;
   z-index: 30;
-  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   right: max(1rem, calc((100vw - min(100vw, 28rem)) / 2 + 1rem));
   width: 3.5rem;
   height: 3.5rem;

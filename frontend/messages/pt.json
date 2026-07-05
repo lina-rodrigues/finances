@@ -66,8 +66,23 @@
     "previousMonth": "Mês anterior",
     "nextMonth": "Próximo mês",
     "lastMonth": "Mês passado",
+    "current": "Atual",
     "ending": "Saldo final",
     "levelUp": "Level up! Saldo melhorou"
+  },
+  "nav": {
+    "label": "Navegação principal",
+    "finance": "Finanças",
+    "categories": "Categorias",
+    "reports": "Relatórios"
+  },
+  "finance": {
+    "upcomingPayments": "Próximos pagamentos",
+    "noUpcomingPayments": "Nenhum pagamento pendente neste mês."
+  },
+  "reports": {
+    "soon": "EM BREVE!",
+    "comingSoon": "Relatórios e análises"
   },
   "categories": {
     "title": "Categorias",

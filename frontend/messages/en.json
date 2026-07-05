@@ -66,8 +66,23 @@
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "lastMonth": "Last month",
+    "current": "Current",
     "ending": "Ending",
     "levelUp": "Level up! Balance improved"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "finance": "Finance",
+    "categories": "Categories",
+    "reports": "Reports"
+  },
+  "finance": {
+    "upcomingPayments": "Upcoming payments",
+    "noUpcomingPayments": "No upcoming payments this month."
+  },
+  "reports": {
+    "soon": "SOON!",
+    "comingSoon": "Reports and analytics"
   },
   "categories": {
     "title": "Categories",
