@@ -2,7 +2,7 @@
 
 This document plans optimistic (instant-feedback) updates across the finance app. It separates work into **three tiers** by UX fit, complexity, and risk. Each tier builds on shared foundation work described in [Foundation](#foundation-shared-across-tiers).
 
-> **Status:** Not started (2026-07-05). Created from a UX audit of current mutation patterns and industry guidelines for optimistic UI.
+> **Status:** Foundation complete (2026-07-05). Tier 1 not started.
 
 For architecture context, see [AGENTS.md](../AGENTS.md) and the existing pessimistic mutation flow in [`useMutationFeedback.ts`](../frontend/lib/useMutationFeedback.ts).
 

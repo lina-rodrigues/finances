@@ -58,17 +58,4 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
   );
 }
 
-export function computeBudgetTotals(
-  lineItems: { plannedAmount: number; realizedAmount: number | null; type: string }[],
-) {
-  let plannedTotal = 0;
-  let realizedTotal = 0;
-
-  for (const item of lineItems) {
-    if (item.type !== "expense") continue;
-    plannedTotal += item.plannedAmount;
-    realizedTotal += item.realizedAmount ?? 0;
-  }
-
-  return { plannedTotal, realizedTotal };
-}
+export { computeBudgetTotals } from "@/lib/monthViewMath";

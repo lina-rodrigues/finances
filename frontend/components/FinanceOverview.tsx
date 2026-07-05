@@ -8,31 +8,15 @@ import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import {
-  getCurrentYearMonth,
-  type Category,
-  type FlatCategory,
-  type LineItem,
-  type MonthView,
-} from "@/lib/api";
+import { getCurrentYearMonth } from "@/lib/api";
+import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
-interface FinanceOverviewProps {
-  month: MonthView["month"];
-  categories: Category[];
-  uncategorized: LineItem[];
-  flatCategories: FlatCategory[];
-}
-
-export function FinanceOverview({
-  month,
-  categories,
-  uncategorized,
-  flatCategories,
-}: FinanceOverviewProps) {
+export function FinanceOverview() {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
+  const { month, categories, uncategorized, flatCategories } = useMonthView();
   const [dialogOpen, setDialogOpen] = useState(false);
   const leveledUp =
     month.endingBalance > month.lastMonthBalance && month.yearMonth <= getCurrentYearMonth();

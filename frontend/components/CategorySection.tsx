@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BudgetBar, computeBudgetTotals } from "@/components/BudgetBar";
+import { BudgetBar } from "@/components/BudgetBar";
+import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
+import { PendingBadge } from "@/components/PendingBadge";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
@@ -23,6 +25,7 @@ import { resolveCategoryIcon } from "@/lib/icons";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
+import { useRowPending } from "@/lib/MonthViewProvider";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface LineItemRowProps {
@@ -72,6 +75,7 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const { loading, run } = useMutationFeedback();
+  const isPending = useRowPending(item.id);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
   const [scope, setScope] = useState<RecurrenceScope>("this");
@@ -104,12 +108,15 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
   const isIncome = item.type === "income";
 
   return (
-    <div className="interactive-row flex items-start justify-between gap-2 px-2 py-2">
+    <div
+      className={`interactive-row flex items-start justify-between gap-2 px-2 py-2${isPending ? " row-pending" : ""}`}
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
         <span className="flex flex-wrap items-center gap-1">
           <TypeBadge item={item} />
           <RepeatBadge item={item} />
+          {isPending && <PendingBadge />}
           {!item.isRealized && (
             <Badge
               font="normal"
@@ -204,7 +211,7 @@ export function CategorySection({
   const formatMoney = useFormatCurrency();
   const iconName = resolveCategoryIcon(category.icon);
   const hasContent = category.lineItems.length > 0;
-  const categoryTotal = sumCategoryAmounts(category);
+  const categoryTotal = sumCategoryAmounts(category.lineItems);
   const { plannedTotal, realizedTotal } = computeBudgetTotals(category.lineItems);
 
   const totalClass =
@@ -264,9 +271,3 @@ export function CategorySection({
   );
 }
 
-function sumCategoryAmounts(category: Category): number {
-  return category.lineItems.reduce((sum, item) => {
-    const amount = item.displayAmount;
-    return sum + (item.type === "income" ? amount : -amount);
-  }, 0);
-}

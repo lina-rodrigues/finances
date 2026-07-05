@@ -117,6 +117,7 @@
     "add": "Add",
     "nothingPlanned": "Nothing planned yet.",
     "plannedBadge": "planned",
+    "pendingBadge": "saving",
     "deleteLineItemDescription": "\"{label}\" will be removed from this month.",
     "deleteCategoryDescription": "\"{name}\" and its line items will be removed."
   },

@@ -11,6 +11,17 @@ export interface RecurrenceInput {
   endYearMonth?: string;
 }
 
+export interface LineItemMutationResponse {
+  id: string;
+  type: LineItemType;
+  label: string;
+  plannedAmount: number;
+  realizedAmount: number | null;
+  seriesId: string | null;
+  seriesOccurrenceIndex: number | null;
+  isSeriesException: boolean;
+}
+
 export interface LineItem {
   id: string;
   type: LineItemType;
@@ -131,8 +142,9 @@ export async function createLineItem(
     realizedAmount?: number | null;
     recurrence?: RecurrenceInput;
   },
-): Promise<void> {
-  await apiFetch(`/months/${yearMonth}/line-items`, "create line item", jsonInit("POST", data));
+): Promise<LineItemMutationResponse> {
+  const res = await apiFetch(`/months/${yearMonth}/line-items`, "create line item", jsonInit("POST", data));
+  return res.json();
 }
 
 export async function updateLineItem(
@@ -145,8 +157,9 @@ export async function updateLineItem(
     realizedAmount: number | null;
     scope: RecurrenceScope;
   }>,
-): Promise<void> {
-  await apiFetch(`/line-items/${id}`, "update line item", jsonInit("PATCH", data));
+): Promise<LineItemMutationResponse> {
+  const res = await apiFetch(`/line-items/${id}`, "update line item", jsonInit("PATCH", data));
+  return res.json();
 }
 
 export async function deleteLineItem(
@@ -163,8 +176,13 @@ export async function deleteLineItem(
 export async function convertLineItemToRecurrence(
   id: string,
   recurrence: RecurrenceInput,
-): Promise<void> {
-  await apiFetch(`/line-items/${id}/recurrence`, "convert line item to recurrence", jsonInit("POST", recurrence));
+): Promise<LineItemMutationResponse> {
+  const res = await apiFetch(
+    `/line-items/${id}/recurrence`,
+    "convert line item to recurrence",
+    jsonInit("POST", recurrence),
+  );
+  return res.json();
 }
 
 export async function cancelRecurrenceSeries(

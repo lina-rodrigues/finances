@@ -9,23 +9,13 @@ import { Icon } from "@/components/Icon";
 import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import { type Category, type FlatCategory, type LineItem } from "@/lib/api";
+import { type Category, type LineItem } from "@/lib/api";
+import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
-interface CategoriesSectionProps {
-  categories: Category[];
-  uncategorized: LineItem[];
-  flatCategories: FlatCategory[];
-  yearMonth: string;
-}
-
-export function CategoriesSection({
-  categories,
-  uncategorized,
-  flatCategories,
-  yearMonth,
-}: CategoriesSectionProps) {
+export function CategoriesSection() {
   const { t } = useTranslation();
+  const { month, categories, uncategorized, flatCategories } = useMonthView();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
@@ -94,7 +84,7 @@ export function CategoriesSection({
             <CategorySection
               key={category.id}
               category={category}
-              yearMonth={yearMonth}
+              yearMonth={month.yearMonth}
               onAddItem={() => openAddItem(category.name)}
               onEditItem={openEditItem}
               addItemTestId={index === 0 ? "add-item-trigger-category" : undefined}
@@ -104,7 +94,7 @@ export function CategoriesSection({
             <CategorySection
               key={uncategorizedCategory.id}
               category={uncategorizedCategory}
-              yearMonth={yearMonth}
+              yearMonth={month.yearMonth}
               onAddItem={() => openAddItem(uncategorizedLabel)}
               onEditItem={openEditItem}
             />
@@ -117,7 +107,7 @@ export function CategoriesSection({
         onOpenChange={setDialogOpen}
         mode={dialogMode}
         categories={flatCategories}
-        yearMonth={yearMonth}
+        yearMonth={month.yearMonth}
         initialCategoryName={initialCategoryName}
         item={selectedItem ?? undefined}
       />

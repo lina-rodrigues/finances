@@ -38,6 +38,10 @@
   opacity: 1;
 }
 
+.row-pending {
+  opacity: 0.8;
+}
+
 @media (hover: none) {
   .interactive-row .row-actions {
     opacity: 1;
