@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
   type ReactNode,
@@ -258,15 +257,6 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
     },
     new Set<string>(),
   );
-
-  const serverDataKey = monthViewDataKey(initialData);
-
-  useEffect(() => {
-    if (pendingItemIds.size > 0) {
-      return;
-    }
-    dispatch({ type: "SET_FROM_SERVER", payload: initialData });
-  }, [serverDataKey, initialData, pendingItemIds.size]);
 
   const setFromServer = useCallback((data: MonthViewState) => {
     dispatch({ type: "SET_FROM_SERVER", payload: data });
