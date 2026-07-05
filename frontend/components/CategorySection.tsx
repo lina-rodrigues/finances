@@ -5,7 +5,6 @@ import { useState } from "react";
 import { BudgetBar, computeBudgetTotals } from "@/components/BudgetBar";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
-import { RepeatConfigFields } from "@/components/RepeatConfigFields";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
@@ -16,34 +15,19 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/pixelact-ui/collapsible";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import {
-  convertLineItemToRecurrence,
   deleteLineItem,
-  updateLineItem,
   type Category,
   type LineItem,
 } from "@/lib/api";
 import { resolveCategoryIcon } from "@/lib/icons";
-import {
-  buildRecurrencePayload,
-  type RecurrenceScope,
-  type RepeatMode,
-} from "@/lib/recurrence";
+import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface LineItemRowProps {
   item: LineItem;
-  yearMonth: string;
+  onEditItem: (item: LineItem) => void;
 }
 
 function TypeBadge({ item }: { item: LineItem }) {
@@ -83,52 +67,14 @@ function RepeatBadge({ item }: { item: LineItem }) {
   );
 }
 
-function LineItemRow({ item, yearMonth }: LineItemRowProps) {
+function LineItemRow({ item, onEditItem }: LineItemRowProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const { loading, run } = useMutationFeedback();
-  const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [scopeDialogMode, setScopeDialogMode] = useState<"edit" | "delete" | null>(null);
+  const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
   const [scope, setScope] = useState<RecurrenceScope>("this");
-  const [makeRecurringOpen, setMakeRecurringOpen] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<RepeatMode>("never");
-  const [startYearMonth, setStartYearMonth] = useState(yearMonth);
-  const [occurrenceCount, setOccurrenceCount] = useState("12");
-  const [endYearMonth, setEndYearMonth] = useState(yearMonth);
-  const [label, setLabel] = useState(item.label);
-  const [plannedAmount, setPlannedAmount] = useState(String(item.plannedAmount));
-  const [realizedAmount, setRealizedAmount] = useState(
-    item.realizedAmount !== null ? String(item.realizedAmount) : "",
-  );
-
-  async function performSave(selectedScope?: RecurrenceScope) {
-    await run(
-      async () => {
-        await updateLineItem(item.id, {
-          label,
-          plannedAmount: parseFloat(plannedAmount),
-          realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
-          ...(item.seriesId && selectedScope ? { scope: selectedScope } : {}),
-        });
-        setEditing(false);
-        setScopeDialogMode(null);
-        router.refresh();
-      },
-      { successMessage: t("categories.itemUpdated") },
-    );
-  }
-
-  async function handleSave() {
-    if (item.seriesId) {
-      setScope("this");
-      setScopeDialogMode("edit");
-      return;
-    }
-
-    await performSave();
-  }
 
   async function performDelete(selectedScope?: RecurrenceScope) {
     await run(
@@ -138,7 +84,7 @@ function LineItemRow({ item, yearMonth }: LineItemRowProps) {
           item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
         );
         setConfirmingDelete(false);
-        setScopeDialogMode(null);
+        setScopeDialogOpen(false);
         router.refresh();
       },
       { successMessage: t("categories.itemDeleted") },
@@ -148,173 +94,11 @@ function LineItemRow({ item, yearMonth }: LineItemRowProps) {
   async function handleDelete() {
     if (item.seriesId) {
       setScope("this");
-      setScopeDialogMode("delete");
+      setScopeDialogOpen(true);
       return;
     }
 
     await performDelete();
-  }
-
-  async function handleMakeRecurring(event: React.FormEvent) {
-    event.preventDefault();
-
-    const recurrence = buildRecurrencePayload(
-      repeatMode,
-      startYearMonth,
-      occurrenceCount,
-      endYearMonth,
-    );
-
-    if (!recurrence) {
-      return;
-    }
-
-    await run(
-      async () => {
-        await convertLineItemToRecurrence(item.id, recurrence);
-        setMakeRecurringOpen(false);
-        router.refresh();
-      },
-      { successMessage: t("repeat.seriesMadeRecurring") },
-    );
-  }
-
-  if (editing) {
-    return (
-      <>
-        <div className="fade-in finance-form bg-muted p-3">
-          <Input
-            className="finance-form-field-grow"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            disabled={loading}
-            placeholder={t("addItem.label")}
-          />
-          <Input
-            className="finance-form-field-sm"
-            type="number"
-            step="0.01"
-            placeholder={t("addItem.planned")}
-            value={plannedAmount}
-            onChange={(e) => setPlannedAmount(e.target.value)}
-            disabled={loading}
-          />
-          <Input
-            className="finance-form-field-sm"
-            type="number"
-            step="0.01"
-            placeholder={t("categories.realized")}
-            value={realizedAmount}
-            onChange={(e) => setRealizedAmount(e.target.value)}
-            disabled={loading}
-          />
-          <div className="finance-form-actions flex-wrap">
-            <Button
-              variant="default"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              onClick={handleSave}
-              disabled={loading}
-            >
-              {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
-              {t("common.save")}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              onClick={() => setEditing(false)}
-              disabled={loading}
-            >
-              <Icon name="cancel" size="xs" />
-              {t("common.cancel")}
-            </Button>
-            {!item.seriesId && (
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="pressable focus-ring gap-1"
-                onClick={() => {
-                  setRepeatMode("never");
-                  setStartYearMonth(yearMonth);
-                  setOccurrenceCount("12");
-                  setEndYearMonth(yearMonth);
-                  setMakeRecurringOpen(true);
-                }}
-                disabled={loading}
-              >
-                <Icon name="repeat" size="xs" />
-                {t("repeat.makeRecurring")}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <RepeatScopeDialog
-          open={scopeDialogMode === "edit"}
-          onOpenChange={(open) => {
-            if (!open) {
-              setScopeDialogMode(null);
-            }
-          }}
-          mode="edit"
-          scope={scope}
-          onScopeChange={setScope}
-          loading={loading}
-          onConfirm={() => performSave(scope)}
-        />
-
-        <Dialog open={makeRecurringOpen} onOpenChange={setMakeRecurringOpen}>
-          <DialogContent className="max-h-[85dvh] overflow-x-hidden overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-display text-xs normal-case">
-                {t("repeat.makeRecurringTitle")}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleMakeRecurring} className="space-y-3">
-              <RepeatConfigFields
-                idPrefix={`make-recurring-${item.id}`}
-                mode={repeatMode}
-                onModeChange={setRepeatMode}
-                startYearMonth={startYearMonth}
-                onStartYearMonthChange={setStartYearMonth}
-                occurrenceCount={occurrenceCount}
-                onOccurrenceCountChange={setOccurrenceCount}
-                endYearMonth={endYearMonth}
-                onEndYearMonthChange={setEndYearMonth}
-                disabled={loading}
-                hideNoneOption
-                lockStartMonth
-              />
-              <DialogFooter className="gap-2 pt-1 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  onClick={() => setMakeRecurringOpen(false)}
-                  disabled={loading}
-                >
-                  <Icon name="cancel" size="xs" />
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={loading || repeatMode === "none"}
-                >
-                  {loading ? <Spinner className="size-4" /> : <Icon name="repeat" size="xs" />}
-                  {t("repeat.makeRecurringSubmit")}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </>
-    );
   }
 
   const isIncome = item.type === "income";
@@ -351,7 +135,7 @@ function LineItemRow({ item, yearMonth }: LineItemRowProps) {
             variant="link"
             size="sm"
             className="pressable focus-ring h-auto p-1"
-            onClick={() => setEditing(true)}
+            onClick={() => onEditItem(item)}
             aria-label={t("categories.editCategory")}
           >
             <Icon name="edit" size="xs" />
@@ -364,7 +148,7 @@ function LineItemRow({ item, yearMonth }: LineItemRowProps) {
             onClick={() => {
               if (item.seriesId) {
                 setScope("this");
-                setScopeDialogMode("delete");
+                setScopeDialogOpen(true);
               } else {
                 setConfirmingDelete(true);
               }
@@ -385,10 +169,10 @@ function LineItemRow({ item, yearMonth }: LineItemRowProps) {
         onConfirm={handleDelete}
       />
       <RepeatScopeDialog
-        open={scopeDialogMode === "delete"}
+        open={scopeDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setScopeDialogMode(null);
+            setScopeDialogOpen(false);
           }
         }}
         mode="delete"
@@ -405,6 +189,7 @@ interface CategorySectionProps {
   category: Category;
   yearMonth: string;
   onAddItem: () => void;
+  onEditItem: (item: LineItem) => void;
   addItemTestId?: string;
 }
 
@@ -412,6 +197,7 @@ export function CategorySection({
   category,
   yearMonth,
   onAddItem,
+  onEditItem,
   addItemTestId,
 }: CategorySectionProps) {
   const { t } = useTranslation();
@@ -458,7 +244,7 @@ export function CategorySection({
               <p className="text-body text-muted-finance px-2 text-sm">{t("categories.nothingPlanned")}</p>
             )}
             {category.lineItems.map((item) => (
-              <LineItemRow key={item.id} item={item} yearMonth={yearMonth} />
+              <LineItemRow key={item.id} item={item} onEditItem={onEditItem} />
             ))}
             <Button
               type="button"

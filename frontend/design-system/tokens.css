@@ -284,47 +284,6 @@
   font-weight: 700;
 }
 
-/* Responsive inline forms (add / edit line items) */
-.finance-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .finance-form {
-    flex-flow: row wrap;
-    align-items: flex-end;
-  }
-
-  .finance-form .finance-form-field-sm {
-    width: 6rem;
-    flex-shrink: 0;
-  }
-
-  .finance-form .finance-form-field-type {
-    width: 7rem;
-    flex-shrink: 0;
-  }
-
-  .finance-form .finance-form-field-grow {
-    flex: 1 1 8rem;
-    min-width: 0;
-  }
-}
-
-.finance-form .finance-form-field-sm,
-.finance-form .finance-form-field-type,
-.finance-form .finance-form-field-grow {
-  width: 100%;
-}
-
-.finance-form-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 /* Modal forms — pixel shadow margin lives on the field slot, not the control */
 .finance-dialog-form {
   min-width: 0;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { AddLineItemDialog } from "@/components/AddLineItemDialog";
+import { LineItemDialog } from "@/components/LineItemDialog";
 import { CategoryManager } from "@/components/CategoryManager";
 import { CategorySection } from "@/components/CategorySection";
 import { Icon } from "@/components/Icon";
@@ -27,10 +27,20 @@ export function CategoriesSection({
 }: CategoriesSectionProps) {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
+  const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
   const [initialCategoryName, setInitialCategoryName] = useState<string | undefined>();
 
   function openAddItem(categoryName?: string) {
+    setDialogMode("create");
+    setSelectedItem(null);
     setInitialCategoryName(categoryName);
+    setDialogOpen(true);
+  }
+
+  function openEditItem(item: LineItem) {
+    setDialogMode("edit");
+    setSelectedItem(item);
     setDialogOpen(true);
   }
 
@@ -86,6 +96,7 @@ export function CategoriesSection({
               category={category}
               yearMonth={yearMonth}
               onAddItem={() => openAddItem(category.name)}
+              onEditItem={openEditItem}
               addItemTestId={index === 0 ? "add-item-trigger-category" : undefined}
             />
           ))}
@@ -95,17 +106,20 @@ export function CategoriesSection({
               category={uncategorizedCategory}
               yearMonth={yearMonth}
               onAddItem={() => openAddItem(uncategorizedLabel)}
+              onEditItem={openEditItem}
             />
           )}
         </div>
       )}
 
-      <AddLineItemDialog
+      <LineItemDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        mode={dialogMode}
         categories={flatCategories}
         yearMonth={yearMonth}
         initialCategoryName={initialCategoryName}
+        item={selectedItem ?? undefined}
       />
     </section>
   );

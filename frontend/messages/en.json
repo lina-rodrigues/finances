@@ -129,6 +129,10 @@
     "realized": "Realized (optional)",
     "submit": "Add item"
   },
+  "editItem": {
+    "title": "Edit item",
+    "submit": "Save changes"
+  },
   "repeat": {
     "mode": "Repeat",
     "none": "Does not repeat",

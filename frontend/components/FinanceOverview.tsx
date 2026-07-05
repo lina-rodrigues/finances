@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AddLineItemDialog } from "@/components/AddLineItemDialog";
+import { LineItemDialog } from "@/components/LineItemDialog";
 import { CoinCounter } from "@/components/CoinCounter";
 import { Icon } from "@/components/Icon";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
@@ -87,9 +87,10 @@ export function FinanceOverview({
         <Icon name="add" size="md" />
       </Button>
 
-      <AddLineItemDialog
+      <LineItemDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        mode="create"
         categories={flatCategories}
         yearMonth={month.yearMonth}
       />
