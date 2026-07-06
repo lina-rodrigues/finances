@@ -114,6 +114,10 @@
   .add-item-fab {
     display: none;
   }
+
+  .add-item-fab.add-item-fab--persistent {
+    display: inline-flex;
+  }
 }
 
 @media (min-width: 1024px) {

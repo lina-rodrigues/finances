@@ -16,31 +16,21 @@ The original modal squeezed every category into one wrapping row inside a **24re
 
 | Surface | Breakpoint | Entry |
 |---------|------------|-------|
-| **Modal** | `< md` (< 768px) | “Manage” button in `CategoriesSection` |
-| **Full page** | `≥ md` | Same button links to `/categories/manage?month=YYYY-MM` |
+| **Full page** | All sizes | Settings → “Manage categories” → `/categories/manage?month=YYYY-MM` |
 
-Shared UI and logic live in **`CategoryManagerEditor`**. `CategoryManager` is a thin responsive shell (dialog on mobile, link on desktop). **`CategoryIconPicker`** is reused for list rows and the add form.
+Shared UI and logic live in **`CategoryManagerEditor`**. **`CategoryIconPicker`** is reused for list rows and the add form.
 
 ```
-CategoriesSection
-  └── CategoryManager (responsive trigger)
-        ├── md+: Link → /categories/manage
-        └── <md: Dialog → CategoryManagerEditor
+SettingsDialog
+  └── Link → /categories/manage
 
 /categories/manage
-  └── CategoryManagePage → CategoryManagerEditor (variant="page")
+  └── CategoryManagePage → CategoryManagerEditor
 ```
 
 ## Layout
 
-### Modal (`CategoryManager`)
-
-- Uses `.dialog-content-frame-wide` (up to ~40rem, ~48rem at `lg`).
-- **Single scroll region** — header and footer fixed; body scrolls (`SettingsDialog` pattern).
-- Sticky **add category** block at top of scroll body.
-- Footer: Close only (no batch Save — edits auto-save).
-
-### Page (`/categories/manage`)
+### Manage page (`/categories/manage`)
 
 - Uses full phone-shell width (no dialog cap).
 - Back link returns to `/categories` preserving `?month=`.
@@ -120,10 +110,10 @@ During reorder, row inputs disable (`reordering` flag).
 
 | File | Role |
 |------|------|
-| `components/CategoryManager.tsx` | Responsive trigger + mobile dialog |
 | `components/CategoryManagerEditor.tsx` | List, add form, DnD, auto-save |
 | `components/CategoryIconPicker.tsx` | Visual icon grid popover |
-| `components/CategoryManagePage.tsx` | Desktop full-page chrome |
+| `components/CategoryManagePage.tsx` | Full-page chrome |
+| `components/SettingsDialog.tsx` | Entry link to manage page |
 | `app/(app)/categories/manage/page.tsx` | Server route + month seed |
 | `design-system/tokens.css` | Wide dialog + picker grid utilities |
 | `lib/icons.ts` | `dragHandle` icon (`SortVertical`) |

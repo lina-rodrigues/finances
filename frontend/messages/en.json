@@ -61,7 +61,8 @@
     "languageEn": "English",
     "languagePt": "Portuguese",
     "logout": "Sign out",
-    "saved": "Settings saved"
+    "saved": "Settings saved",
+    "manageCategories": "Manage categories"
   },
   "month": {
     "previousMonth": "Previous month",
@@ -89,7 +90,7 @@
     "title": "Categories",
     "addItem": "Add item",
     "manage": "Manage",
-    "empty": "No categories yet. Run the seed script or add one with Manage.",
+    "empty": "No categories yet. Run the seed script or add categories in Settings.",
     "income": "Income",
     "expense": "Expense",
     "planned": "Planned",

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import {
   Dialog,
@@ -20,8 +22,10 @@ import {
 } from "@/components/ui/pixelact-ui/select";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { updateUserProfile, type ThemePreference } from "@/lib/auth-api";
+import { categoryManagePath } from "@/lib/api";
 import { useAuth } from "@/lib/AuthProvider";
 import { getCurrencyOptions } from "@/lib/currencies";
+import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import type { AppLanguage } from "@/lib/auth-api";
@@ -53,6 +57,7 @@ type SettingsSnapshot = {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { user, updateLocalPreferences, updateLocalName, logout } = useAuth();
+  const { month } = useMonthView();
   const { t, setLocale } = useTranslation();
   const { loading, runOptimistic } = useMutationFeedback();
   const currencyListId = useId();
@@ -327,6 +332,24 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="pressable focus-ring w-full gap-1"
+              asChild
+            >
+              <Link
+                href={categoryManagePath(month.yearMonth)}
+                onClick={() => onOpenChange(false)}
+              >
+                <Icon name="edit" size="xs" />
+                {t("settings.manageCategories")}
+              </Link>
+            </Button>
           </div>
         </div>
 

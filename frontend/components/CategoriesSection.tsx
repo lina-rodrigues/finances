@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import { LineItemDialog } from "@/components/LineItemDialog";
-import { CategoryManager } from "@/components/CategoryManager";
 import { CategorySection } from "@/components/CategorySection";
 import { Icon } from "@/components/Icon";
 import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
@@ -50,25 +49,7 @@ export function CategoriesSection() {
   const showCategoryGrid = categories.length > 0 || uncategorizedCategory !== null;
 
   return (
-    <section>
-      <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-display text-sm">{t("categories.title")}</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            className="pressable focus-ring hidden gap-1 sm:inline-flex"
-            data-testid="add-item-trigger-header"
-            onClick={() => openAddItem()}
-          >
-            <Icon name="add" size="xs" />
-            {t("categories.add")}
-          </Button>
-          <CategoryManager />
-        </div>
-      </div>
-
+    <>
       {!showCategoryGrid ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
@@ -102,6 +83,18 @@ export function CategoriesSection() {
         </div>
       )}
 
+      <Button
+        type="button"
+        variant="default"
+        size="lg"
+        className="add-item-fab add-item-fab--persistent pressable focus-ring box-shadow-margin"
+        data-testid="add-item-trigger-fab-categories"
+        aria-label={t("categories.addItem")}
+        onClick={() => openAddItem()}
+      >
+        <Icon name="add" size="md" />
+      </Button>
+
       <LineItemDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -111,6 +104,6 @@ export function CategoriesSection() {
         initialCategoryName={initialCategoryName}
         item={selectedItem ?? undefined}
       />
-    </section>
+    </>
   );
 }

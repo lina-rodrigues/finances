@@ -61,7 +61,8 @@
     "languageEn": "Inglês",
     "languagePt": "Português",
     "logout": "Sair",
-    "saved": "Configurações salvas"
+    "saved": "Configurações salvas",
+    "manageCategories": "Gerenciar categorias"
   },
   "month": {
     "previousMonth": "Mês anterior",
@@ -89,7 +90,7 @@
     "title": "Categorias",
     "addItem": "Adicionar item",
     "manage": "Gerenciar",
-    "empty": "Nenhuma categoria ainda. Execute o seed ou adicione uma em Gerenciar.",
+    "empty": "Nenhuma categoria ainda. Execute o seed ou adicione categorias em Configurações.",
     "income": "Receita",
     "expense": "Despesa",
     "planned": "Planejado",
