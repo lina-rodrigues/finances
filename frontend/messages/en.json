@@ -5,6 +5,7 @@
     "save": "Save",
     "delete": "Delete",
     "confirm": "Confirm",
+    "discard": "Discard",
     "loading": "Loading…",
     "somethingWrong": "Something went wrong. Please try again.",
     "uncategorized": "Uncategorized"
@@ -101,7 +102,7 @@
     "addCategory": "Add category",
     "editCategory": "Edit category",
     "noCategories": "No categories",
-    "reorderHint": "Drag or use arrows to reorder",
+    "reorderHint": "Drag rows to reorder. On small screens, use the arrow buttons.",
     "itemAdded": "Line item added",
     "itemUpdated": "Line item updated",
     "itemDeleted": "Line item deleted",
@@ -119,7 +120,13 @@
     "plannedBadge": "planned",
     "pendingBadge": "saving",
     "deleteLineItemDescription": "\"{label}\" will be removed from this month.",
-    "deleteCategoryDescription": "\"{name}\" and its line items will be removed."
+    "deleteCategoryDescription": "\"{name}\" and its line items will be removed.",
+    "pickIcon": "Pick icon",
+    "dragToReorder": "Drag to reorder",
+    "savedBadge": "saved",
+    "unsavedChanges": "Discard unsaved changes?",
+    "unsavedChangesDescription": "Some category edits have not been saved yet.",
+    "backToCategories": "Back to categories"
   },
   "addItem": {
     "title": "Add item",

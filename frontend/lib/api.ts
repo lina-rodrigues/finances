@@ -268,3 +268,9 @@ export function navPath(tab: AppTab, yearMonth?: string): string {
       return month === current ? "/reports" : `/reports?month=${month}`;
   }
 }
+
+export function categoryManagePath(yearMonth?: string): string {
+  const month = yearMonth ?? getCurrentYearMonth();
+  const current = getCurrentYearMonth();
+  return month === current ? "/categories/manage" : `/categories/manage?month=${month}`;
+}

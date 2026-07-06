@@ -40,7 +40,7 @@ export function useMutationFeedback() {
   );
 
   const runOptimistic = useCallback(
-    async <TSnapshot>(options: RunOptimisticOptions<TSnapshot>) => {
+    async <TSnapshot>(options: RunOptimisticOptions<TSnapshot>): Promise<boolean> => {
       const snapshot = options.snapshot();
       options.apply();
 
@@ -50,12 +50,14 @@ export function useMutationFeedback() {
           showToast(options.successMessage, "success");
         }
         options.reconcile?.();
+        return true;
       } catch (err) {
         console.error(err);
         options.rollback(snapshot);
         const code = err instanceof Error ? err.message : "";
         const translated = code ? translateError(code, locale) : t("common.somethingWrong");
         showToast(options.errorMessage ?? translated, "error");
+        return false;
       }
     },
     [showToast, t, locale],

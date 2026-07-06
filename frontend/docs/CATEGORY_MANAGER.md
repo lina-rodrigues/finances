@@ -1,0 +1,142 @@
+# Category manager — design reference
+
+Reference for the category list editor (`CategoryManager`, `CategoryManagerEditor`, `/categories/manage`).
+
+## Problem (before redesign)
+
+The original modal squeezed every category into one wrapping row inside a **24rem** dialog:
+
+- Reorder arrows, icon preview, name input, text-only icon `<Select>`, Save, and Delete competed for width.
+- Nested scroll regions (`DialogContent` + inner `max-h-[50vh]`) made long lists awkward.
+- Each row required an explicit Save click; reorder fired one API call per arrow click.
+- Icon picking showed camelCase labels (`cartShopping`) instead of pixel icons.
+- On desktop, a phone-width modal inside a **56rem** shell felt cramped.
+
+## Architecture
+
+| Surface | Breakpoint | Entry |
+|---------|------------|-------|
+| **Modal** | `< md` (< 768px) | “Manage” button in `CategoriesSection` |
+| **Full page** | `≥ md` | Same button links to `/categories/manage?month=YYYY-MM` |
+
+Shared UI and logic live in **`CategoryManagerEditor`**. `CategoryManager` is a thin responsive shell (dialog on mobile, link on desktop). **`CategoryIconPicker`** is reused for list rows and the add form.
+
+```
+CategoriesSection
+  └── CategoryManager (responsive trigger)
+        ├── md+: Link → /categories/manage
+        └── <md: Dialog → CategoryManagerEditor
+
+/categories/manage
+  └── CategoryManagePage → CategoryManagerEditor (variant="page")
+```
+
+## Layout
+
+### Modal (`CategoryManager`)
+
+- Uses `.dialog-content-frame-wide` (up to ~40rem, ~48rem at `lg`).
+- **Single scroll region** — header and footer fixed; body scrolls (`SettingsDialog` pattern).
+- Sticky **add category** block at top of scroll body.
+- Footer: Close only (no batch Save — edits auto-save).
+
+### Page (`/categories/manage`)
+
+- Uses full phone-shell width (no dialog cap).
+- Back link returns to `/categories` preserving `?month=`.
+- Same editor as modal; more horizontal room for name inputs.
+
+### Category row
+
+```
+[≡ drag] [icon ▼] [ name input ───────────────────── ] [status] [🗑]
+```
+
+- **Mobile (`< sm`)**: up/down arrow buttons remain as an accessibility fallback (`sm:hidden`).
+- **Desktop**: drag handle (`SortVertical` icon) is primary reorder affordance.
+- **Delete**: icon-only destructive button at row end.
+- **Status**: inline badge — “saving” / “saved” (auto-save feedback); no per-row Save button.
+
+### Add category (top of list)
+
+```
+[icon ▼] [ name input ─────────────── ] [Add]
+```
+
+Enter key submits when name is non-empty.
+
+## Icon picker (`CategoryIconPicker`)
+
+- Trigger: button showing current `<Icon />` + chevron.
+- Popover: 4-column grid of all `categoryIcons` (16 icons, synced with API `categoryIcons.ts`).
+- Selected cell: `ring-2 ring-ring`.
+- Labels exposed via `aria-label` + `formatIconLabel()` for screen readers.
+- Closes on selection or outside click.
+
+## Persistence model
+
+| Action | When | Toast |
+|--------|------|-------|
+| Rename / change icon | **500ms debounce** after last edit | Error only |
+| Reorder | On drop (drag) or arrow click (mobile) | Error only |
+| Add category | Add button / Enter | Success |
+| Delete category | Confirm dialog | Success |
+
+Debounced saves use `runOptimistic` with `successMessage: undefined` to avoid toast spam.
+
+Per-row `saveStatus`: `idle` → `saving` → `saved` (2s) → `idle`, or `error` on failure.
+
+Closing the modal with **dirty drafts or pending debounce timers** opens `ConfirmDialog` (`categories.unsavedChanges`).
+
+## Reordering
+
+1. User drags row by handle (or taps arrows on mobile).
+2. Local order updates immediately (optimistic).
+3. `PATCH /categories/reorder` with `{ items: [{ id, order }] }`.
+4. Rollback on API error.
+
+During reorder, row inputs disable (`reordering` flag).
+
+## CSS tokens
+
+| Class | Purpose |
+|-------|---------|
+| `.dialog-content-frame-wide` | Wider modal for list editors |
+| `.category-manager-scroll` | Flex child that scrolls inside modal |
+| `.category-icon-picker-grid` | 4-column icon grid in popover |
+
+## i18n keys (`categories.*`)
+
+| Key | Usage |
+|-----|-------|
+| `manageTitle`, `manageHint` | Header copy |
+| `reorderHint` | Drag / arrow hint below title |
+| `pickIcon`, `dragToReorder` | A11y labels |
+| `savedBadge` | Row auto-save confirmation |
+| `unsavedChanges`, `unsavedChangesDescription` | Close guard |
+| `backToCategories` | Page back link |
+
+## Files
+
+| File | Role |
+|------|------|
+| `components/CategoryManager.tsx` | Responsive trigger + mobile dialog |
+| `components/CategoryManagerEditor.tsx` | List, add form, DnD, auto-save |
+| `components/CategoryIconPicker.tsx` | Visual icon grid popover |
+| `components/CategoryManagePage.tsx` | Desktop full-page chrome |
+| `app/(app)/categories/manage/page.tsx` | Server route + month seed |
+| `design-system/tokens.css` | Wide dialog + picker grid utilities |
+| `lib/icons.ts` | `dragHandle` icon (`SortVertical`) |
+
+## Verification
+
+After UI changes:
+
+1. `pnpm contrast-check` — 0 failures.
+2. `pnpm responsive-check` — inspect `.responsive-audit/` at 375px and desktop widths; confirm rows don’t clip names, icon picker fits, modal/page both usable in light and dark themes.
+
+## Future ideas (out of scope)
+
+- Search/filter when category count grows significantly.
+- Duplicate-name validation inline.
+- `@dnd-kit` if native drag proves insufficient on touch devices.

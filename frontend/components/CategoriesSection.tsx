@@ -63,7 +63,7 @@ export function CategoriesSection() {
             onClick={() => openAddItem()}
           >
             <Icon name="add" size="xs" />
-            {t("categories.addItem")}
+            {t("categories.add")}
           </Button>
           <CategoryManager />
         </div>

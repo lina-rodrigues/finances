@@ -26,6 +26,7 @@ import { Moon } from "pixelarticons/react/Moon";
 import { PenSquare } from "pixelarticons/react/PenSquare";
 import { Plus } from "pixelarticons/react/Plus";
 import { Reload } from "pixelarticons/react/Reload";
+import { SortVertical } from "pixelarticons/react/SortVertical";
 import { Shirt } from "pixelarticons/react/Shirt";
 import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
 import { SquareAlert } from "pixelarticons/react/SquareAlert";
@@ -79,7 +80,8 @@ export type IconName =
   | "navFinance"
   | "navCategories"
   | "navReports"
-  | "repeat";
+  | "repeat"
+  | "dragHandle";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -121,6 +123,7 @@ export const iconMap: Record<IconName, PixelIcon> = {
   navCategories: Grid3x3,
   navReports: Chart,
   repeat: Reload,
+  dragHandle: SortVertical,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -148,7 +151,7 @@ export const iconColorMap: Record<IconName, string> = {
   dumbbell: "text-income",
   add: "text-link",
   edit: "text-muted-foreground",
-  delete: "text-destructive",
+  delete: "text-expense",
   save: "text-link",
   cancel: "text-muted-foreground",
   arrowUp: "text-muted-foreground",
@@ -165,6 +168,7 @@ export const iconColorMap: Record<IconName, string> = {
   navCategories: "text-muted-finance",
   navReports: "text-muted-finance",
   repeat: "text-link",
+  dragHandle: "text-muted-finance",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

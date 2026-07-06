@@ -5,6 +5,7 @@
     "save": "Salvar",
     "delete": "Excluir",
     "confirm": "Confirmar",
+    "discard": "Descartar",
     "loading": "Carregando…",
     "somethingWrong": "Algo deu errado. Tente novamente.",
     "uncategorized": "Sem categoria"
@@ -101,7 +102,7 @@
     "addCategory": "Adicionar categoria",
     "editCategory": "Editar categoria",
     "noCategories": "Sem categorias",
-    "reorderHint": "Arraste ou use as setas para reordenar",
+    "reorderHint": "Arraste as linhas para reordenar. Em telas pequenas, use as setas.",
     "itemAdded": "Item adicionado",
     "itemUpdated": "Item atualizado",
     "itemDeleted": "Item excluído",
@@ -119,7 +120,13 @@
     "plannedBadge": "planejado",
     "pendingBadge": "salvando",
     "deleteLineItemDescription": "\"{label}\" será removido deste mês.",
-    "deleteCategoryDescription": "\"{name}\" e seus itens serão removidos."
+    "deleteCategoryDescription": "\"{name}\" e seus itens serão removidos.",
+    "pickIcon": "Escolher ícone",
+    "dragToReorder": "Arrastar para reordenar",
+    "savedBadge": "salvo",
+    "unsavedChanges": "Descartar alterações não salvas?",
+    "unsavedChangesDescription": "Algumas edições de categorias ainda não foram salvas.",
+    "backToCategories": "Voltar às categorias"
   },
   "addItem": {
     "title": "Adicionar item",

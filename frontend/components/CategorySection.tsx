@@ -200,7 +200,7 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
             disabled={pessimisticDeleting}
             aria-label={t("categories.deleteItem")}
           >
-            <Icon name="delete" size="xs" colorClass="text-destructive" />
+            <Icon name="delete" size="xs" colorClass="text-expense" />
           </Button>
         </div>
       </div>
