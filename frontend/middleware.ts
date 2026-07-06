@@ -7,6 +7,12 @@ const publicPaths = ["/login", "/signup", "/forgot-password", "/reset-password"]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Proxied backend routes — auth cookies are set here; must not redirect to /login.
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   const hasToken = request.cookies.has(AUTH_COOKIE);
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
@@ -22,5 +28,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|assets).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|assets|api/).*)"],
 };
