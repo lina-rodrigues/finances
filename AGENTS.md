@@ -2,6 +2,10 @@
 
 Guidance for AI agents working in this repository. See [README.md](README.md) for full setup, data model, and API docs; see [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) for the design system.
 
+## Git workflow
+
+Do not commit or push changes unless the repository owner has explicitly asked you to in that conversation. Propose the commit message and wait for confirmation first.
+
 ## What this app is
 
 A personal finance tracker: monthly income/expense line items with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward between months. Single page (month view) with a retro pixel-art "Cotton Candy" pink/purple aesthetic.
