@@ -1,3 +1,5 @@
+import { getApiUrl } from "@/lib/api";
+
 export type ThemePreference = "light" | "dark" | null;
 export type AppLanguage = "en" | "pt";
 
@@ -17,10 +19,6 @@ export interface PublicUser {
 export interface LocaleHints {
   timezone: string;
   language: string;
-}
-
-function getApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 }
 
 async function authFetch(

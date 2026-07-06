@@ -65,7 +65,13 @@ export interface FlatCategory {
 }
 
 export function getApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  // Browser requests use the Next.js rewrite so auth cookies are set on the
+  // frontend origin (middleware + SSR read cookies from this host).
+  if (typeof window !== "undefined") {
+    return "/api";
+  }
+  // Server components call the backend directly and forward incoming cookies.
+  return process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 }
 
 async function apiFetch(path: string, errorLabel: string, init?: RequestInit): Promise<Response> {
