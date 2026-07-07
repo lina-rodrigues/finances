@@ -16,6 +16,20 @@ export function computeBalance(
   return balance;
 }
 
+export function computeRealizedBalance(
+  lastMonthBalance: number,
+  lineItems: { type: string; realizedAmount: number | null }[],
+): number {
+  let balance = lastMonthBalance;
+  for (const item of lineItems) {
+    if (item.realizedAmount === null) {
+      continue;
+    }
+    balance += item.type === "income" ? item.realizedAmount : -item.realizedAmount;
+  }
+  return balance;
+}
+
 export async function computeEndingBalance(month: IMonth): Promise<number> {
   const lineItems = await LineItem.find({ monthId: month._id });
   return computeBalance(month.lastMonthBalance, lineItems);

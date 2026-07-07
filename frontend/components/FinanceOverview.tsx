@@ -19,7 +19,8 @@ export function FinanceOverview() {
   const { month, categories, uncategorized, flatCategories } = useMonthView();
   const [dialogOpen, setDialogOpen] = useState(false);
   const leveledUp =
-    month.endingBalance > month.lastMonthBalance && month.yearMonth <= getCurrentYearMonth();
+    month.expectedBalance > month.lastMonthRealizedBalance &&
+    month.yearMonth <= getCurrentYearMonth();
 
   return (
     <>
@@ -35,18 +36,24 @@ export function FinanceOverview() {
               </Badge>
             )}
 
-            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-4">
               <CoinCounter
                 plain
                 label={t("month.lastMonth")}
-                amount={formatMoney(month.lastMonthBalance)}
+                amount={formatMoney(month.lastMonthRealizedBalance)}
                 icon="balance"
               />
               <CoinCounter
                 plain
-                label={t("month.current")}
-                amount={formatMoney(month.endingBalance)}
+                label={t("month.expectedBudget")}
+                amount={formatMoney(month.expectedBalance)}
                 highlight
+                icon="planned"
+              />
+              <CoinCounter
+                plain
+                label={t("month.currentBudget")}
+                amount={formatMoney(month.currentRealizedBalance)}
                 icon="endingBalance"
               />
             </div>

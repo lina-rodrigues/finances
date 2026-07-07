@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Category, FlatCategory, LineItem, MonthView } from "@/lib/api";
-import { recomputeEndingBalance } from "@/lib/monthViewMath";
+import { recomputeEndingBalance, recomputeRealizedBalance } from "@/lib/monthViewMath";
 
 export type MonthViewState = MonthView & { flatCategories: FlatCategory[] };
 
@@ -20,6 +20,9 @@ export function createEmptyMonthViewState(yearMonth: string): MonthViewState {
       yearMonth,
       lastMonthBalance: 0,
       endingBalance: 0,
+      lastMonthRealizedBalance: 0,
+      expectedBalance: 0,
+      currentRealizedBalance: 0,
     },
     categories: [],
     uncategorized: [],
@@ -33,7 +36,7 @@ export function monthViewDataKey(data: MonthViewState): string {
     ...data.uncategorized.map((item) => item.id),
   ].join(",");
   const categoryIds = data.flatCategories.map((category) => category.id).join(",");
-  return `${data.month.yearMonth}:${data.month.lastMonthBalance}:${data.month.endingBalance}:${categoryIds}:${itemIds}`;
+  return `${data.month.yearMonth}:${data.month.lastMonthBalance}:${data.month.endingBalance}:${data.month.lastMonthRealizedBalance}:${data.month.expectedBalance}:${data.month.currentRealizedBalance}:${categoryIds}:${itemIds}`;
 }
 
 type LineItemLocation =
@@ -99,15 +102,25 @@ function findLineItemLocation(state: MonthViewState, itemId: string): LineItemLo
 }
 
 function withRecomputedBalance(state: MonthViewState): MonthViewState {
+  const lineItemsBase = state.month.lastMonthBalance;
+  const expectedBalance = recomputeEndingBalance(
+    lineItemsBase,
+    state.categories,
+    state.uncategorized,
+  );
+  const currentRealizedBalance = recomputeRealizedBalance(
+    lineItemsBase,
+    state.categories,
+    state.uncategorized,
+  );
+
   return {
     ...state,
     month: {
       ...state.month,
-      endingBalance: recomputeEndingBalance(
-        state.month.lastMonthBalance,
-        state.categories,
-        state.uncategorized,
-      ),
+      endingBalance: expectedBalance,
+      expectedBalance,
+      currentRealizedBalance,
     },
   };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import {
   Select,
@@ -42,6 +43,16 @@ export function RepeatConfigFields({
 }: RepeatConfigFieldsProps) {
   const { t } = useTranslation();
 
+  const repeatModeItems = useMemo(() => {
+    const items: Record<RepeatMode, string> = {
+      none: t("repeat.none"),
+      never: t("repeat.forever"),
+      count: t("repeat.count"),
+      until: t("repeat.until"),
+    };
+    return items;
+  }, [t]);
+
   return (
     <div className="space-y-3">
       <div className="space-y-1">
@@ -51,6 +62,7 @@ export function RepeatConfigFields({
         <div className="finance-dialog-field">
           <Select
             value={mode}
+            items={repeatModeItems}
             onValueChange={(value) => onModeChange(value as RepeatMode)}
             disabled={disabled}
           >

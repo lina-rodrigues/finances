@@ -52,6 +52,9 @@ export interface MonthView {
     yearMonth: string;
     lastMonthBalance: number;
     endingBalance: number;
+    lastMonthRealizedBalance: number;
+    expectedBalance: number;
+    currentRealizedBalance: number;
   };
   categories: Category[];
   uncategorized: LineItem[];

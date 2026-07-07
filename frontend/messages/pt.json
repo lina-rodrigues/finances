@@ -68,9 +68,11 @@
     "previousMonth": "Mês anterior",
     "nextMonth": "Próximo mês",
     "lastMonth": "Mês passado",
+    "expectedBudget": "Orçamento esperado",
+    "currentBudget": "Orçamento atual",
     "current": "Atual",
     "ending": "Saldo final",
-    "levelUp": "Level up! Saldo melhorou"
+    "levelUp": "Level up! Seu saldo melhorou"
   },
   "nav": {
     "label": "Navegação principal",
@@ -88,7 +90,7 @@
   },
   "categories": {
     "title": "Categorias",
-    "addItem": "Adicionar item",
+    "addItem": "Adicionar",
     "manage": "Gerenciar",
     "empty": "Nenhuma categoria ainda. Execute o seed ou adicione categorias em Configurações.",
     "income": "Receita",
@@ -130,13 +132,13 @@
     "backToCategories": "Voltar às categorias"
   },
   "addItem": {
-    "title": "Adicionar item",
+    "title": "Adicionar",
     "category": "Categoria",
     "type": "Tipo",
     "label": "Rótulo",
     "planned": "Planejado",
     "realized": "Realizado (opcional)",
-    "submit": "Adicionar item"
+    "submit": "Adicionar"
   },
   "editItem": {
     "title": "Editar item",

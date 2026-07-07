@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Icon } from "@/components/Icon";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { categoryIcons, formatIconLabel, type IconName } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
@@ -54,14 +54,14 @@ export function CategoryIconPicker({
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <Icon name={value} size="sm" />
+        <CategoryIcon icon={value} size="sm" />
       </Button>
       {open && (
         <div
           id={listboxId}
           role="listbox"
           aria-label={resolvedLabel}
-          className="absolute top-full z-[60] mt-1 w-44 border bg-background p-2 shadow-(--pixel-box-shadow)"
+          className="absolute top-full z-[60] mt-1 w-52 border bg-background p-2 shadow-(--pixel-box-shadow)"
         >
           <div className="category-icon-picker-grid">
             {categoryIcons.map((icon) => {
@@ -79,7 +79,7 @@ export function CategoryIconPicker({
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => selectIcon(icon)}
                 >
-                  <Icon name={icon} size="sm" />
+                  <CategoryIcon icon={icon} size="sm" />
                 </button>
               );
             })}

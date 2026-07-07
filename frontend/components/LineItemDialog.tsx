@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CategoryCombobox } from "@/components/CategoryCombobox";
 import { Icon } from "@/components/Icon";
 import { RepeatConfigFields } from "@/components/RepeatConfigFields";
@@ -105,6 +105,7 @@ export function LineItemDialog({
   const { loading, run, runOptimistic } = useMutationFeedback();
   const categoryFieldId = useId();
   const labelFieldId = useId();
+  const labelInputRef = useRef<HTMLInputElement>(null);
 
   const [editSubFlow, setEditSubFlow] = useState<EditSubFlow>("edit");
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
@@ -400,12 +401,29 @@ export function LineItemDialog({
 
   const testId = mode === "create" ? "add-line-item-dialog" : "edit-line-item-dialog";
 
+  const typeItems = useMemo(
+    () => ({
+      expense: t("categories.expense"),
+      income: t("categories.income"),
+    }),
+    [t],
+  );
+
+  function handleDialogOpenAutoFocus(event: Event) {
+    if (mode !== "create") {
+      return;
+    }
+    event.preventDefault();
+    labelInputRef.current?.focus();
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           data-testid={testId}
           className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
+          onOpenAutoFocus={handleDialogOpenAutoFocus}
         >
           <DialogHeader>
             <DialogTitle className="text-display text-xs normal-case">{dialogTitle}</DialogTitle>
@@ -428,6 +446,7 @@ export function LineItemDialog({
                 <div className="finance-dialog-field">
                   <Select
                     value={type}
+                    items={typeItems}
                     onValueChange={(value) => setType(value as LineItemType)}
                     disabled={loading}
                   >
@@ -448,6 +467,7 @@ export function LineItemDialog({
                 </label>
                 <div className="finance-dialog-field">
                   <Input
+                    ref={labelInputRef}
                     id={labelFieldId}
                     placeholder={t("addItem.label")}
                     value={label}

@@ -68,6 +68,8 @@
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "lastMonth": "Last month",
+    "expectedBudget": "Expected budget",
+    "currentBudget": "Current budget",
     "current": "Current",
     "ending": "Ending",
     "levelUp": "Level up! Balance improved"
@@ -88,7 +90,7 @@
   },
   "categories": {
     "title": "Categories",
-    "addItem": "Add item",
+    "addItem": "Add",
     "manage": "Manage",
     "empty": "No categories yet. Run the seed script or add categories in Settings.",
     "income": "Income",
@@ -130,13 +132,13 @@
     "backToCategories": "Back to categories"
   },
   "addItem": {
-    "title": "Add item",
+    "title": "Add",
     "category": "Category",
     "type": "Type",
     "label": "Label",
     "planned": "Planned",
     "realized": "Realized (optional)",
-    "submit": "Add item"
+    "submit": "Add"
   },
   "editItem": {
     "title": "Edit item",

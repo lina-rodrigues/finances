@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BudgetBar } from "@/components/BudgetBar";
 import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Icon } from "@/components/Icon";
 import { PendingBadge } from "@/components/PendingBadge";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
@@ -29,6 +30,9 @@ import { useRowPending, captureMonthViewState, useMonthView, useMonthViewActions
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import { canOptimisticallyDelete } from "@/lib/optimisticGates";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+
+/** Toggle line-item badges (income/expense, repeat, planned, pending) in category rows. */
+const SHOW_LINE_ITEM_TAGS = false;
 
 interface LineItemRowProps {
   item: LineItem;
@@ -150,23 +154,25 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
-        <span className="flex flex-wrap items-center gap-1">
-          <TypeBadge item={item} />
-          <RepeatBadge item={item} />
-          {isPending && <PendingBadge />}
-          {!item.isRealized && (
-            <Badge
-              font="normal"
-              variant="outline"
-              className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
-            >
-              <span className="flex items-center gap-1">
-                <Icon name="planned" size="xs" />
-                {t("categories.plannedBadge")}
-              </span>
-            </Badge>
-          )}
-        </span>
+        {SHOW_LINE_ITEM_TAGS && (
+          <span className="flex flex-wrap items-center gap-1">
+            <TypeBadge item={item} />
+            <RepeatBadge item={item} />
+            {isPending && <PendingBadge />}
+            {!item.isRealized && (
+              <Badge
+                font="normal"
+                variant="outline"
+                className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+              >
+                <span className="flex items-center gap-1">
+                  <Icon name="planned" size="xs" />
+                  {t("categories.plannedBadge")}
+                </span>
+              </Badge>
+            )}
+          </span>
+        )}
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
@@ -265,7 +271,7 @@ export function CategorySection({
           <div className="flex w-full items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-2">
               <span className="icon-slot shrink-0">
-                <Icon name={iconName} size="sm" />
+                <CategoryIcon icon={iconName} size="sm" />
               </span>
               <h3 className="text-display min-w-0 text-xs normal-case leading-snug break-words">
                 {category.name}

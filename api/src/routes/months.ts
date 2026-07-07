@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { LineItem } from "../models/LineItem.js";
+import { Month } from "../models/Month.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
 import {
   cascadeBalanceFrom,
   computeBalance,
+  computeRealizedBalance,
   ensureMonth,
 } from "../services/balanceService.js";
 import { getCategoriesWithLineItems } from "../services/categoryService.js";
@@ -22,6 +24,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getCurrentYearMonth,
   isValidYearMonth,
+  previousYearMonth,
 } from "../utils/yearMonth.js";
 
 const router = Router();
@@ -65,12 +68,26 @@ async function buildMonthView(userId: string, yearMonth: string) {
     seriesById,
   );
 
+  const expectedBalance = computeBalance(month.lastMonthBalance, lineItems);
+  const currentRealizedBalance = computeRealizedBalance(month.lastMonthBalance, lineItems);
+
+  let lastMonthRealizedBalance = 0;
+  const prevYearMonth = previousYearMonth(yearMonth);
+  const prevMonth = await Month.findOne({ userId, yearMonth: prevYearMonth });
+  if (prevMonth) {
+    const prevLineItems = await LineItem.find({ monthId: prevMonth._id });
+    lastMonthRealizedBalance = computeRealizedBalance(prevMonth.lastMonthBalance, prevLineItems);
+  }
+
   return {
     month: {
       id: month._id.toString(),
       yearMonth: month.yearMonth,
       lastMonthBalance: month.lastMonthBalance,
-      endingBalance: computeBalance(month.lastMonthBalance, lineItems),
+      endingBalance: expectedBalance,
+      lastMonthRealizedBalance,
+      expectedBalance,
+      currentRealizedBalance,
     },
     categories,
     uncategorized,

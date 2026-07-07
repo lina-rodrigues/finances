@@ -183,7 +183,7 @@ async function captureAddItemModal(page, { theme, vp, subdir, simulateSafeArea =
   await page.waitForTimeout(500);
 
   await openAddItemModal(page, vp);
-  await page.getByRole("dialog", { name: "Add item" }).waitFor({ state: "visible" });
+  await page.getByRole("dialog", { name: "Add" }).waitFor({ state: "visible" });
   await page.waitForTimeout(200);
 
   const baseName = `${vp.name}-${vp.width}x${vp.height}`;

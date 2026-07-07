@@ -1,9 +1,8 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { type Category, type LineItem } from "@/lib/api";
-import { resolveCategoryIcon } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
@@ -58,7 +57,7 @@ export function UpcomingPaymentsList({ categories, uncategorized }: UpcomingPaym
           className="inventory-slot flex min-w-0 items-center gap-3 px-3 py-2.5"
         >
           <div className="icon-slot shrink-0">
-            <Icon name={resolveCategoryIcon(icon)} size="md" />
+            <CategoryIcon icon={icon} size="md" />
           </div>
           <span className="text-body min-w-0 flex-1 truncate font-medium">{item.label}</span>
           <span className="text-amount text-expense shrink-0 whitespace-nowrap">

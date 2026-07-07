@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Icon } from "@/components/Icon";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import { type FlatCategory } from "@/lib/api";
@@ -148,7 +149,7 @@ export function CategoryCombobox({
                     onClick={() => selectSuggestion(suggestion)}
                     onMouseEnter={() => setHighlightIndex(index)}
                   >
-                    <Icon name={iconName} size="sm" />
+                    <CategoryIcon icon={iconName} size="sm" />
                     <span className="text-body text-sm">{suggestion.label}</span>
                   </button>
                 </li>

@@ -19,6 +19,20 @@ export function computeEndingBalance(
   return balance;
 }
 
+export function computeRealizedBalance(
+  lastMonthBalance: number,
+  lineItems: { type: string; realizedAmount: number | null }[],
+): number {
+  let balance = lastMonthBalance;
+  for (const item of lineItems) {
+    if (item.realizedAmount === null) {
+      continue;
+    }
+    balance += item.type === "income" ? item.realizedAmount : -item.realizedAmount;
+  }
+  return balance;
+}
+
 export function sumCategoryAmounts(lineItems: Pick<LineItem, "type" | "displayAmount">[]): number {
   return lineItems.reduce((sum, item) => {
     const amount = item.displayAmount;
@@ -59,4 +73,12 @@ export function recomputeEndingBalance(
   uncategorized: LineItem[],
 ): number {
   return computeEndingBalance(lastMonthBalance, collectAllLineItems(categories, uncategorized));
+}
+
+export function recomputeRealizedBalance(
+  lastMonthBalance: number,
+  categories: Category[],
+  uncategorized: LineItem[],
+): number {
+  return computeRealizedBalance(lastMonthBalance, collectAllLineItems(categories, uncategorized));
 }
