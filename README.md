@@ -32,7 +32,22 @@ Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, and `build`.
 
 ## Design
 
-See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the app's design system — themes, colors, icons, typography, and interaction patterns.
+The frontend uses the **Cotton Candy** design system — a pixel-widget UI built on Pixelact UI, shadcn/ui, Tailwind CSS 4, and Pixelarticons.
+
+See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the canonical reference: tools & stack, palette, themes, semantic tokens, layout shell, components, icons, interaction patterns, pitfalls, and the UI verification workflow (`pnpm contrast-check`, `pnpm responsive-check`).
+
+### Design system alignment (future work)
+
+Current code deviations from the intended spec in `DESIGN_SYSTEM.md`. These are documentation-tracked backlog items — not yet fixed in code.
+
+| Deviation | Intended (see DESIGN_SYSTEM.md) | Where |
+|-----------|--------------------------------|-------|
+| Planned/pending badges use `text-foreground` on subtle bg | Use semantic text class (`text-planned`) with icon + label | `CategorySection.tsx`, `PendingBadge.tsx`, `CategoryManagerEditor.tsx` |
+| `applyThemePreference()` writes resolved light/dark to localStorage even when preference is system | Store explicit `system`/`light`/`dark`; resolve system at apply-time | `lib/theme.ts`, `AuthProvider.tsx` |
+| `button.css` uses hardcoded `rgb(0,0,0)` / gray for 3D depth | Use `color-mix` with theme vars | `pixelact-ui/button.css` |
+| Unused CSS utilities | Remove or wire up | `.dialog-content-frame-wide`, `.category-manager-scroll`, `.fade-in` in `design-system/` CSS |
+| `CATEGORY_MANAGER.md` references modal-era patterns | Update to match full-page manage flow | `frontend/docs/CATEGORY_MANAGER.md` |
+| `AGENTS.md` duplicates design rules | Eventually trim to link + agent-only commands | `AGENTS.md` |
 
 ## Features (v1)
 
