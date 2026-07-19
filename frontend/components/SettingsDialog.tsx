@@ -70,6 +70,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyContainerRef = useRef<HTMLDivElement>(null);
+  const closingRef = useRef(false);
 
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const filteredCurrencies = useMemo(() => {
@@ -82,17 +83,46 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     );
   }, [currencyOptions, currencyQuery]);
 
-  function handleOpenChange(next: boolean) {
-    onOpenChange(next);
-    if (next && user) {
-      setName(user.name);
-      setThemeOption(themeToOption(user.preferences.theme));
-      setCurrency(user.preferences.currency);
-      setLanguage(user.preferences.language);
-      setCurrencyQuery("");
-      setCurrencyOpen(false);
+  function syncFormFromUser() {
+    if (!user) {
+      return;
     }
+    setName(user.name);
+    setThemeOption(themeToOption(user.preferences.theme));
+    setCurrency(user.preferences.currency);
+    setLanguage(user.preferences.language);
+    setCurrencyQuery("");
+    setCurrencyOpen(false);
   }
+
+  function handleOpenChange(next: boolean) {
+    if (!next) {
+      closingRef.current = true;
+      syncFormFromUser();
+    } else {
+      closingRef.current = false;
+    }
+    onOpenChange(next);
+  }
+
+  useEffect(() => {
+    if (!open || !user) {
+      return;
+    }
+    setName(user.name);
+    setThemeOption(themeToOption(user.preferences.theme));
+    setCurrency(user.preferences.currency);
+    setLanguage(user.preferences.language);
+    setCurrencyQuery("");
+    setCurrencyOpen(false);
+  }, [open, user]);
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+    closingRef.current = false;
+  }, [open]);
 
   useEffect(() => {
     if (!currencyOpen) {
@@ -126,11 +156,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   }
 
   async function handleNameBlur() {
-    if (!user || name.trim() === user.name) {
+    if (closingRef.current || !user || !open) {
       return;
     }
 
     const trimmed = name.trim();
+    if (!trimmed || trimmed === user.name) {
+      return;
+    }
+
     await runOptimistic({
       snapshot: (): SettingsSnapshot => ({
         name: user.name,
@@ -342,7 +376,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               className="pressable focus-ring w-full gap-1"
               asChild
             >
-              <Link href={categoryManagePath(month.yearMonth)}>
+              <Link
+                href={categoryManagePath(month.yearMonth)}
+                onClick={() => handleOpenChange(false)}
+              >
                 <Icon name="edit" size="xs" />
                 {t("settings.manageCategories")}
               </Link>

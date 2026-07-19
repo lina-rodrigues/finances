@@ -28,14 +28,14 @@ export function CoinCounter({
     ));
 
   return (
-    <div className={`flex min-w-0 items-center gap-3 ${plain ? "" : "inventory-slot"}`}>
+    <div className={`flex w-full min-w-0 items-center gap-3 ${plain ? "" : "inventory-slot"}`}>
       {iconNode}
-      <div className="min-w-0 text-left">
+      <div className="coin-counter min-w-0 flex-1 text-left">
         <div className="text-muted-finance text-body text-[0.65rem] font-semibold uppercase tracking-wide sm:text-xs">
           {label}
         </div>
         <div
-          className={`text-amount-hero break-words text-base sm:text-lg ${highlight ? "text-fin-balance" : "text-foreground"}`}
+          className={`text-amount-hero-fluid ${highlight ? "text-fin-balance" : "text-foreground"}`}
         >
           {amount}
         </div>
