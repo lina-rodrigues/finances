@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { LineItemDialog } from "@/components/LineItemDialog";
+import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
 import { CoinCounter } from "@/components/CoinCounter";
 import { Icon } from "@/components/Icon";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import { getCurrentYearMonth, type LineItem } from "@/lib/api";
+import { getCurrentYearMonth } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
@@ -17,24 +17,10 @@ export function FinanceOverview() {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const { month, categories, uncategorized, flatCategories } = useMonthView();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
-  const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
+  const host = useLineItemDialogHost({ flatCategories, yearMonth: month.yearMonth });
   const leveledUp =
     month.expectedBalance > month.lastMonthRealizedBalance &&
     month.yearMonth <= getCurrentYearMonth();
-
-  function openAddItem() {
-    setDialogMode("create");
-    setSelectedItem(null);
-    setDialogOpen(true);
-  }
-
-  function openEditItem(item: LineItem) {
-    setDialogMode("edit");
-    setSelectedItem(item);
-    setDialogOpen(true);
-  }
 
   return (
     <>
@@ -79,7 +65,8 @@ export function FinanceOverview() {
           <UpcomingPaymentsList
             categories={categories}
             uncategorized={uncategorized}
-            onEditItem={openEditItem}
+            handlers={host.handlers}
+            payingItemId={host.payingItemId}
           />
         </section>
       </div>
@@ -91,19 +78,12 @@ export function FinanceOverview() {
         className="add-item-fab pressable focus-ring box-shadow-margin sm:hidden"
         data-testid="add-item-trigger-fab"
         aria-label={t("categories.addItem")}
-        onClick={openAddItem}
+        onClick={() => host.openCreate()}
       >
         <Icon name="add" size="md" />
       </Button>
 
-      <LineItemDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mode={dialogMode}
-        categories={flatCategories}
-        yearMonth={month.yearMonth}
-        item={selectedItem ?? undefined}
-      />
+      <LineItemDialogPanels host={host} />
     </>
   );
 }

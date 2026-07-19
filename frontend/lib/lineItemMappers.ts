@@ -1,10 +1,14 @@
-import type { LineItem, LineItemMutationResponse } from "@/lib/api";
+import type { LineItem, LineItemEntry, LineItemMutationResponse } from "@/lib/api";
 import { effectiveAmount } from "@/lib/monthViewMath";
 
 const TEMP_ID_PREFIX = "temp-";
 
 export function createTempLineItemId(): string {
   return `${TEMP_ID_PREFIX}${crypto.randomUUID()}`;
+}
+
+export function createTempEntryId(): string {
+  return `${TEMP_ID_PREFIX}entry-${crypto.randomUUID()}`;
 }
 
 export function isTempLineItemId(id: string): boolean {
@@ -16,10 +20,7 @@ type LineItemSeriesMeta = Pick<
   "seriesEndType" | "seriesOccurrenceCount" | "seriesEndYearMonth"
 >;
 
-export function toLineItemFromMutation(
-  response: LineItemMutationResponse,
-  seriesMeta?: Partial<LineItemSeriesMeta>,
-): LineItem {
+function toLineItemFields(response: LineItemMutationResponse) {
   return {
     id: response.id,
     type: response.type,
@@ -28,12 +29,23 @@ export function toLineItemFromMutation(
     realizedAmount: response.realizedAmount,
     displayAmount: effectiveAmount(response),
     isRealized: response.realizedAmount !== null,
+    entries: response.entries ?? [],
+    entryCount: response.entryCount ?? response.entries?.length ?? 0,
     seriesId: response.seriesId,
     seriesOccurrenceIndex: response.seriesOccurrenceIndex,
+    isSeriesException: response.isSeriesException,
+  };
+}
+
+export function toLineItemFromMutation(
+  response: LineItemMutationResponse,
+  seriesMeta?: Partial<LineItemSeriesMeta>,
+): LineItem {
+  return {
+    ...toLineItemFields(response),
     seriesEndType: seriesMeta?.seriesEndType ?? null,
     seriesOccurrenceCount: seriesMeta?.seriesOccurrenceCount ?? null,
     seriesEndYearMonth: seriesMeta?.seriesEndYearMonth ?? null,
-    isSeriesException: response.isSeriesException,
   };
 }
 
@@ -74,12 +86,50 @@ export function buildOptimisticCreateLineItem(input: {
     realizedAmount: input.realizedAmount,
     displayAmount: effectiveAmount(input),
     isRealized: input.realizedAmount !== null,
+    entries: [],
+    entryCount: 0,
     seriesId: null,
     seriesOccurrenceIndex: null,
     seriesEndType: null,
     seriesOccurrenceCount: null,
     seriesEndYearMonth: null,
     isSeriesException: false,
+  };
+}
+
+function sumEntryAmounts(entries: Pick<LineItemEntry, "amount">[]): number {
+  return entries.reduce((sum, entry) => sum + entry.amount, 0);
+}
+
+export function buildOptimisticAddEntry(
+  base: LineItem,
+  entry: LineItemEntry,
+): LineItem {
+  const entries = [...base.entries, entry];
+  const realizedAmount = sumEntryAmounts(entries);
+  return {
+    ...base,
+    entries,
+    entryCount: entries.length,
+    realizedAmount,
+    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount }),
+    isRealized: true,
+  };
+}
+
+export function buildOptimisticRemoveEntry(
+  base: LineItem,
+  entryId: string,
+): LineItem {
+  const entries = base.entries.filter((entry) => entry.id !== entryId);
+  const realizedAmount = entries.length > 0 ? sumEntryAmounts(entries) : null;
+  return {
+    ...base,
+    entries,
+    entryCount: entries.length,
+    realizedAmount,
+    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount }),
+    isRealized: realizedAmount !== null,
   };
 }
 

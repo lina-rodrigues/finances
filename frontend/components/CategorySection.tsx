@@ -1,14 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { BudgetBar } from "@/components/BudgetBar";
 import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Icon } from "@/components/Icon";
 import { PendingBadge } from "@/components/PendingBadge";
-import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
@@ -17,26 +13,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/pixelact-ui/collapsible";
-import {
-  deleteLineItem,
-  type Category,
-  type LineItem,
-} from "@/lib/api";
+import { type Category, type LineItem } from "@/lib/api";
 import { resolveCategoryIcon } from "@/lib/icons";
-import { type RecurrenceScope } from "@/lib/recurrence";
+import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
-import { useRowPending, captureMonthViewState, useMonthView, useMonthViewActions } from "@/lib/MonthViewProvider";
-import { backgroundReconcile } from "@/lib/backgroundReconcile";
-import { canOptimisticallyDelete } from "@/lib/optimisticGates";
-import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { useRowPending } from "@/lib/MonthViewProvider";
 
 /** Toggle line-item badges (income/expense, repeat, planned, pending) in category rows. */
 const SHOW_LINE_ITEM_TAGS = false;
 
 interface LineItemRowProps {
   item: LineItem;
-  onEditItem: (item: LineItem) => void;
+  handlers: LineItemActionHandlers;
 }
 
 function TypeBadge({ item }: { item: LineItem }) {
@@ -76,84 +65,29 @@ function RepeatBadge({ item }: { item: LineItem }) {
   );
 }
 
-function LineItemRow({ item, onEditItem }: LineItemRowProps) {
-  const router = useRouter();
+function LineItemRow({ item, handlers }: LineItemRowProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
-  const monthView = useMonthView();
-  const { setFromServer, removeLineItem } = useMonthViewActions();
-  const { run, runOptimistic } = useMutationFeedback();
   const isPending = useRowPending(item.id);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
-  const [scope, setScope] = useState<RecurrenceScope>("this");
-  const [pessimisticDeleting, setPessimisticDeleting] = useState(false);
-
-  async function performDeletePessimistic(selectedScope?: RecurrenceScope) {
-    setPessimisticDeleting(true);
-    try {
-      await run(
-        async () => {
-          await deleteLineItem(
-            item.id,
-            item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
-          );
-          setConfirmingDelete(false);
-          setScopeDialogOpen(false);
-          router.refresh();
-        },
-        { successMessage: t("categories.itemDeleted") },
-      );
-    } finally {
-      setPessimisticDeleting(false);
-    }
-  }
-
-  async function performDeleteOptimistic(selectedScope?: RecurrenceScope) {
-    await runOptimistic({
-      snapshot: () => captureMonthViewState(monthView),
-      apply: () => {
-        removeLineItem(item.id);
-        setConfirmingDelete(false);
-        setScopeDialogOpen(false);
-      },
-      mutate: () =>
-        deleteLineItem(
-          item.id,
-          item.seriesId && selectedScope ? { scope: selectedScope } : undefined,
-        ),
-      reconcile: () => backgroundReconcile(router),
-      rollback: (snapshot) => setFromServer(snapshot),
-      successMessage: t("categories.itemDeleted"),
-    });
-  }
-
-  async function performDelete(selectedScope?: RecurrenceScope) {
-    if (canOptimisticallyDelete(selectedScope)) {
-      await performDeleteOptimistic(selectedScope);
-      return;
-    }
-    await performDeletePessimistic(selectedScope);
-  }
-
-  async function handleDelete() {
-    if (item.seriesId) {
-      setScope("this");
-      setScopeDialogOpen(true);
-      return;
-    }
-
-    await performDelete();
-  }
-
   const isIncome = item.type === "income";
 
   return (
-    <div
-      className={`interactive-row flex items-start justify-between gap-2 px-2 py-2${isPending ? " row-pending" : ""}`}
+    <button
+      type="button"
+      className={`interactive-row flex w-full items-start justify-between gap-2 px-2 py-2 text-left${isPending ? " row-pending" : ""}`}
+      onClick={() => handlers.openDetail(item)}
+      aria-label={`${t("entries.detailTitle")}: ${item.label}`}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
+        {(item.entryCount ?? 0) > 0 && item.realizedAmount !== null && (
+          <span className="text-body text-muted-finance text-xs">
+            {t("budget.plannedOf", {
+              spent: formatMoney(item.realizedAmount),
+              planned: formatMoney(item.plannedAmount),
+            })}
+          </span>
+        )}
         {SHOW_LINE_ITEM_TAGS && (
           <span className="flex flex-wrap items-center gap-1">
             <TypeBadge item={item} />
@@ -174,81 +108,25 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
           </span>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <span className={`text-amount ${isIncome ? "text-income" : "text-expense"}`}>
-          {isIncome ? "+" : "-"}
-          {formatMoney(item.displayAmount)}
-        </span>
-        <div className="row-actions flex items-center gap-1">
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="pressable focus-ring h-auto p-1"
-            onClick={() => onEditItem(item)}
-            aria-label={t("categories.editCategory")}
-          >
-            <Icon name="edit" size="xs" />
-          </Button>
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="pressable focus-ring h-auto p-1 text-destructive"
-            onClick={() => {
-              if (item.seriesId) {
-                setScope("this");
-                setScopeDialogOpen(true);
-              } else {
-                setConfirmingDelete(true);
-              }
-            }}
-            disabled={pessimisticDeleting}
-            aria-label={t("categories.deleteItem")}
-          >
-            <Icon name="delete" size="xs" colorClass="text-expense" />
-          </Button>
-        </div>
-      </div>
-      <ConfirmDialog
-        open={confirmingDelete}
-        onOpenChange={setConfirmingDelete}
-        title={t("categories.deleteItem")}
-        description={t("categories.deleteLineItemDescription", { label: item.label })}
-        loading={pessimisticDeleting}
-        onConfirm={handleDelete}
-      />
-      <RepeatScopeDialog
-        open={scopeDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setScopeDialogOpen(false);
-          }
-        }}
-        mode="delete"
-        scope={scope}
-        onScopeChange={setScope}
-        loading={pessimisticDeleting}
-        loadingDescription={t("repeat.updatingSeries")}
-        onConfirm={() => performDelete(scope)}
-      />
-    </div>
+      <span className={`text-amount shrink-0 ${isIncome ? "text-income" : "text-expense"}`}>
+        {isIncome ? "+" : "-"}
+        {formatMoney(item.displayAmount)}
+      </span>
+    </button>
   );
 }
 
 interface CategorySectionProps {
   category: Category;
-  yearMonth: string;
   onAddItem: () => void;
-  onEditItem: (item: LineItem) => void;
+  handlers: LineItemActionHandlers;
   addItemTestId?: string;
 }
 
 export function CategorySection({
   category,
-  yearMonth,
   onAddItem,
-  onEditItem,
+  handlers,
   addItemTestId,
 }: CategorySectionProps) {
   const { t } = useTranslation();
@@ -295,7 +173,7 @@ export function CategorySection({
               <p className="text-body text-muted-finance px-2 text-sm">{t("categories.nothingPlanned")}</p>
             )}
             {category.lineItems.map((item) => (
-              <LineItemRow key={item.id} item={item} onEditItem={onEditItem} />
+              <LineItemRow key={item.id} item={item} handlers={handlers} />
             ))}
             <Button
               type="button"
@@ -314,4 +192,3 @@ export function CategorySection({
     </Collapsible>
   );
 }
-

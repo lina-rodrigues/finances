@@ -12,6 +12,13 @@ export interface LineItemResponse {
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
+  entries: {
+    id: string;
+    amount: number;
+    note: string | null;
+    createdAt: string;
+  }[];
+  entryCount: number;
   seriesId: string | null;
   seriesOccurrenceIndex: number | null;
   seriesEndType: RecurrenceEndType | null;
@@ -67,6 +74,13 @@ function toLineItemResponse(
     realizedAmount: item.realizedAmount,
     displayAmount: effectiveAmount(item),
     isRealized: item.realizedAmount !== null,
+    entries: (item.entries ?? []).map((entry) => ({
+      id: entry._id.toString(),
+      amount: entry.amount,
+      note: entry.note,
+      createdAt: entry.createdAt.toISOString(),
+    })),
+    entryCount: item.entries?.length ?? 0,
     seriesId: item.seriesId?.toString() ?? null,
     seriesOccurrenceIndex: item.seriesOccurrenceIndex,
     seriesEndType: series?.endType ?? null,

@@ -97,7 +97,9 @@ export type IconName =
   | "navCategories"
   | "navReports"
   | "repeat"
-  | "dragHandle";
+  | "dragHandle"
+  | "list"
+  | "pay";
 
 export const iconMap: Record<IconName, PixelIcon> = {
   income: WavesArrowUp,
@@ -148,6 +150,8 @@ export const iconMap: Record<IconName, PixelIcon> = {
   navReports: Chart,
   repeat: Reload,
   dragHandle: SortVertical,
+  list: ListBox,
+  pay: Check,
 };
 
 export const iconColorMap: Record<IconName, string> = {
@@ -200,6 +204,8 @@ export const iconColorMap: Record<IconName, string> = {
   navReports: "text-muted-finance",
   repeat: "text-link",
   dragHandle: "text-muted-finance",
+  list: "text-muted-foreground",
+  pay: "text-income",
 };
 
 /** Pixel-friendly sizes (multiples of 12; lg uses 24 for crisp rendering). */

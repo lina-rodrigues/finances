@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ILineItem } from "../models/LineItem.js";
+import type { ILineItem, ILineItemEntry } from "../models/LineItem.js";
 import { recurrenceInputSchema, recurrenceScopeSchema } from "./recurrence.js";
 
 const lineItemFields = z.object({
@@ -24,15 +24,39 @@ export const deleteLineItemSchema = z.object({
   scope: recurrenceScopeSchema.optional(),
 });
 
+export const addLineItemEntrySchema = z.object({
+  amount: z.number().positive(),
+  note: z.string().trim().min(1).optional(),
+});
+
+function toEntryResponse(entry: ILineItemEntry) {
+  return {
+    id: entry._id.toString(),
+    amount: entry.amount,
+    note: entry.note,
+    createdAt: entry.createdAt.toISOString(),
+  };
+}
+
 export function toLineItemMutationResponse(item: ILineItem) {
+  const entries = item.entries ?? [];
   return {
     id: item._id.toString(),
     type: item.type,
     label: item.label,
     plannedAmount: item.plannedAmount,
     realizedAmount: item.realizedAmount,
+    entries: entries.map(toEntryResponse),
+    entryCount: entries.length,
     seriesId: item.seriesId?.toString() ?? null,
     seriesOccurrenceIndex: item.seriesOccurrenceIndex,
     isSeriesException: item.seriesException,
+  };
+}
+
+export function toLineItemEntryMutationResponse(item: ILineItem, entry: ILineItemEntry) {
+  return {
+    entry: toEntryResponse(entry),
+    lineItem: toLineItemMutationResponse(item),
   };
 }

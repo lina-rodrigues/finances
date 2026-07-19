@@ -17,9 +17,23 @@ export interface LineItemMutationResponse {
   label: string;
   plannedAmount: number;
   realizedAmount: number | null;
+  entries: LineItemEntry[];
+  entryCount: number;
   seriesId: string | null;
   seriesOccurrenceIndex: number | null;
   isSeriesException: boolean;
+}
+
+export interface LineItemEntry {
+  id: string;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface LineItemEntryMutationResponse {
+  entry: LineItemEntry;
+  lineItem: LineItemMutationResponse;
 }
 
 export interface LineItem {
@@ -30,6 +44,8 @@ export interface LineItem {
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
+  entries: LineItemEntry[];
+  entryCount: number;
   seriesId: string | null;
   seriesOccurrenceIndex: number | null;
   seriesEndType: RecurrenceEndType | null;
@@ -190,6 +206,30 @@ export async function convertLineItemToRecurrence(
     `/line-items/${id}/recurrence`,
     "convert line item to recurrence",
     jsonInit("POST", recurrence),
+  );
+  return res.json();
+}
+
+export async function addLineItemEntry(
+  id: string,
+  data: { amount: number; note?: string },
+): Promise<LineItemEntryMutationResponse> {
+  const res = await apiFetch(
+    `/line-items/${id}/entries`,
+    "add line item entry",
+    jsonInit("POST", data),
+  );
+  return res.json();
+}
+
+export async function deleteLineItemEntry(
+  id: string,
+  entryId: string,
+): Promise<LineItemMutationResponse> {
+  const res = await apiFetch(
+    `/line-items/${id}/entries/${entryId}`,
+    "delete line item entry",
+    { method: "DELETE" },
   );
   return res.json();
 }

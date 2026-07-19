@@ -176,6 +176,27 @@
   "budget": {
     "plannedOf": "{spent} de {planned} planejado"
   },
+  "entries": {
+    "addTitle": "Adicionar lançamento",
+    "addAmount": "Valor",
+    "addNote": "Observação (opcional)",
+    "addSubmit": "Adicionar",
+    "added": "Lançamento adicionado",
+    "deleted": "Lançamento removido",
+    "detailsTitle": "Histórico de lançamentos",
+    "detailsEmpty": "Nenhum lançamento ainda.",
+    "addEntry": "Adicionar lançamento",
+    "deleteEntry": "Excluir lançamento",
+    "deleteEntryDescription": "Remover este lançamento de \"{label}\"?",
+    "recentEntries": "Lançamentos recentes",
+    "entriesManagedHint": "Use Pagar ou Adicionar no item para registrar valores.",
+    "pay": "Pagar",
+    "paid": "Marcado como pago",
+    "edit": "Editar",
+    "detailTitle": "Detalhes do item",
+    "plannedLabel": "Planejado",
+    "spentLabel": "Gasto"
+  },
   "errors": {
     "UNAUTHORIZED": "Faça login novamente.",
     "INVALID_CREDENTIALS": "E-mail ou senha inválidos.",

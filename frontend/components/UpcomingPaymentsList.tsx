@@ -1,8 +1,10 @@
 "use client";
 
 import { CategoryIcon } from "@/components/CategoryIcon";
+import { LineItemActions } from "@/components/LineItemActions";
 import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { type Category, type LineItem } from "@/lib/api";
+import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
@@ -34,10 +36,16 @@ function collectUpcoming(categories: Category[], uncategorized: LineItem[]): Upc
 interface UpcomingPaymentsListProps {
   categories: Category[];
   uncategorized: LineItem[];
-  onEditItem: (item: LineItem) => void;
+  handlers: LineItemActionHandlers;
+  payingItemId?: string | null;
 }
 
-export function UpcomingPaymentsList({ categories, uncategorized, onEditItem }: UpcomingPaymentsListProps) {
+export function UpcomingPaymentsList({
+  categories,
+  uncategorized,
+  handlers,
+  payingItemId = null,
+}: UpcomingPaymentsListProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const upcoming = collectUpcoming(categories, uncategorized);
@@ -54,20 +62,31 @@ export function UpcomingPaymentsList({ categories, uncategorized, onEditItem }: 
     <ul className="responsive-list-columns">
       {upcoming.map(({ item, icon }) => (
         <li key={item.id}>
-          <button
-            type="button"
-            className="inventory-slot interactive-surface flex min-w-0 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left"
-            onClick={() => onEditItem(item)}
-            aria-label={`${t("editItem.title")}: ${item.label}`}
-          >
-            <div className="icon-slot shrink-0">
-              <CategoryIcon icon={icon} size="md" />
-            </div>
-            <span className="text-body min-w-0 flex-1 truncate font-medium">{item.label}</span>
-            <span className="text-amount text-expense shrink-0 whitespace-nowrap">
+          <div className="inventory-slot interactive-surface relative flex min-w-0 w-full items-center gap-3 px-2 py-2 sm:px-3 sm:py-2.5">
+            <button
+              type="button"
+              className="pressable focus-ring absolute inset-0 z-0 cursor-pointer border-0 bg-transparent p-0"
+              onClick={() => handlers.openDetail(item)}
+              aria-label={`${t("entries.detailTitle")}: ${item.label}`}
+            />
+            <CategoryIcon icon={icon} size="sm" className="relative z-10 shrink-0 pointer-events-none" />
+            <span className="text-body relative z-10 min-w-0 flex-1 truncate font-medium pointer-events-none">
+              {item.label}
+            </span>
+            <span className="text-amount text-expense relative z-10 shrink-0 whitespace-nowrap pointer-events-none">
               -{formatMoney(item.plannedAmount)}
             </span>
-          </button>
+            <div className="relative z-10 shrink-0">
+              <LineItemActions
+                item={item}
+                layout="inline"
+                loading={payingItemId === item.id}
+                onPay={handlers.payItem}
+                onAdd={handlers.openAdd}
+                onEdit={handlers.openEdit}
+              />
+            </div>
+          </div>
         </li>
       ))}
     </ul>

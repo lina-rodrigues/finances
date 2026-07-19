@@ -54,6 +54,7 @@ import {
 import { canOptimisticallyCreate, canOptimisticallyEdit } from "@/lib/optimisticGates";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";
@@ -99,6 +100,7 @@ export function LineItemDialog({
 }: LineItemDialogProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const formatMoney = useFormatCurrency();
   const uncategorizedLabel = t("common.uncategorized");
   const monthView = useMonthView();
   const { setFromServer, setPending, addLineItem, replaceLineItem } = useMonthViewActions();
@@ -209,7 +211,7 @@ export function LineItemDialog({
     const updatePayload = {
       label,
       plannedAmount: planned,
-      realizedAmount: realized,
+      ...(item.entryCount > 0 ? {} : { realizedAmount: realized }),
       ...(item.seriesId && selectedScope ? { scope: selectedScope } : {}),
     };
 
@@ -230,7 +232,7 @@ export function LineItemDialog({
     const optimisticItem = buildOptimisticLineItem(item, {
       label,
       plannedAmount: planned,
-      realizedAmount: realized,
+      realizedAmount: item.entryCount > 0 ? item.realizedAmount : realized,
     });
 
     await runOptimistic({
@@ -592,17 +594,27 @@ export function LineItemDialog({
                 <label htmlFor={`${labelFieldId}-realized`} className="text-body text-sm font-semibold">
                   {t("addItem.realized")}
                 </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    id={`${labelFieldId}-realized`}
-                    type="number"
-                    step="0.01"
-                    placeholder={t("categories.realized")}
-                    value={realizedAmount}
-                    onChange={(event) => setRealizedAmount(event.target.value)}
-                    disabled={loading}
-                  />
-                </div>
+                {item && item.entryCount > 0 ? (
+                  <div className="finance-dialog-field space-y-1">
+                    <p className={`text-amount text-sm ${item.type === "income" ? "text-income" : "text-expense"}`}>
+                      {item.type === "income" ? "+" : "-"}
+                      {formatMoney(item.realizedAmount ?? 0)}
+                    </p>
+                    <p className="text-body text-muted-finance text-xs">{t("entries.entriesManagedHint")}</p>
+                  </div>
+                ) : (
+                  <div className="finance-dialog-field">
+                    <Input
+                      id={`${labelFieldId}-realized`}
+                      type="number"
+                      step="0.01"
+                      placeholder={t("categories.realized")}
+                      value={realizedAmount}
+                      onChange={(event) => setRealizedAmount(event.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                )}
               </div>
 
               {item && !item.seriesId && (

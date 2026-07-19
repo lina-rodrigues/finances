@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { LineItemDialog } from "@/components/LineItemDialog";
+import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
 import { CategorySection } from "@/components/CategorySection";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/pixelact-ui/button";
@@ -16,32 +15,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/pixelact-ui/empty";
-import { categoryManagePath, type Category, type LineItem } from "@/lib/api";
+import { categoryManagePath, type Category } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
 export function CategoriesSection() {
   const { t } = useTranslation();
   const { month, categories, uncategorized, flatCategories } = useMonthView();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
-  const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
-  const [initialCategoryName, setInitialCategoryName] = useState<string | undefined>();
+  const host = useLineItemDialogHost({ flatCategories, yearMonth: month.yearMonth });
   const manageCategoriesHref = categoryManagePath(month.yearMonth);
-
-  function openAddItem(categoryName?: string) {
-    setDialogMode("create");
-    setSelectedItem(null);
-    setInitialCategoryName(categoryName);
-    setDialogOpen(true);
-  }
-
-  function openEditItem(item: LineItem) {
-    setDialogMode("edit");
-    setSelectedItem(item);
-    setDialogOpen(true);
-  }
-
   const uncategorizedLabel = t("common.uncategorized");
 
   const uncategorizedCategory: Category | null =
@@ -92,9 +74,8 @@ export function CategoriesSection() {
             <CategorySection
               key={category.id}
               category={category}
-              yearMonth={month.yearMonth}
-              onAddItem={() => openAddItem(category.name)}
-              onEditItem={openEditItem}
+              onAddItem={() => host.openCreate(category.name)}
+              handlers={host.handlers}
               addItemTestId={index === 0 ? "add-item-trigger-category" : undefined}
             />
           ))}
@@ -102,9 +83,8 @@ export function CategoriesSection() {
             <CategorySection
               key={uncategorizedCategory.id}
               category={uncategorizedCategory}
-              yearMonth={month.yearMonth}
-              onAddItem={() => openAddItem(uncategorizedLabel)}
-              onEditItem={openEditItem}
+              onAddItem={() => host.openCreate(uncategorizedLabel)}
+              handlers={host.handlers}
             />
           )}
         </div>
@@ -118,7 +98,7 @@ export function CategoriesSection() {
           className="add-item-fab add-item-fab--persistent pressable focus-ring box-shadow-margin"
           data-testid="add-item-trigger-fab-categories"
           aria-label={t("categories.addItem")}
-          onClick={() => openAddItem()}
+          onClick={() => host.openCreate()}
         >
           <Icon name="add" size="md" colorClass="text-primary-foreground" />
         </Button>
@@ -136,15 +116,7 @@ export function CategoriesSection() {
         </Button>
       )}
 
-      <LineItemDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mode={dialogMode}
-        categories={flatCategories}
-        yearMonth={month.yearMonth}
-        initialCategoryName={initialCategoryName}
-        item={selectedItem ?? undefined}
-      />
+      <LineItemDialogPanels host={host} />
     </>
   );
 }

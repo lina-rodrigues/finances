@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Types } from "mongoose";
-import { LineItem } from "../models/LineItem.js";
+import { LineItem, syncRealizedFromEntries } from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
 import { cascadeBalanceFrom } from "../services/balanceService.js";
@@ -15,7 +15,9 @@ import { assertLineItemOwnedByUser, assertCategoryOwnedByUser } from "../service
 import {
   convertToRecurrenceSchema,
   deleteLineItemSchema,
+  addLineItemEntrySchema,
   toLineItemMutationResponse,
+  toLineItemEntryMutationResponse,
   updateLineItemSchema,
 } from "../schemas/lineItem.js";
 import { requireAuth } from "../middleware/requireAuth.js";
@@ -105,6 +107,14 @@ router.patch(
     const lineItem = await LineItem.findById(req.params.id);
     if (!lineItem) {
       res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    if (
+      patch.realizedAmount !== undefined &&
+      (lineItem.entries?.length ?? 0) > 0
+    ) {
+      res.status(409).json({ error: "ENTRIES_MANAGED" });
       return;
     }
 
@@ -213,6 +223,85 @@ router.delete(
     await LineItem.findByIdAndDelete(req.params.id);
     await cascadeForMonth(req.userId!, lineItem.monthId);
     res.status(204).send();
+  }),
+);
+
+router.post(
+  "/:id/entries",
+  asyncHandler(async (req, res) => {
+    const owned = await assertLineItemOwnedByUser(req.params.id, req.userId!);
+    if (!owned) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const body = addLineItemEntrySchema.parse(req.body);
+    const lineItem = await LineItem.findById(req.params.id);
+    if (!lineItem) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    if (!lineItem.entries) {
+      lineItem.entries = [];
+    }
+
+    if (lineItem.entries.length === 0 && lineItem.realizedAmount !== null) {
+      lineItem.entries.push({
+        amount: lineItem.realizedAmount,
+        note: null,
+        createdAt: new Date(),
+      } as (typeof lineItem.entries)[number]);
+    }
+
+    const entry = {
+      amount: body.amount,
+      note: body.note ?? null,
+      createdAt: new Date(),
+    } as (typeof lineItem.entries)[number];
+
+    lineItem.entries.push(entry);
+    syncRealizedFromEntries(lineItem);
+    await lineItem.save();
+
+    await cascadeForMonth(req.userId!, lineItem.monthId);
+
+    const savedEntry = lineItem.entries[lineItem.entries.length - 1];
+    res.status(201).json(toLineItemEntryMutationResponse(lineItem, savedEntry));
+  }),
+);
+
+router.delete(
+  "/:id/entries/:entryId",
+  asyncHandler(async (req, res) => {
+    const owned = await assertLineItemOwnedByUser(req.params.id, req.userId!);
+    if (!owned) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const lineItem = await LineItem.findById(req.params.id);
+    if (!lineItem) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const entryIndex = lineItem.entries?.findIndex(
+      (entry) => entry._id.toString() === req.params.entryId,
+    ) ?? -1;
+
+    if (entryIndex < 0) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    lineItem.entries.splice(entryIndex, 1);
+    syncRealizedFromEntries(lineItem);
+    await lineItem.save();
+
+    await cascadeForMonth(req.userId!, lineItem.monthId);
+
+    res.json(toLineItemMutationResponse(lineItem));
   }),
 );
 

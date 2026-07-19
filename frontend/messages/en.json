@@ -176,6 +176,27 @@
   "budget": {
     "plannedOf": "{spent} of {planned} planned"
   },
+  "entries": {
+    "addTitle": "Add entry",
+    "addAmount": "Amount",
+    "addNote": "Note (optional)",
+    "addSubmit": "Add",
+    "added": "Entry added",
+    "deleted": "Entry deleted",
+    "detailsTitle": "Entry history",
+    "detailsEmpty": "No entries yet.",
+    "addEntry": "Add entry",
+    "deleteEntry": "Delete entry",
+    "deleteEntryDescription": "Remove this entry from \"{label}\"?",
+    "recentEntries": "Recent entries",
+    "entriesManagedHint": "Use Pay or Add on the item to record amounts.",
+    "pay": "Pay",
+    "paid": "Marked as paid",
+    "edit": "Edit",
+    "detailTitle": "Item details",
+    "plannedLabel": "Planned",
+    "spentLabel": "Spent"
+  },
   "errors": {
     "UNAUTHORIZED": "Please sign in again.",
     "INVALID_CREDENTIALS": "Invalid email or password.",

@@ -198,7 +198,19 @@
 .responsive-list-columns {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.5rem;
+  /* Pixel shadow = border width; visible gutter between borders = 2× that */
+  --list-cell-gutter: calc(var(--box-shadow-width) * 2);
+  row-gap: calc(var(--box-shadow-width) * 2 + var(--list-cell-gutter));
+  column-gap: calc(var(--box-shadow-width) * 2 + var(--list-cell-gutter));
+}
+
+.responsive-list-columns > li {
+  min-width: 0;
+}
+
+/* Grid gap clears shadow overlap; slot margin would stack on top */
+.responsive-list-columns > li > .inventory-slot {
+  margin: 0;
 }
 
 @media (min-width: 640px) {

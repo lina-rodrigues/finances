@@ -2,6 +2,13 @@ import mongoose, { Schema, type Document, type Types } from "mongoose";
 
 export type LineItemType = "income" | "expense";
 
+export interface ILineItemEntry {
+  _id: Types.ObjectId;
+  amount: number;
+  note: string | null;
+  createdAt: Date;
+}
+
 export interface ILineItem extends Document {
   monthId: Types.ObjectId;
   categoryId: Types.ObjectId | null;
@@ -9,10 +16,20 @@ export interface ILineItem extends Document {
   label: string;
   plannedAmount: number;
   realizedAmount: number | null;
+  entries: ILineItemEntry[];
   seriesId: Types.ObjectId | null;
   seriesOccurrenceIndex: number | null;
   seriesException: boolean;
 }
+
+const lineItemEntrySchema = new Schema<ILineItemEntry>(
+  {
+    amount: { type: Number, required: true },
+    note: { type: String, default: null },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true },
+);
 
 const lineItemSchema = new Schema<ILineItem>(
   {
@@ -22,6 +39,7 @@ const lineItemSchema = new Schema<ILineItem>(
     label: { type: String, required: true },
     plannedAmount: { type: Number, required: true },
     realizedAmount: { type: Number, default: null },
+    entries: { type: [lineItemEntrySchema], default: [] },
     seriesId: { type: Schema.Types.ObjectId, ref: "RecurringSeries", default: null },
     seriesOccurrenceIndex: { type: Number, default: null },
     seriesException: { type: Boolean, default: false },
@@ -40,4 +58,17 @@ export function effectiveAmount(item: {
   realizedAmount: number | null;
 }): number {
   return item.realizedAmount ?? item.plannedAmount;
+}
+
+export function sumEntryAmounts(entries: Pick<ILineItemEntry, "amount">[]): number {
+  return entries.reduce((sum, entry) => sum + entry.amount, 0);
+}
+
+export function syncRealizedFromEntries(item: Pick<ILineItem, "entries" | "realizedAmount">): void {
+  if (item.entries.length === 0) {
+    item.realizedAmount = null;
+    return;
+  }
+
+  item.realizedAmount = sumEntryAmounts(item.entries);
 }
