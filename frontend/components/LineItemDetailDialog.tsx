@@ -16,6 +16,7 @@ import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { collectAllLineItems } from "@/lib/monthViewMath";
 import { useMonthView } from "@/lib/MonthViewProvider";
+import { formatLineItemEntryDisplay } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
 interface LineItemDetailDialogProps {
@@ -142,8 +143,7 @@ export function LineItemDetailDialog({
                     className="rounded-sm bg-muted px-2 py-2"
                   >
                     <p className={`text-amount text-sm ${amountClass}`}>
-                      {amountPrefix}
-                      {formatMoney(entry.amount)}
+                      {formatLineItemEntryDisplay(liveItem.type, entry.amount, formatMoney)}
                     </p>
                     {entry.note && (
                       <p className="text-body text-muted-finance break-words text-xs">{entry.note}</p>

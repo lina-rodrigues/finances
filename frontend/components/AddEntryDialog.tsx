@@ -32,6 +32,7 @@ import {
   useMonthView,
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
+import { formatLineItemEntryDisplay } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -69,7 +70,6 @@ export function AddEntryDialog({
   const localeTag = getLocaleTag(locale);
   const recentEntries = item ? [...(item.entries ?? [])].slice(-3).reverse() : [];
   const amountClass = item?.type === "income" ? "text-income" : "text-expense";
-  const amountPrefix = item?.type === "income" ? "+" : "-";
 
   useEffect(() => {
     if (!open) {
@@ -90,7 +90,7 @@ export function AddEntryDialog({
     }
 
     const parsedAmount = Number.parseFloat(amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    if (!Number.isFinite(parsedAmount) || parsedAmount === 0) {
       return;
     }
 
@@ -159,7 +159,6 @@ export function AddEntryDialog({
                 id={amountFieldId}
                 type="number"
                 step="0.01"
-                min="0.01"
                 placeholder={t("entries.addAmount")}
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
@@ -205,8 +204,8 @@ export function AddEntryDialog({
                   >
                     <div className="min-w-0 flex-1">
                       <p className={`text-amount text-sm ${amountClass}`}>
-                        {amountPrefix}
-                        {formatMoney(entry.amount)}
+                        {item &&
+                          formatLineItemEntryDisplay(item.type, entry.amount, formatMoney)}
                       </p>
                       {entry.note && (
                         <p className="text-body text-muted-finance truncate text-xs">{entry.note}</p>

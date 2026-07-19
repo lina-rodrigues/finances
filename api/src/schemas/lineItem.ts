@@ -25,7 +25,9 @@ export const deleteLineItemSchema = z.object({
 });
 
 export const addLineItemEntrySchema = z.object({
-  amount: z.number().positive(),
+  amount: z.number().finite().refine((value) => value !== 0, {
+    message: "Amount must not be zero",
+  }),
   note: z.string().trim().min(1).optional(),
 });
 
