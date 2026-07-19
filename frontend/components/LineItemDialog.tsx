@@ -526,7 +526,7 @@ export function LineItemDialog({
                 disabled={loading}
               />
 
-              <DialogFooter className="gap-2 pt-1 sm:justify-end">
+              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
                 <Button
                   type="button"
                   variant="secondary"
@@ -605,13 +605,13 @@ export function LineItemDialog({
                 </div>
               </div>
 
-              <DialogFooter className="flex-wrap gap-2 pt-1 sm:justify-end">
-                {item && !item.seriesId && (
+              {item && !item.seriesId && (
+                <div className="border-t border-border pt-3">
                   <Button
                     type="button"
-                    variant="link"
+                    variant="secondary"
                     size="sm"
-                    className="pressable focus-ring mr-auto gap-1"
+                    className="pressable focus-ring w-full gap-1 sm:w-auto"
                     onClick={() => {
                       setRepeatMode("never");
                       setStartYearMonth(yearMonth);
@@ -624,7 +624,10 @@ export function LineItemDialog({
                     <Icon name="repeat" size="xs" />
                     {t("repeat.makeRecurring")}
                   </Button>
-                )}
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
                 <Button
                   type="button"
                   variant="secondary"
@@ -667,12 +670,11 @@ export function LineItemDialog({
                 lockStartMonth
               />
 
-              <DialogFooter className="gap-2 pt-1 sm:justify-end">
-                {loading && (
-                  <p className="text-body text-muted-finance mr-auto text-sm">
-                    {t("repeat.updatingSeries")}
-                  </p>
-                )}
+              {loading && (
+                <p className="text-body text-muted-finance text-sm">{t("repeat.updatingSeries")}</p>
+              )}
+
+              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
                 <Button
                   type="button"
                   variant="secondary"

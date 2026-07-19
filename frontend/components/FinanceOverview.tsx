@@ -8,7 +8,7 @@ import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import { getCurrentYearMonth } from "@/lib/api";
+import { getCurrentYearMonth, type LineItem } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
@@ -18,9 +18,23 @@ export function FinanceOverview() {
   const formatMoney = useFormatCurrency();
   const { month, categories, uncategorized, flatCategories } = useMonthView();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
+  const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
   const leveledUp =
     month.expectedBalance > month.lastMonthRealizedBalance &&
     month.yearMonth <= getCurrentYearMonth();
+
+  function openAddItem() {
+    setDialogMode("create");
+    setSelectedItem(null);
+    setDialogOpen(true);
+  }
+
+  function openEditItem(item: LineItem) {
+    setDialogMode("edit");
+    setSelectedItem(item);
+    setDialogOpen(true);
+  }
 
   return (
     <>
@@ -62,7 +76,11 @@ export function FinanceOverview() {
 
         <section className="py-5">
           <h2 className="text-display mb-3 text-sm">{t("finance.upcomingPayments")}</h2>
-          <UpcomingPaymentsList categories={categories} uncategorized={uncategorized} />
+          <UpcomingPaymentsList
+            categories={categories}
+            uncategorized={uncategorized}
+            onEditItem={openEditItem}
+          />
         </section>
       </div>
 
@@ -73,7 +91,7 @@ export function FinanceOverview() {
         className="add-item-fab pressable focus-ring box-shadow-margin sm:hidden"
         data-testid="add-item-trigger-fab"
         aria-label={t("categories.addItem")}
-        onClick={() => setDialogOpen(true)}
+        onClick={openAddItem}
       >
         <Icon name="add" size="md" />
       </Button>
@@ -81,9 +99,10 @@ export function FinanceOverview() {
       <LineItemDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        mode="create"
+        mode={dialogMode}
         categories={flatCategories}
         yearMonth={month.yearMonth}
+        item={selectedItem ?? undefined}
       />
     </>
   );
