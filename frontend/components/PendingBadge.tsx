@@ -15,7 +15,7 @@ export function PendingBadge() {
     <Badge
       font="normal"
       variant="outline"
-      className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+      className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-planned"
     >
       <span className="flex items-center gap-1">
         <Icon name="repeat" size="xs" />

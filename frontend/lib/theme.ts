@@ -1,6 +1,15 @@
 export type ThemePreference = "light" | "dark" | null;
 
+export type StoredThemePreference = "system" | "light" | "dark";
+
 const STORAGE_KEY = "finance-theme";
+
+export function preferenceToStored(preference: ThemePreference): StoredThemePreference {
+  if (preference === "light" || preference === "dark") {
+    return preference;
+  }
+  return "system";
+}
 
 export function resolveEffectiveTheme(preference: ThemePreference): "light" | "dark" {
   if (preference === "light" || preference === "dark") {
@@ -12,11 +21,16 @@ export function resolveEffectiveTheme(preference: ThemePreference): "light" | "d
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+function applyEffectiveTheme(isDark: boolean): void {
+  document.documentElement.classList.toggle("dark", isDark);
+}
+
 export function applyThemePreference(preference: ThemePreference): "light" | "dark" {
+  const stored = preferenceToStored(preference);
   const effective = resolveEffectiveTheme(preference);
   if (typeof document !== "undefined") {
-    document.documentElement.classList.toggle("dark", effective === "dark");
-    localStorage.setItem(STORAGE_KEY, effective);
+    applyEffectiveTheme(effective === "dark");
+    localStorage.setItem(STORAGE_KEY, stored);
   }
   return effective;
 }
@@ -27,11 +41,13 @@ export function applyStoredThemeFlash(): void {
   }
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === "dark") {
-    document.documentElement.classList.add("dark");
+    applyEffectiveTheme(true);
   } else if (stored === "light") {
-    document.documentElement.classList.remove("dark");
+    applyEffectiveTheme(false);
   } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    document.documentElement.classList.add("dark");
+    applyEffectiveTheme(true);
+  } else {
+    applyEffectiveTheme(false);
   }
 }
 

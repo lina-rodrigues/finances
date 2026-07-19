@@ -21,15 +21,15 @@
   color: var(--primary-foreground);
 
   &::after {
-    border-right: 4px solid color-mix(in hsl, var(--primary) 70%, rgb(0, 0, 0));
-    border-bottom: 4px solid color-mix(in hsl, var(--primary) 70%, rgb(0, 0, 0));
+    border-right: 4px solid color-mix(in srgb, var(--primary) 70%, var(--foreground));
+    border-bottom: 4px solid color-mix(in srgb, var(--primary) 70%, var(--foreground));
   }
   &:hover {
-    background-color: color-mix(in hsl, var(--primary) 90%, rgb(0, 0, 0));
+    background-color: color-mix(in srgb, var(--primary) 90%, var(--foreground));
   }
 
   &:active {
-    background-color: color-mix(in hsl, var(--primary) 70%, rgb(0, 0, 0));
+    background-color: color-mix(in srgb, var(--primary) 70%, var(--foreground));
   }
 }
 
@@ -39,24 +39,24 @@
 
   &::after {
     border-right: 4px solid
-      color-mix(in hsl, var(--color-secondary) 70%, rgb(0, 0, 0));
+      color-mix(in srgb, var(--color-secondary) 70%, var(--foreground));
     border-bottom: 4px solid
-      color-mix(in hsl, var(--color-secondary) 70%, rgb(0, 0, 0));
+      color-mix(in srgb, var(--color-secondary) 70%, var(--foreground));
   }
 
   &:hover {
     background-color: color-mix(
-      in hsl,
+      in srgb,
       var(--color-secondary) 90%,
-      rgb(0, 0, 0)
+      var(--foreground)
     );
   }
 
   &:active {
     background-color: color-mix(
-      in hsl,
+      in srgb,
       var(--color-secondary) 70%,
-      rgb(0, 0, 0)
+      var(--foreground)
     );
   }
 }
@@ -66,16 +66,16 @@
   color: var(--success-foreground);
 
   &::after {
-    border-right: 4px solid color-mix(in hsl, var(--success) 70%, rgb(0, 0, 0));
-    border-bottom: 4px solid color-mix(in hsl, var(--success) 70%, rgb(0, 0, 0));
+    border-right: 4px solid color-mix(in srgb, var(--success) 70%, var(--foreground));
+    border-bottom: 4px solid color-mix(in srgb, var(--success) 70%, var(--foreground));
   }
 
   &:hover {
-    background-color: color-mix(in hsl, var(--success) 90%, rgb(0, 0, 0));
+    background-color: color-mix(in srgb, var(--success) 90%, var(--foreground));
   }
 
   &:active {
-    background-color: color-mix(in hsl, var(--success) 70%, rgb(0, 0, 0));
+    background-color: color-mix(in srgb, var(--success) 70%, var(--foreground));
   }
 }
 
@@ -85,24 +85,24 @@
 
   &::after {
     border-right: 4px solid
-      color-mix(in hsl, var(--destructive) 70%, rgb(77, 77, 77));
+      color-mix(in srgb, var(--destructive) 70%, var(--foreground));
     border-bottom: 4px solid
-      color-mix(in hsl, var(--destructive) 70%, rgb(77, 77, 77));
+      color-mix(in srgb, var(--destructive) 70%, var(--foreground));
   }
 
   &:hover {
     background-color: color-mix(
-      in hsl,
+      in srgb,
       var(--destructive) 90%,
-      rgb(77, 77, 77)
+      var(--foreground)
     );
   }
 
   &:active {
     background-color: color-mix(
-      in hsl,
+      in srgb,
       var(--destructive) 70%,
-      rgb(77, 77, 77)
+      var(--foreground)
     );
   }
 }
@@ -113,17 +113,17 @@
 
   &::after {
     border-right: 4px solid
-      color-mix(in hsl, var(--warning) 70%, rgb(32, 32, 32));
+      color-mix(in srgb, var(--warning) 70%, var(--foreground));
     border-bottom: 4px solid
-      color-mix(in hsl, var(--warning) 70%, rgb(32, 32, 32));
+      color-mix(in srgb, var(--warning) 70%, var(--foreground));
   }
 
   &:hover {
-    background-color: color-mix(in hsl, var(--warning) 90%, rgb(32, 32, 32));
+    background-color: color-mix(in srgb, var(--warning) 90%, var(--foreground));
   }
 
   &:active {
-    background-color: color-mix(in hsl, var(--warning) 70%, rgb(32, 32, 32));
+    background-color: color-mix(in srgb, var(--warning) 70%, var(--foreground));
   }
 }
 
@@ -135,14 +135,14 @@
 
   &:hover {
     background-color: transparent;
-    color: color-mix(in hsl, var(--link) 70%, rgb(0, 0, 0));
+    color: color-mix(in srgb, var(--link) 70%, var(--foreground));
   }
 
   &:active {
-    color: color-mix(in hsl, var(--link) 90%, rgb(0, 0, 0));
+    color: color-mix(in srgb, var(--link) 90%, var(--foreground));
   }
 
   &:visited {
-    color: color-mix(in hsl, var(--link) 70%, rgb(0, 0, 0));
+    color: color-mix(in srgb, var(--link) 70%, var(--foreground));
   }
 }

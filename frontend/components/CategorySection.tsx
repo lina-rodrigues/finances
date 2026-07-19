@@ -45,7 +45,7 @@ function TypeBadge({ item }: { item: LineItem }) {
   return (
     <Badge
       font="normal"
-      className={`h-4 px-1.5 text-[0.625rem] ${isIncome ? "bg-income-subtle text-foreground" : "bg-expense-subtle text-foreground"}`}
+      className={`h-4 px-1.5 text-[0.625rem] ${isIncome ? "bg-income-subtle text-income" : "bg-expense-subtle text-expense"}`}
     >
       <span className="flex items-center gap-1">
         <Icon name={isIncome ? "income" : "expense"} size="xs" />
@@ -163,7 +163,7 @@ function LineItemRow({ item, onEditItem }: LineItemRowProps) {
               <Badge
                 font="normal"
                 variant="outline"
-                className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+                className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-planned"
               >
                 <span className="flex items-center gap-1">
                   <Icon name="planned" size="xs" />

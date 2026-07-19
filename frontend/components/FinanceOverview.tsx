@@ -28,7 +28,7 @@ export function FinanceOverview() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 p-4 text-center">
             {leveledUp && (
-              <Badge className="bg-income-subtle h-auto max-w-full whitespace-normal text-center text-foreground">
+              <Badge className="bg-income-subtle text-income h-auto max-w-full whitespace-normal text-center">
                 <span className="flex flex-wrap items-center justify-center gap-1">
                   <Icon name="arrowUp" size="xs" colorClass="text-income" />
                   {t("month.levelUp")}

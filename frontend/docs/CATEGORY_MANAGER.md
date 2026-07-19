@@ -1,6 +1,6 @@
 # Category manager — design reference
 
-Reference for the category list editor (`CategoryManager`, `CategoryManagerEditor`, `/categories/manage`).
+Reference for the category list editor (`CategoryManagerEditor`, `/categories/manage`).
 
 ## Problem (before redesign)
 
@@ -34,7 +34,7 @@ SettingsDialog
 
 - Uses full phone-shell width (no dialog cap).
 - Back link returns to `/categories` preserving `?month=`.
-- Same editor as modal; more horizontal room for name inputs.
+- Horizontal room for name inputs and row actions across mobile and desktop.
 
 ### Category row
 
@@ -45,7 +45,7 @@ SettingsDialog
 - **Mobile (`< sm`)**: up/down arrow buttons remain as an accessibility fallback (`sm:hidden`).
 - **Desktop**: drag handle (`SortVertical` icon) is primary reorder affordance.
 - **Delete**: icon-only destructive button at row end.
-- **Status**: inline badge — “saving” / “saved” (auto-save feedback); no per-row Save button.
+- **Status**: inline badge — “saving” / “saved” / “error” (auto-save feedback); no per-row Save button. Badges use semantic text classes on subtle backgrounds (`text-planned`, `text-income`, `text-expense`).
 
 ### Add category (top of list)
 
@@ -58,8 +58,8 @@ Enter key submits when name is non-empty.
 ## Icon picker (`CategoryIconPicker`)
 
 - Trigger: button showing current `<Icon />` + chevron.
-- Popover: 4-column grid of all `categoryIcons` (16 icons, synced with API `categoryIcons.ts`).
-- Selected cell: `ring-2 ring-ring`.
+- Popover: 4-column grid of all `categoryIcons` (24 icons, synced with API `categoryIcons.ts`).
+- Selected cell: `.category-icon-picker-cell-selected` (border + tinted background).
 - Labels exposed via `aria-label` + `formatIconLabel()` for screen readers.
 - Closes on selection or outside click.
 
@@ -76,7 +76,7 @@ Debounced saves use `runOptimistic` with `successMessage: undefined` to avoid to
 
 Per-row `saveStatus`: `idle` → `saving` → `saved` (2s) → `idle`, or `error` on failure.
 
-Closing the modal with **dirty drafts or pending debounce timers** opens `ConfirmDialog` (`categories.unsavedChanges`).
+Navigating away from the manage page with **dirty drafts or pending debounce timers** opens `ConfirmDialog` (`categories.unsavedChanges`).
 
 ## Reordering
 
@@ -91,9 +91,10 @@ During reorder, row inputs disable (`reordering` flag).
 
 | Class | Purpose |
 |-------|---------|
-| `.dialog-content-frame-wide` | Wider modal for list editors |
-| `.category-manager-scroll` | Flex child that scrolls inside modal |
 | `.category-icon-picker-grid` | 4-column icon grid in popover |
+| `.category-icon-picker-cell` | Icon picker cell |
+| `.category-icon-picker-cell-selected` | Selected picker cell |
+| `.category-manager-row-dragging` | Row opacity while dragging |
 
 ## i18n keys (`categories.*`)
 
@@ -102,8 +103,8 @@ During reorder, row inputs disable (`reordering` flag).
 | `manageTitle`, `manageHint` | Header copy |
 | `reorderHint` | Drag / arrow hint below title |
 | `pickIcon`, `dragToReorder` | A11y labels |
-| `savedBadge` | Row auto-save confirmation |
-| `unsavedChanges`, `unsavedChangesDescription` | Close guard |
+| `savedBadge`, `pendingBadge` | Row auto-save confirmation |
+| `unsavedChanges`, `unsavedChangesDescription` | Navigate-away guard |
 | `backToCategories` | Page back link |
 
 ## Files
@@ -115,7 +116,7 @@ During reorder, row inputs disable (`reordering` flag).
 | `components/CategoryManagePage.tsx` | Full-page chrome |
 | `components/SettingsDialog.tsx` | Entry link to manage page |
 | `app/(app)/categories/manage/page.tsx` | Server route + month seed |
-| `design-system/tokens.css` | Wide dialog + picker grid utilities |
+| `design-system/tokens.css` | Icon picker grid utilities |
 | `lib/icons.ts` | `dragHandle` icon (`SortVertical`) |
 
 ## Verification
@@ -123,7 +124,7 @@ During reorder, row inputs disable (`reordering` flag).
 After UI changes:
 
 1. `pnpm contrast-check` — 0 failures.
-2. `pnpm responsive-check` — inspect `.responsive-audit/` at 375px and desktop widths; confirm rows don’t clip names, icon picker fits, modal/page both usable in light and dark themes.
+2. `pnpm responsive-check` — inspect `.responsive-audit/` at 375px and desktop widths; confirm rows don’t clip names, icon picker fits, page usable in light and dark themes.
 
 ## Future ideas (out of scope)
 

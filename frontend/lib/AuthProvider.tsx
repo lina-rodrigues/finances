@@ -83,7 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return subscribeSystemTheme((isDark) => {
       document.documentElement.classList.toggle("dark", isDark);
-      localStorage.setItem("finance-theme", isDark ? "dark" : "light");
     });
   }, [preferences.theme]);
 

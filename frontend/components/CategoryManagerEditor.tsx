@@ -481,7 +481,7 @@ export const CategoryManagerEditor = forwardRef<
                       <Badge
                         font="normal"
                         variant="outline"
-                        className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+                        className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-planned"
                       >
                         <span className="flex items-center gap-1">
                           <Icon name="repeat" size="xs" />
@@ -493,7 +493,7 @@ export const CategoryManagerEditor = forwardRef<
                       <Badge
                         font="normal"
                         variant="outline"
-                        className="bg-income-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+                        className="bg-income-subtle h-4 px-1.5 text-[0.625rem] text-income"
                       >
                         <span className="flex items-center gap-1">
                           <Icon name="save" size="xs" />
@@ -505,7 +505,7 @@ export const CategoryManagerEditor = forwardRef<
                       <Badge
                         font="normal"
                         variant="outline"
-                        className="bg-expense-subtle h-4 px-1.5 text-[0.625rem] text-foreground"
+                        className="bg-expense-subtle h-4 px-1.5 text-[0.625rem] text-expense"
                       >
                         <span className="flex items-center gap-1">
                           <Icon name="alert" size="xs" colorClass="text-destructive" />

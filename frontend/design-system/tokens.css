@@ -6,7 +6,7 @@
 
   /* Readable text tints — pastels above stay for fills and borders */
   --finance-income-text: #047857;
-  --finance-expense-text: #be123c;
+  --finance-expense-text: #9f1239;
   --finance-planned-text: #6d28d9;
   --finance-balance-text: #7e22ce;
   --finance-subtle-mix: 55%;
@@ -312,25 +312,6 @@
 .dialog-content-frame {
   width: min(24rem, calc(100% - 2rem));
   max-width: min(24rem, calc(100% - 2rem));
-}
-
-/* List editors (category manager modal) — wider on tablet/desktop */
-.dialog-content-frame-wide {
-  width: min(40rem, calc(100% - 2rem));
-  max-width: min(40rem, calc(100% - 2rem));
-}
-
-@media (min-width: 1024px) {
-  .dialog-content-frame-wide {
-    width: min(48rem, calc(100% - 2rem));
-    max-width: min(48rem, calc(100% - 2rem));
-  }
-}
-
-.category-manager-scroll {
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 
 .category-icon-picker-grid {

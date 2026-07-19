@@ -149,6 +149,9 @@ function runTheme(t) {
     checkPair("foreground on income-subtle badge", t.foreground, t.incomeSubtle),
     checkPair("foreground on expense-subtle badge", t.foreground, t.expenseSubtle),
     checkPair("foreground on planned-subtle badge", t.foreground, t.plannedSubtle),
+    checkPair("text-income on income-subtle badge", t.incomeText, t.incomeSubtle),
+    checkPair("text-expense on expense-subtle badge", t.expenseText, t.expenseSubtle),
+    checkPair("text-planned on planned-subtle badge", t.plannedText, t.plannedSubtle),
     checkPair("destructive alert text", t.destructiveFg, t.destructive),
     checkPair("accent filled text", t.accentFg, t.accent),
   ];
