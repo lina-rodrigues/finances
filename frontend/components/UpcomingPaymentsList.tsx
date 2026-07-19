@@ -50,7 +50,7 @@ export function UpcomingPaymentsList({ categories, uncategorized }: UpcomingPaym
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="responsive-list-columns">
       {upcoming.map(({ item, icon }) => (
         <li
           key={item.id}

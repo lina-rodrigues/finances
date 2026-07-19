@@ -38,7 +38,7 @@ import { ShoppingCart } from "pixelarticons/react/ShoppingCart";
 import { Smartphone } from "pixelarticons/react/Smartphone";
 import { SquareAlert } from "pixelarticons/react/SquareAlert";
 import { Trash } from "pixelarticons/react/Trash";
-import { ToolCase } from "pixelarticons/react/ToolCase";
+import { Settings2 } from "pixelarticons/react/Settings2";
 import { University } from "pixelarticons/react/University";
 import { Video } from "pixelarticons/react/Video";
 import { Wallet } from "pixelarticons/react/Wallet";
@@ -142,7 +142,7 @@ export const iconMap: Record<IconName, PixelIcon> = {
   chevronDown: ChevronDown,
   alert: SquareAlert,
   info: InfoBox,
-  settings: ToolCase,
+  settings: Settings2,
   navFinance: ListBox,
   navCategories: Grid3x3,
   navReports: Chart,

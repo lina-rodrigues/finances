@@ -85,14 +85,30 @@
 }
 
 .add-item-fab {
-  position: fixed;
   z-index: 30;
-  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
-  right: max(1rem, calc((100vw - min(100vw, 28rem)) / 2 + 1rem));
   width: 3.5rem;
   height: 3.5rem;
   padding: 0;
   border-radius: 0;
+}
+
+/* Beat .pixel__button { position: relative } from button.css */
+.add-item-fab.pixel__button {
+  position: fixed;
+  bottom: calc(
+    var(--app-bottom-nav-height) + var(--fab-gap-above-nav) + var(--box-shadow-width) +
+      env(safe-area-inset-bottom, 0px)
+  );
+  right: max(1rem, calc((100vw - min(calc(100vw - 3rem), 75rem)) / 2 + 1rem));
+}
+
+@media (min-width: 768px) {
+  .add-item-fab.pixel__button {
+    bottom: calc(
+      1.5rem + var(--app-bottom-nav-height) + var(--fab-gap-above-nav) +
+        var(--box-shadow-width) + env(safe-area-inset-bottom, 0px)
+    );
+  }
 }
 
 @media (min-width: 640px) {
@@ -102,12 +118,6 @@
 
   .add-item-fab.add-item-fab--persistent {
     display: inline-flex;
-  }
-}
-
-@media (min-width: 1024px) {
-  .add-item-fab {
-    right: max(1rem, calc((100vw - min(100vw, 56rem)) / 2 + 1rem));
   }
 }
 

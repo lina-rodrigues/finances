@@ -1,4 +1,10 @@
 :root {
+  --box-shadow-width: 4px;
+  --pixel-box-shadow: calc(-1 * (var(--box-shadow-width))) 0 0 0 var(--foreground),
+    var(--box-shadow-width) 0 0 0 var(--foreground),
+    0 var(--box-shadow-width) 0 0 var(--foreground),
+    0 calc(-1 * (var(--box-shadow-width))) 0 0 var(--foreground);
+
   --finance-income: var(--pastel-mint, #bbf7d0);
   --finance-expense: var(--pastel-rose, #fda4af);
   --finance-planned: var(--pastel-lavender, #e9d5ff);
@@ -20,9 +26,16 @@
   --frame-inner: var(--card);
   --dot-color: color-mix(in srgb, var(--primary) 25%, transparent);
   --scrollbar-handle: color-mix(in srgb, var(--foreground) 28%, transparent);
+  --app-bottom-nav-height: 3.5rem;
+  --fab-gap-above-nav: 1rem;
 }
 
 .dark {
+  --pixel-box-shadow: calc(-1 * (var(--box-shadow-width))) 0 0 0 var(--ring),
+    var(--box-shadow-width) 0 0 0 var(--ring),
+    0 var(--box-shadow-width) 0 0 var(--ring),
+    0 calc(-1 * (var(--box-shadow-width))) 0 0 var(--ring);
+  --frame-border: var(--ring);
   --finance-income-text: var(--pastel-mint, #bbf7d0);
   --finance-expense-text: var(--pastel-rose, #fda4af);
   --finance-planned-text: var(--pastel-lavender, #e9d5ff);
@@ -106,7 +119,7 @@
 }
 
 .bg-dots {
-  background-color: var(--background);
+  background-color: var(--muted);
   background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
   background-size: 20px 20px;
 }
@@ -152,10 +165,11 @@
   background: transparent;
 }
 
-/* Phone-app shell — full bleed on mobile, framed column on desktop */
+/* App shell — full width on mobile, capped column on larger screens */
 .phone-shell {
+  --app-shell-max-width: 75rem;
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--app-shell-max-width);
   margin-inline: auto;
   background: var(--background);
   height: 100dvh;
@@ -167,19 +181,55 @@
 
 @media (min-width: 768px) {
   .phone-shell {
+    width: calc(100% - 3rem);
+    max-width: var(--app-shell-max-width);
     height: calc(100dvh - 3rem);
     max-height: calc(100dvh - 3rem);
-    margin-block: 1.5rem;
+    margin: 1.5rem auto;
+    border: none;
     box-shadow: var(--pixel-box-shadow);
-    outline: 2px solid var(--foreground);
+    outline: 2px solid var(--frame-border);
     outline-offset: 0;
+    box-sizing: border-box;
   }
 }
 
-/* On large screens, widen the frame so categories can flow in two columns */
+/* Responsive multi-column lists — upcoming payments, etc. */
+.responsive-list-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-list-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 1024px) {
-  .phone-shell {
-    max-width: 56rem;
+  .responsive-list-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Responsive card grid — category sections */
+.responsive-card-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (min-width: 640px) {
+  .responsive-card-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-card-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

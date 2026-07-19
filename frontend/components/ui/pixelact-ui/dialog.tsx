@@ -18,20 +18,19 @@ function usePortalContainer(
 ): HTMLDivElement | undefined {
   const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
 
-  // No dependency array: on initial mount the shell ref is not attached yet
-  // (ancestor host refs attach after child layout effects), so re-check every
-  // render. The setState bails out once the value stabilizes.
   React.useLayoutEffect(() => {
     setContainer(portalRef?.current ?? null);
   });
 
-  return container ?? undefined;
+  // Parent shell ref is set before user interaction; prefer live ref over stale state.
+  return portalRef?.current ?? container ?? undefined;
 }
 
 const Dialog = ({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) => {
   return <DialogPrimitive.Root {...props} />;
 };
 
+const DialogClose = DialogPrimitive.Close;
 const DialogTrigger = DialogPrimitive.Trigger;
 
 const DialogPortal = DialogPrimitive.Portal;
@@ -61,22 +60,18 @@ const DialogContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   const overlayPortalRef = React.useRef<HTMLDivElement>(null);
   const appPortalRef = useAppDialogPortal();
-  const inAppShell = appPortalRef != null;
   const portalContainer = usePortalContainer(appPortalRef);
-
-  if (inAppShell && !portalContainer) {
-    return null;
-  }
+  const portaledInShell = portalContainer != null;
 
   return (
     <DialogPortal container={portalContainer}>
-      <DialogOverlay inAppShell={inAppShell} />
+      <DialogOverlay inAppShell={portaledInShell} />
       <DialogOverlayPortalProvider portalRef={overlayPortalRef}>
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
             "dialog-content-frame pixel-font rounded-none shadow-(--pixel-box-shadow) bg-background grid max-h-[calc(100%-2rem)] gap-4 overflow-visible border p-6 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-            inAppShell
+            portaledInShell
               ? "absolute top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
               : "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
             className,
@@ -146,6 +141,7 @@ DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
 export {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogTrigger,
   DialogPortal,

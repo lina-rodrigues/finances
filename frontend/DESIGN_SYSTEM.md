@@ -191,7 +191,9 @@ Phone-app column layout — full bleed on mobile, framed on desktop.
 
 | Class | Purpose |
 |-------|---------|
-| `.phone-shell` | App column: full bleed mobile; framed desktop (max 28rem, 56rem at `lg`) |
+| `.phone-shell` | App column: full width mobile; max 75rem (1200px); from `md`, 1.5rem inset with `--pixel-box-shadow` + 2px outline |
+| `.responsive-list-columns` | List grid: 1 → 2 (`sm`) → 3 (`lg`) columns |
+| `.responsive-card-columns` | Card grid: 1 → 2 (`sm`) → 3 (`lg`) columns |
 | `.app-nav-bar` | Fixed top bar above scrollable main |
 | `.app-nav-handle` | Decorative handle bar above the toolbar row |
 | `.app-header` | Header row; includes safe-area padding in standalone PWA mode |
@@ -207,7 +209,7 @@ Phone-app column layout — full bleed on mobile, framed on desktop.
 
 ## Pixel shadows
 
-Defined in `components/ui/pixelact-ui/styles/styles.css`:
+Defined in `design-system/tokens.css` (global, including `.phone-shell`) and mirrored in `components/ui/pixelact-ui/styles/styles.css`:
 
 - `--box-shadow-width: 4px`
 - `--pixel-box-shadow` simulates a pixel border via box-shadow

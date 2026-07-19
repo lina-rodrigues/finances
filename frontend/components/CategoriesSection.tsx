@@ -1,14 +1,22 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { LineItemDialog } from "@/components/LineItemDialog";
 import { CategorySection } from "@/components/CategorySection";
 import { Icon } from "@/components/Icon";
-import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import { type Category, type LineItem } from "@/lib/api";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/pixelact-ui/empty";
+import { categoryManagePath, type Category, type LineItem } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
@@ -19,6 +27,7 @@ export function CategoriesSection() {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [selectedItem, setSelectedItem] = useState<LineItem | null>(null);
   const [initialCategoryName, setInitialCategoryName] = useState<string | undefined>();
+  const manageCategoriesHref = categoryManagePath(month.yearMonth);
 
   function openAddItem(categoryName?: string) {
     setDialogMode("create");
@@ -52,15 +61,33 @@ export function CategoriesSection() {
     <>
       {!showCategoryGrid ? (
         <Card>
-          <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-            <Image src="/assets/mascot-piggy.svg" alt="" width={64} height={64} aria-hidden />
-            <Alert className="max-w-sm">
-              <AlertDescription className="text-body">{t("categories.empty")}</AlertDescription>
-            </Alert>
+          <CardContent className="p-0">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Image src="/assets/mascot-piggy.svg" alt="" width={48} height={48} aria-hidden />
+                </EmptyMedia>
+                <EmptyTitle>{t("categories.emptyTitle")}</EmptyTitle>
+                <EmptyDescription>{t("categories.emptyDescription")}</EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="pressable focus-ring gap-1"
+                  asChild
+                >
+                  <Link href={manageCategoriesHref}>
+                    <Icon name="add" size="xs" colorClass="text-primary-foreground" />
+                    {t("categories.addCategory")}
+                  </Link>
+                </Button>
+              </EmptyContent>
+            </Empty>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0">
+        <div className="responsive-card-columns">
           {categories.map((category, index) => (
             <CategorySection
               key={category.id}
@@ -83,17 +110,31 @@ export function CategoriesSection() {
         </div>
       )}
 
-      <Button
-        type="button"
-        variant="default"
-        size="lg"
-        className="add-item-fab add-item-fab--persistent pressable focus-ring box-shadow-margin"
-        data-testid="add-item-trigger-fab-categories"
-        aria-label={t("categories.addItem")}
-        onClick={() => openAddItem()}
-      >
-        <Icon name="add" size="md" />
-      </Button>
+      {showCategoryGrid ? (
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          className="add-item-fab add-item-fab--persistent pressable focus-ring box-shadow-margin"
+          data-testid="add-item-trigger-fab-categories"
+          aria-label={t("categories.addItem")}
+          onClick={() => openAddItem()}
+        >
+          <Icon name="add" size="md" colorClass="text-primary-foreground" />
+        </Button>
+      ) : (
+        <Button
+          variant="default"
+          size="lg"
+          className="add-item-fab add-item-fab--persistent pressable focus-ring box-shadow-margin"
+          data-testid="add-item-trigger-fab-categories"
+          asChild
+        >
+          <Link href={manageCategoriesHref} aria-label={t("categories.addCategory")}>
+            <Icon name="add" size="md" colorClass="text-primary-foreground" />
+          </Link>
+        </Button>
+      )}
 
       <LineItemDialog
         open={dialogOpen}

@@ -49,9 +49,9 @@ export function MonthNavHeader() {
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <Button variant="secondary" size="sm" className="pressable focus-ring" asChild>
+      <Button variant="default" size="sm" className="pressable focus-ring" asChild>
         <Link href={monthPagePath(previousMonth, tab)} aria-label={t("month.previousMonth")}>
-          <Icon name="chevronLeft" size="md" />
+          <Icon name="chevronLeft" size="md" colorClass="text-primary-foreground" />
         </Link>
       </Button>
 
@@ -64,9 +64,9 @@ export function MonthNavHeader() {
         )}
       </div>
 
-      <Button variant="secondary" size="sm" className="pressable focus-ring" asChild>
+      <Button variant="default" size="sm" className="pressable focus-ring" asChild>
         <Link href={monthPagePath(followingMonth, tab)} aria-label={t("month.nextMonth")}>
-          <Icon name="chevronRight" size="md" />
+          <Icon name="chevronRight" size="md" colorClass="text-primary-foreground" />
         </Link>
       </Button>
     </div>

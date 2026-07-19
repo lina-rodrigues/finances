@@ -6,7 +6,7 @@ import "@/components/ui/pixelact-ui/styles/styles.css";
 import "./button.css";
 
 const pixelButtonVariants = cva(
-  "pixel__button pixel-font cursor-pointer rounded-none w-fit items-center justify-center whitespace-nowrap text-sm transition-colors transition-all duration-100",
+  "pixel__button pixel-font inline-flex shrink-0 cursor-pointer rounded-none w-fit items-center justify-center whitespace-nowrap text-sm transition-colors transition-all duration-100 shadow-(--pixel-box-shadow) outline-2 outline-solid outline-[var(--frame-border)] outline-offset-0 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -15,7 +15,7 @@ const pixelButtonVariants = cva(
         warning: "pixel-warning__button box-shadow-margin",
         success: "pixel-success__button box-shadow-margin",
         destructive: "pixel-destructive__button box-shadow-margin",
-        link: "pixel-link__button bg-transparent text-link underline-offset-4 underline",
+        link: "pixel-link__button bg-transparent text-link underline-offset-4 underline shadow-none outline-none",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -27,7 +27,7 @@ const pixelButtonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface PixelButtonProps
@@ -36,18 +36,26 @@ export interface PixelButtonProps
   asChild?: boolean;
 }
 
-const Button = React.forwardRef<
-  React.ComponentRef<typeof ShadcnButton>,
-  PixelButtonProps
->(({ className, variant, size, asChild, ...props }, ref) => {
-  return (
-    <ShadcnButton
-      {...props}
-      asChild={asChild}
-      className={cn(pixelButtonVariants({ variant, size }), className)}
-      ref={ref}
-    />
-  );
-});
+const Button = React.forwardRef<HTMLButtonElement, PixelButtonProps>(
+  ({ className, variant, size, asChild, children, type = "button", ...props }, ref) => {
+    const mergedClassName = cn(pixelButtonVariants({ variant, size }), className);
+
+    if (asChild) {
+      return (
+        <ShadcnButton {...props} type={type} asChild className={mergedClassName}>
+          {children}
+        </ShadcnButton>
+      );
+    }
+
+    return (
+      <button ref={ref} type={type} className={mergedClassName} {...props}>
+        {children}
+      </button>
+    );
+  },
+);
+
+Button.displayName = "Button";
 
 export { Button };

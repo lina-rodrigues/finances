@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/pixelact-ui/dialog";
 import { Input } from "@/components/ui/pixelact-ui/input";
 import { Label } from "@/components/ui/pixelact-ui/label";
@@ -29,11 +30,6 @@ import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import type { AppLanguage } from "@/lib/auth-api";
-
-interface SettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 type ThemeOption = "system" | "light" | "dark";
 
@@ -55,6 +51,11 @@ type SettingsSnapshot = {
   language: AppLanguage;
 };
 
+type SettingsDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { user, updateLocalPreferences, updateLocalName, logout } = useAuth();
   const { month } = useMonthView();
@@ -69,7 +70,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyContainerRef = useRef<HTMLDivElement>(null);
-  const wasOpenRef = useRef(false);
 
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const filteredCurrencies = useMemo(() => {
@@ -82,8 +82,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     );
   }, [currencyOptions, currencyQuery]);
 
-  useEffect(() => {
-    if (open && !wasOpenRef.current && user) {
+  function handleOpenChange(next: boolean) {
+    onOpenChange(next);
+    if (next && user) {
       setName(user.name);
       setThemeOption(themeToOption(user.preferences.theme));
       setCurrency(user.preferences.currency);
@@ -91,8 +92,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       setCurrencyQuery("");
       setCurrencyOpen(false);
     }
-    wasOpenRef.current = open;
-  }, [open, user]);
+  }
 
   useEffect(() => {
     if (!currencyOpen) {
@@ -229,7 +229,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex max-h-[85dvh] flex-col gap-4 overflow-hidden p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-display text-xs normal-case">{t("settings.title")}</DialogTitle>
@@ -342,10 +342,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               className="pressable focus-ring w-full gap-1"
               asChild
             >
-              <Link
-                href={categoryManagePath(month.yearMonth)}
-                onClick={() => onOpenChange(false)}
-              >
+              <Link href={categoryManagePath(month.yearMonth)}>
                 <Icon name="edit" size="xs" />
                 {t("settings.manageCategories")}
               </Link>
@@ -364,15 +361,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           >
             {t("settings.logout")}
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="pressable focus-ring"
-            onClick={() => onOpenChange(false)}
-          >
-            {loading ? <Spinner className="size-4" /> : t("common.cancel")}
-          </Button>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="pressable focus-ring"
+            >
+              {loading ? <Spinner className="size-4" /> : t("common.cancel")}
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
