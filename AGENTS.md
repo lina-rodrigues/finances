@@ -35,6 +35,7 @@ Run from the repo root:
 | `pnpm build` | Build both packages |
 | `pnpm contrast-check` | WCAG AA audit of theme colors (reads CSS only, no server needed) |
 | `pnpm responsive-check` | Playwright screenshots: 2 themes x 3 months x 8 viewports into `.responsive-audit/<theme>/<month>/` (requires dev server on :3000) |
+| `pnpm deploy` | Push `main` to GitHub and wait for Vercel production deploys (requires `VERCEL_TOKEN`; API `CANCELED` is normal for frontend-only changes) |
 
 Cursor commands in `.cursor/commands/` (`/contrast-check`, `/responsive-check`) wrap these scripts with an analyze-propose-approve workflow.
 

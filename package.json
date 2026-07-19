@@ -9,7 +9,8 @@
     "seed:fresh": "pnpm --filter api seed:fresh",
     "build": "pnpm --filter api build && pnpm --filter frontend build",
     "contrast-check": "node scripts/contrast-check.mjs",
-    "responsive-check": "node scripts/responsive-check.mjs"
+    "responsive-check": "node scripts/responsive-check.mjs",
+    "deploy": "node scripts/deploy.mjs"
   },
   "engines": {
     "node": ">=20"
