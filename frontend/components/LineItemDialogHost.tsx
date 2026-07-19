@@ -4,6 +4,7 @@ import { AddEntryDialog } from "@/components/AddEntryDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { LineItemDetailDialog } from "@/components/LineItemDetailDialog";
 import { LineItemDialog } from "@/components/LineItemDialog";
+import { PayEntryDialog } from "@/components/PayEntryDialog";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
 import { useLineItemDialogHost } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
@@ -28,7 +29,6 @@ export function LineItemDialogPanels({ host }: LineItemDialogPanelsProps) {
           }
         }}
         handlers={host.handlers}
-        paying={host.payingItemId === host.detailItem?.id}
       />
 
       <AddEntryDialog
@@ -37,6 +37,16 @@ export function LineItemDialogPanels({ host }: LineItemDialogPanelsProps) {
         onOpenChange={(open) => {
           if (!open) {
             host.setAddItem(null);
+          }
+        }}
+      />
+
+      <PayEntryDialog
+        item={host.payItem}
+        open={host.payItem !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            host.setPayItem(null);
           }
         }}
       />

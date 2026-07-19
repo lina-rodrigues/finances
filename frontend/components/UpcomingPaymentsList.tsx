@@ -37,14 +37,12 @@ interface UpcomingPaymentsListProps {
   categories: Category[];
   uncategorized: LineItem[];
   handlers: LineItemActionHandlers;
-  payingItemId?: string | null;
 }
 
 export function UpcomingPaymentsList({
   categories,
   uncategorized,
   handlers,
-  payingItemId = null,
 }: UpcomingPaymentsListProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
@@ -80,7 +78,6 @@ export function UpcomingPaymentsList({
               <LineItemActions
                 item={item}
                 layout="inline"
-                loading={payingItemId === item.id}
                 onPay={handlers.payItem}
                 onAdd={handlers.openAdd}
                 onEdit={handlers.openEdit}

@@ -66,7 +66,6 @@ export function FinanceOverview() {
             categories={categories}
             uncategorized={uncategorized}
             handlers={host.handlers}
-            payingItemId={host.payingItemId}
           />
         </section>
       </div>

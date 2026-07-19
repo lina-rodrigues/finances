@@ -2,15 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { addLineItemEntry, deleteLineItem, type FlatCategory, type LineItem } from "@/lib/api";
+import { deleteLineItem, type FlatCategory, type LineItem } from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
-import {
-  buildOptimisticAddEntry,
-  createTempEntryId,
-  extractLineItemSeriesMeta,
-  toLineItemFromMutation,
-} from "@/lib/lineItemMappers";
-import { payRemainderAmount } from "@/lib/payLineItem";
+import { isPayDisabled } from "@/lib/payLineItem";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 import { captureMonthViewState, useMonthView, useMonthViewActions } from "@/lib/MonthViewProvider";
@@ -26,7 +20,7 @@ export interface LineItemActionHandlers {
   openDetail: (item: LineItem) => void;
   openAdd: (item: LineItem) => void;
   openEdit: (item: LineItem) => void;
-  payItem: (item: LineItem) => Promise<void>;
+  payItem: (item: LineItem) => void;
   requestDelete: (item: LineItem) => void;
 }
 
@@ -34,15 +28,15 @@ export function useLineItemDialogHost({ flatCategories, yearMonth }: LineItemDia
   const router = useRouter();
   const { t } = useTranslation();
   const monthView = useMonthView();
-  const { setFromServer, removeLineItem, replaceLineItem } = useMonthViewActions();
+  const { setFromServer, removeLineItem } = useMonthViewActions();
   const { run, runOptimistic } = useMutationFeedback();
 
   const [detailItem, setDetailItem] = useState<LineItem | null>(null);
   const [addItem, setAddItem] = useState<LineItem | null>(null);
+  const [payItem, setPayItem] = useState<LineItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<LineItem | null>(null);
   const [initialCategoryName, setInitialCategoryName] = useState<string | undefined>();
-  const [payingItemId, setPayingItemId] = useState<string | null>(null);
   const [deleteItem, setDeleteItem] = useState<LineItem | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
@@ -127,50 +121,18 @@ export function useLineItemDialogHost({ flatCategories, yearMonth }: LineItemDia
     setConfirmingDelete(true);
   }, []);
 
-  const payItem = useCallback(
-    async (item: LineItem) => {
-      const remainder = payRemainderAmount(item);
-      if (remainder === null) {
-        return;
-      }
-
-      const tempEntry = {
-        id: createTempEntryId(),
-        amount: remainder,
-        note: null,
-        createdAt: new Date().toISOString(),
-      };
-
-      setPayingItemId(item.id);
-      try {
-        await runOptimistic({
-          snapshot: () => captureMonthViewState(monthView),
-          apply: () => {
-            replaceLineItem(item.id, buildOptimisticAddEntry(item, tempEntry));
-          },
-          mutate: async () => {
-            const response = await addLineItemEntry(item.id, { amount: remainder });
-            replaceLineItem(
-              item.id,
-              toLineItemFromMutation(response.lineItem, extractLineItemSeriesMeta(item)),
-            );
-          },
-          reconcile: () => backgroundReconcile(router),
-          rollback: (snapshot) => setFromServer(snapshot),
-          successMessage: t("entries.paid"),
-        });
-      } finally {
-        setPayingItemId(null);
-      }
-    },
-    [monthView, replaceLineItem, router, runOptimistic, setFromServer, t],
-  );
+  const openPay = useCallback((item: LineItem) => {
+    if (isPayDisabled(item)) {
+      return;
+    }
+    setPayItem(item);
+  }, []);
 
   const handlers: LineItemActionHandlers = {
     openDetail,
     openAdd,
     openEdit,
-    payItem,
+    payItem: openPay,
     requestDelete,
   };
 
@@ -183,12 +145,13 @@ export function useLineItemDialogHost({ flatCategories, yearMonth }: LineItemDia
     setDetailItem,
     addItem,
     setAddItem,
+    payItem,
+    setPayItem,
     createOpen,
     setCreateOpen,
     editItem,
     setEditItem,
     initialCategoryName,
-    payingItemId,
     deleteItem,
     confirmingDelete,
     setConfirmingDelete,
