@@ -74,7 +74,7 @@ flowchart TB
 
 | Font | Loader | Class / variable |
 |------|--------|------------------|
-| Press Start 2P | `next/font/google` (self-hosted at build) | `.text-display`, `.text-amount-hero`, `.pixel-font` → `--font-display` |
+| Press Start 2P | `next/font/google` (self-hosted at build) | `.text-display`, `.text-amount-hero`, `.text-amount-hero-fluid`, `.pixel-font` → `--font-display` |
 | Nunito | `next/font/google` | `.text-body` → `--font-sans` |
 | JetBrains Mono | `next/font/google` | `.text-amount` → `--font-mono` |
 
@@ -109,11 +109,11 @@ Source-of-truth file map:
 ```
 frontend/app/globals.css                    # shadcn theme vars (:root / .dark), @theme inline
 frontend/design-system/
-├── tokens.css                              # semantic colors + layout utilities
-├── typography.css                          # font role classes
-└── interactions.css                        # motion utilities
+├── tokens.css                              # semantic colors, shell, grids, pixel shadow tokens
+├── typography.css                          # font role classes + fluid hero amounts
+└── interactions.css                        # motion utilities, FAB positioning
 frontend/components/ui/pixelact-ui/         # pixel wrappers (import these)
-frontend/components/ui/pixelact-ui/styles/styles.css  # --pixel-box-shadow
+frontend/components/ui/pixelact-ui/styles/styles.css  # mirrors --pixel-box-shadow for components
 frontend/lib/icons.ts                       # Pixelarticons registry
 frontend/lib/fonts.ts                       # next/font setup
 scripts/contrast-check.mjs                  # WCAG audit
@@ -178,43 +178,156 @@ Badges on subtle backgrounds use the matching **semantic text class** (e.g. plan
 |------|------|-------|
 | Headings | Press Start 2P | `.text-display` |
 | Body | Nunito | `.text-body` |
-| Amounts | JetBrains Mono | `.text-amount` |
+| Row amounts | JetBrains Mono | `.text-amount` |
 | Hero amounts | Press Start 2P | `.text-amount-hero` |
+| Hero amounts (fluid) | Press Start 2P | `.text-amount-hero-fluid` |
 
-- Use `.text-amount` for row money values (tabular-nums)
-- Use `.text-amount-hero` for hero totals only — not dense rows
-- Press Start 2P is very wide; test realistic content (long amounts, labels) at 375px before shipping
+- Use `.text-amount` for row money values (tabular-nums, mono). Pair with `whitespace-nowrap` when the column is narrow.
+- Use `.text-amount-hero` for fixed-size hero totals in wide containers only.
+- Use `.text-amount-hero-fluid` when Press Start 2P amounts sit in **multi-column grids** or other width-constrained slots (balance trio, etc.).
+- Press Start 2P is very wide; never use `break-words` on money — scale down or use fluid sizing instead.
+
+### Fluid hero amounts (container-query clamp)
+
+When three or more hero amounts share a row, fixed `text-base` / `text-lg` will wrap mid-number (e.g. `$6,466.69` breaking after `$6,466.6`).
+
+**Pattern** (see `CoinCounter`):
+
+1. Wrap the amount column in `.coin-counter` (`container-type: inline-size`).
+2. Apply `.text-amount-hero-fluid` to the amount element.
+
+```css
+/* typography.css */
+.coin-counter { container-type: inline-size; }
+
+.text-amount-hero-fluid {
+  white-space: nowrap;
+  font-size: clamp(0.5625rem, calc(100cqw / 9.5), 1.125rem);
+}
+```
+
+- **Min** `0.5625rem` (9px) — smallest readable pixel size in tight columns.
+- **Preferred** `100cqw / 9.5` — scales with the text column width (~9.5 Press Start “cells” for a typical currency string).
+- **Max** `1.125rem` (18px) — cap in single-column / wide layouts.
+- Parent grid cells must use `minmax(0, 1fr)` (see responsive grids) so `cqw` resolves correctly.
+
+**When to add fluid clamp:** any Press Start amount in a grid column, badge with a long label, or other slot where overflow or wrapping would break scanability. Row amounts in line items stay on `.text-amount` + `whitespace-nowrap`.
 
 ## Layout shell
 
-Phone-app column layout — full bleed on mobile, framed on desktop.
+Phone-app column layout — full bleed on mobile, framed pixel column on desktop. The dotted page background (`.bg-dots` on `<body>`) shows **around** the shell on larger viewports; the shell itself is solid `--background`.
 
 | Class | Purpose |
 |-------|---------|
-| `.phone-shell` | App column: full width mobile; max 75rem (1200px); from `md`, 1.5rem inset with `--pixel-box-shadow` + 2px outline |
-| `.responsive-list-columns` | List grid: 1 → 2 (`sm`) → 3 (`lg`) columns |
-| `.responsive-card-columns` | Card grid: 1 → 2 (`sm`) → 3 (`lg`) columns |
-| `.app-nav-bar` | Fixed top bar above scrollable main |
+| `.phone-shell` | App column — see **Phone shell behavior** below |
+| `.responsive-list-columns` | Compact list grid (upcoming payments) |
+| `.responsive-card-columns` | Category / card section grid |
+| `.app-nav-bar` | Fixed top bar above the scrollable main |
 | `.app-nav-handle` | Decorative handle bar above the toolbar row |
 | `.app-header` | Header row; includes safe-area padding in standalone PWA mode |
 | `.app-main` | Scrollable main pane; bottom padding for nav + safe area |
 | `.app-bottom-nav` | Fixed bottom tab bar |
 | `.app-bottom-nav-item` | Tab item; pair with `.app-bottom-nav-item-active` |
 | `.app-bottom-nav-icon` / `.app-bottom-nav-label` | Tab icon and label |
-| `.bg-dots` | Page background dot grid |
+| `.bg-dots` | Page background dot grid (on `body`, not inside the shell) |
 | `.scroll-viewport` | Internal scroll regions with themed scrollbar |
 | `.inventory-slot` | Card/slot chrome with pixel shadow |
 | `.icon-slot` | Square icon container with pixel shadow |
 | `.pill-title` | Header pill badge (Press Start 2P, primary fill) |
 
-## Pixel shadows
+### Phone shell behavior (`.phone-shell`)
 
-Defined in `design-system/tokens.css` (global, including `.phone-shell`) and mirrored in `components/ui/pixelact-ui/styles/styles.css`:
+`PhoneShell` renders a single flex column that holds header, scrollable main, bottom nav, and **dialog portal target** (`ref` on the shell element).
 
-- `--box-shadow-width: 4px`
-- `--pixel-box-shadow` simulates a pixel border via box-shadow
-- Always pair interactive elements with `.box-shadow-margin` (or 4px margin) to prevent shadow overlap
-- Light mode: shadow color = `var(--foreground)`; dark mode: `var(--ring)` — never hardcoded black
+**Mobile (under 768px)**
+
+- Full viewport width and height (`width: 100%`, `height: 100dvh`, `max-height: 100dvh`).
+- Edge-to-edge — **no** outer pixel frame, margin, or outline on the shell.
+- `overflow: hidden` on the shell; only `.app-main` scrolls vertically.
+- `max-width: 75rem` caps width on very wide phones/tablets in portrait but still full-bleed to screen edges.
+
+**Desktop (`md` / ≥ 768px)**
+
+- Shell floats inside the dotted page: `margin: 1.5rem auto`, `width: calc(100% - 3rem)`, `height: calc(100dvh - 3rem)`.
+- **Pixel frame** on the shell (same vocabulary as buttons):
+  - `box-shadow: var(--pixel-box-shadow)` — 4px simulated border on all sides
+  - `outline: 2px solid var(--frame-border)` — outer stroke (`--foreground` light, `--ring` dark)
+  - No CSS `border` property — frame is shadow + outline only
+- `max-width: 75rem` (1200px) — wide enough for three-column category grids on desktop.
+
+```text
+┌─ body (.bg-dots) ─────────────────────────────────────┐
+│  ┌─ .phone-shell (768px+) ────────────────────────┐  │
+│  │ ■ pixel shadow + 2px outline                     │  │
+│  │  [ header ]                                      │  │
+│  │  [ scrollable main ]                             │  │
+│  │  [ bottom nav ]                                  │  │
+│  │  (dialogs portal here)                           │  │
+│  └──────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────┘
+```
+
+**Dialog portaling:** modals render into the shell element (not `document.body`) via `DialogPortals`, so overlays stay inside the framed column on desktop. Overlay/content use `absolute` positioning when portaled in-shell, `fixed` when not.
+
+**FAB alignment:** `.add-item-fab` `right` offset accounts for shell inset and `75rem` max width so the button sits in the content column, not on the dot background.
+
+### Responsive grids
+
+Two shared grid utilities in `tokens.css`. Both use `minmax(0, 1fr)` so column content can shrink (required for fluid amount clamp).
+
+| Class | Gap | Breakpoints | Used for |
+|-------|-----|-------------|----------|
+| `.responsive-list-columns` | `0.5rem` | 1 col → 2 @ `sm` (640px) → 3 @ `lg` (1024px) | Upcoming payments list |
+| `.responsive-card-columns` | `0.75rem` | 1 col → 2 @ `sm` → 3 @ `lg` | Category sections on `/categories` |
+
+Do not hand-roll `lg:grid-cols-2` for these surfaces — use the utilities so breakpoints stay consistent with the 1200px shell.
+
+## Pixel frame & borders
+
+**Canonical tokens** live in `design-system/tokens.css` (also mirrored in `pixelact-ui/styles/styles.css` for component bundling):
+
+| Token | Value | Role |
+|-------|-------|------|
+| `--box-shadow-width` | `4px` | Thickness of simulated pixel edge |
+| `--pixel-box-shadow` | 4-offset box-shadow ring | Inner pixel border on shell, buttons, cards, inputs |
+| `--frame-border` | `--foreground` (light) / `--ring` (dark) | 2px outline color |
+
+**Two-layer frame** (shell @ desktop, every `.pixel__button`, `.inventory-slot`, `.pill-title`):
+
+1. `box-shadow: var(--pixel-box-shadow)`
+2. `outline: 2px solid var(--frame-border); outline-offset: 0`
+
+**Buttons** add a third decorative layer: `.pixel__button::after` draws a 4px bottom-right chamfer (`color-mix` of variant fill + foreground). Default buttons use `--primary` fill; secondary uses `--color-secondary`.
+
+**Spacing:** always pair interactive framed elements with `.box-shadow-margin` (or 4px margin) so adjacent shadows do not overlap.
+
+**Light vs dark:** shadow ring follows `--foreground` in light mode and `--ring` in dark mode — never hardcoded black.
+
+## Button colors & variants
+
+Pixelact `Button` maps variants to pixel CSS in `button.css`. Import from `@/components/ui/pixelact-ui/button`.
+
+| Variant | Fill | Foreground | Use for |
+|---------|------|------------|---------|
+| `default` | `--primary` (purple) | `--primary-foreground` | **Accent controls** — add FAB, settings gear, month prev/next, primary dialog actions, empty-state CTAs |
+| `secondary` | `--color-secondary` (pink) | `--color-secondary-foreground` | Cancel, low-emphasis dialog actions, icon pickers |
+| `destructive` | `--destructive` | `--destructive-foreground` | Logout, delete |
+| `success` / `warning` | semantic tokens | matching foreground | Confirmations, alerts |
+| `link` | transparent | `--link` | Inline text actions (no pixel frame) |
+
+**Accent rule:** navigation and primary chrome (settings, month nav, mobile FAB) use `variant="default"` so they match the add button and `pill-title` — not `secondary` (which reads as muted/disabled).
+
+**Icons on primary buttons:** pass `colorClass="text-primary-foreground"` on `<Icon />` so glyphs stay crisp on the purple fill.
+
+**Icon-only buttons:** square sizing via `className="size-9 p-0"` with `size="sm"`; CVA already applies `inline-flex items-center justify-center`.
+
+**Implementation note:** non-`asChild` buttons render a native `<button>` so `onClick` is reliable. Use `asChild` for links (month nav, manage categories).
+
+```tsx
+<Button variant="default" size="sm" className="pressable focus-ring size-9 p-0" onClick={…}>
+  <Icon name="settings" size="md" colorClass="text-primary-foreground" />
+</Button>
+```
 
 ## Interaction patterns
 
@@ -228,7 +341,7 @@ From `design-system/interactions.css`:
 | `.interactive-row` | List rows — hover background |
 | `.row-actions` | Row action buttons; fade in on row hover (always visible on touch) |
 | `.row-pending` | Optimistic/pending row opacity |
-| `.add-item-fab` | Mobile FAB positioning; hidden from `sm` up unless `.add-item-fab--persistent` |
+| `.add-item-fab` | Mobile FAB; `position: fixed` via `.add-item-fab.pixel__button`; offset from `--app-bottom-nav-height`, `--fab-gap-above-nav`, shell inset @ `md`; hidden from `sm` unless `.add-item-fab--persistent` |
 | `.btn-add-item` | In-section add button weight |
 | `.sparkle-pop` | Success toast sparkle animation |
 | `@media (prefers-reduced-motion: reduce)` | Disables transitions and animations |
@@ -253,7 +366,9 @@ import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { useToast } from "@/components/ui/pixelact-ui/toast";
 ```
 
-**Button variants:** `default`, `secondary`, `success`, `warning`, `destructive`, `link`
+**Button variants:** `default` (accent / primary purple), `secondary` (muted pink), `success`, `warning`, `destructive`, `link` — see **Button colors & variants** above.
+
+**Empty states:** `Empty`, `EmptyHeader`, `EmptyMedia`, `EmptyTitle`, `EmptyDescription`, `EmptyContent` from `pixelact-ui/empty.tsx` — use for zero-data surfaces instead of ad-hoc alerts.
 
 **App-level wrappers:**
 
@@ -297,7 +412,9 @@ Semantic icons (income, expense, planned, balance) get semantic color classes. N
 | `.finance-dialog-field` | Field slot with pixel shadow margin on the slot, not the control |
 | `.dialog-content-frame` | Standard modal width (24rem, inset from shell) |
 
-**Dialog portal behavior:** modals inside `.phone-shell` portal to the shell element (not `document.body`) via `DialogPortals`, so overlays stay within the phone frame on desktop.
+**Dialog portal behavior:** see **Phone shell behavior** — modals portal to the shell element; overlay/content use `absolute` in-shell, `fixed` to viewport otherwise.
+
+**Settings pattern:** trigger button owns `open` state + `onClick={() => setOpen(true)}`; dialog is controlled (`open` / `onOpenChange`). Sync form fields in a `useEffect` when `open && user`. Close before navigation links (`onClick={() => handleOpenChange(false)}`).
 
 **Category icon picker** (when used inline): `.category-icon-picker-grid` (4-column grid), `.category-icon-picker-cell`, `.category-icon-picker-cell-selected`, `.category-manager-row-dragging` (opacity while dragging).
 
@@ -322,6 +439,10 @@ Mutations should use `useMutationFeedback` (`lib/useMutationFeedback.ts`) for lo
 | Import from `components/ui/pixelact-ui/` | Import raw `components/ui/*` in app code |
 | Icon + semantic color + label for status | Color alone |
 | `.text-amount` on money rows | Pixel font on dense rows |
+| `.text-amount-hero-fluid` + `.coin-counter` in multi-column hero amounts | `break-words` or fixed large sizes on Press Start money |
+| `variant="default"` for accent chrome (FAB, settings, month nav) | `secondary` for primary navigation controls |
+| `text-primary-foreground` on icons atop `default` buttons | Default icon colors on purple fills |
+| `.responsive-list-columns` / `.responsive-card-columns` | One-off grid breakpoints for shared surfaces |
 | CSS variables for colors | Hardcoded hex / white / black |
 | `ConfirmDialog` for destructive actions | Native `confirm()` |
 | Check un-layered `design-system/*.css` when Tailwind "doesn't work" | Assume utility order wins |
@@ -338,7 +459,9 @@ Learned constraints when mixing design-system CSS with Tailwind:
 - **Don't name custom classes after Tailwind utilities.** Balance color is `.text-fin-balance` because `.text-balance` collides with Tailwind's `text-wrap: balance`.
 - **Utility classes must be mapped.** A `text-foo` Tailwind utility only works if `--color-foo` exists in the `@theme inline` block of `globals.css`. Unmapped classes fail silently. Semantic finance classes (`.text-income`, etc.) are defined directly in `tokens.css` and work without `@theme` mapping.
 - **Pixel shadows need margin.** `--pixel-box-shadow` draws 4px on each side; use `.box-shadow-margin` or 4px margin to avoid overlap with adjacent elements.
-- **Press Start 2P overflows early.** Test pixel-font headings and hero amounts at 375px with realistic content length.
+- **Shell frame is shadow + outline, not `border`.** Desktop `.phone-shell` and `.pixel__button` share the same `--pixel-box-shadow` + `outline: 2px solid var(--frame-border)` pattern.
+- **Press Start 2P overflows early.** Test pixel-font headings and hero amounts at 375px; use `.text-amount-hero-fluid` in grid columns instead of `break-words`.
+- **Grid columns need `minmax(0, 1fr)`.** Without it, container-query width for fluid amounts may not shrink and text will still overflow.
 
 ## Verification workflow
 
@@ -366,8 +489,9 @@ flowchart LR
 
 4. **Review screenshots** — both light and dark, all viewports. Check specifically:
    - Nothing clipped or truncated (especially money amounts and badges)
-   - Amounts right-aligned
-   - Both themes render correctly
+   - Hero amounts in the balance trio scale down without wrapping mid-number
+   - Amounts right-aligned where applicable
+   - Both themes render correctly (shell frame uses `--frame-border` / `--ring`)
 
 `.responsive-audit/` is generated output — never commit it or treat it as source.
 
