@@ -1,4 +1,5 @@
 import { resolveBudgetGroup } from "../constants/budgetGroup.js";
+import type { AppLanguage } from "../models/User.js";
 import type { CategoryWithLineItems, LineItemResponse } from "./categoryService.js";
 import { computeBudget503020, type Budget503020Summary } from "./budget503020Service.js";
 
@@ -11,6 +12,7 @@ export interface ReportLineItemPayload {
 
 export interface ReportPayload {
   yearMonth: string;
+  language: AppLanguage;
   monthTotals: {
     lastMonthRealizedBalance: number;
     expectedBalance: number;
@@ -41,6 +43,7 @@ function mapExpenseItem(item: LineItemResponse, categoryName: string | null, bud
 
 export function buildReportPayload(input: {
   yearMonth: string;
+  language: AppLanguage;
   monthTotals: {
     lastMonthRealizedBalance: number;
     expectedBalance: number;
@@ -79,6 +82,7 @@ export function buildReportPayload(input: {
 
   return {
     yearMonth: input.yearMonth,
+    language: input.language,
     monthTotals: input.monthTotals,
     incomeTotal,
     incomeItems,

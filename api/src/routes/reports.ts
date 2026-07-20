@@ -4,6 +4,7 @@ import {
   FinancialReport,
   toFinancialReportResponse,
 } from "../models/FinancialReport.js";
+import { User } from "../models/User.js";
 import { computeBudget503020 } from "../services/budget503020Service.js";
 import { generateCursorReport } from "../services/cursorReportService.js";
 import { buildMonthView } from "../services/monthViewService.js";
@@ -85,9 +86,15 @@ router.post(
   asyncHandler(async (req, res) => {
     const { yearMonth } = generateReportSchema.parse(req.body);
     const prompt = await loadReportPrompt();
+    const user = await User.findById(req.userId).select("preferences.language");
+    if (!user) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
     const monthView = await buildMonthView(req.userId!, yearMonth);
     const payload = buildReportPayload({
       yearMonth,
+      language: user.preferences.language,
       monthTotals: {
         lastMonthRealizedBalance: monthView.month.lastMonthRealizedBalance,
         expectedBalance: monthView.month.expectedBalance,
