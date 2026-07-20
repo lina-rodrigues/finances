@@ -36,6 +36,9 @@ Run from the repo root:
 | `pnpm contrast-check` | WCAG AA audit of theme colors (reads CSS only, no server needed) |
 | `pnpm responsive-check` | Playwright screenshots: 2 themes x 3 months x 8 viewports into `.responsive-audit/<theme>/<month>/` (requires dev server on :3000) |
 | `pnpm deploy` | Push `main` to GitHub and wait for Vercel production deploys (requires `VERCEL_TOKEN`; API `CANCELED` is normal for frontend-only changes) |
+| `pnpm db:backup` | `mongodump` full database to `backups/finance-<timestamp>/` |
+| `pnpm db:restore -- --path backups/... --confirm` | Restore a backup (`--drop` on target DB) |
+| `pnpm db:migrate:realized-to-entries -- --check` | Scan for line items that block the realized→entries migration |
 
 Cursor commands in `.cursor/commands/` (`/contrast-check`, `/responsive-check`) wrap these scripts with an analyze-propose-approve workflow.
 

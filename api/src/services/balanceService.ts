@@ -1,12 +1,23 @@
 import { Month, type IMonth } from "../models/Month.js";
-import { LineItem, effectiveAmount } from "../models/LineItem.js";
+import {
+  LineItem,
+  effectiveAmount,
+  getRealizedAmount,
+  type ILineItemEntry,
+} from "../models/LineItem.js";
 import { isDuplicateKeyError } from "../db/migrations.js";
 import { nextYearMonth } from "../utils/yearMonth.js";
 import type { Types } from "mongoose";
 
+type LineItemBalanceInput = {
+  type: string;
+  plannedAmount: number;
+  entries?: ILineItemEntry[];
+};
+
 export function computeBalance(
   lastMonthBalance: number,
-  lineItems: { type: string; plannedAmount: number; realizedAmount: number | null }[],
+  lineItems: LineItemBalanceInput[],
 ): number {
   let balance = lastMonthBalance;
   for (const item of lineItems) {
@@ -18,14 +29,15 @@ export function computeBalance(
 
 export function computeRealizedBalance(
   lastMonthBalance: number,
-  lineItems: { type: string; realizedAmount: number | null }[],
+  lineItems: LineItemBalanceInput[],
 ): number {
   let balance = lastMonthBalance;
   for (const item of lineItems) {
-    if (item.realizedAmount === null) {
+    const realizedAmount = getRealizedAmount(item);
+    if (realizedAmount === null) {
       continue;
     }
-    balance += item.type === "income" ? item.realizedAmount : -item.realizedAmount;
+    balance += item.type === "income" ? realizedAmount : -realizedAmount;
   }
   return balance;
 }

@@ -1,6 +1,6 @@
 import { Category, type ICategory } from "../models/Category.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
-import { effectiveAmount, type ILineItem, type LineItemType } from "../models/LineItem.js";
+import { effectiveAmount, getRealizedAmount, isRealized, type ILineItem, type LineItemType } from "../models/LineItem.js";
 import type { IRecurringSeries, RecurrenceEndType } from "../models/RecurringSeries.js";
 import type { Types } from "mongoose";
 
@@ -71,9 +71,9 @@ function toLineItemResponse(
     type: item.type,
     label: item.label,
     plannedAmount: item.plannedAmount,
-    realizedAmount: item.realizedAmount,
+    realizedAmount: getRealizedAmount(item),
     displayAmount: effectiveAmount(item),
-    isRealized: item.realizedAmount !== null,
+    isRealized: isRealized(item),
     entries: (item.entries ?? []).map((entry) => ({
       id: entry._id.toString(),
       amount: entry.amount,

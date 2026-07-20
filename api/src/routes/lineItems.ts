@@ -1,6 +1,11 @@
 import { Router } from "express";
 import type { Types } from "mongoose";
-import { LineItem, syncRealizedFromEntries } from "../models/LineItem.js";
+import {
+  LineItem,
+  applyRealizedAmountWrite,
+  ensureEntriesArray,
+  pushRealizedEntry,
+} from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
 import { cascadeBalanceFrom } from "../services/balanceService.js";
@@ -159,16 +164,37 @@ router.patch(
       return;
     }
 
-    const updatedItem = await LineItem.findByIdAndUpdate(
-      req.params.id,
-      { $set: patch },
-      { new: true, runValidators: true },
-    );
-
+    const updatedItem = await LineItem.findById(req.params.id);
     if (!updatedItem) {
       res.status(404).json({ error: "NOT_FOUND" });
       return;
     }
+
+    if (patch.categoryId !== undefined) {
+      updatedItem.categoryId = patch.categoryId as typeof updatedItem.categoryId;
+    }
+    if (patch.type !== undefined) {
+      updatedItem.type = patch.type;
+    }
+    if (patch.label !== undefined) {
+      updatedItem.label = patch.label;
+    }
+    if (patch.plannedAmount !== undefined) {
+      updatedItem.plannedAmount = patch.plannedAmount;
+    }
+    if (patch.realizedAmount !== undefined) {
+      try {
+        applyRealizedAmountWrite(updatedItem, patch.realizedAmount);
+      } catch (error) {
+        if (error instanceof Error && error.message === "ENTRIES_MANAGED") {
+          res.status(409).json({ error: "ENTRIES_MANAGED" });
+          return;
+        }
+        throw error;
+      }
+    }
+
+    await updatedItem.save();
 
     await cascadeForMonth(req.userId!, updatedItem.monthId);
 
@@ -242,31 +268,14 @@ router.post(
       return;
     }
 
-    if (!lineItem.entries) {
-      lineItem.entries = [];
-    }
+    ensureEntriesArray(lineItem);
 
-    if (lineItem.entries.length === 0 && lineItem.realizedAmount !== null) {
-      lineItem.entries.push({
-        amount: lineItem.realizedAmount,
-        note: null,
-        createdAt: new Date(),
-      } as (typeof lineItem.entries)[number]);
-    }
-
-    const entry = {
-      amount: body.amount,
-      note: body.note ?? null,
-      createdAt: new Date(),
-    } as (typeof lineItem.entries)[number];
-
-    lineItem.entries.push(entry);
-    syncRealizedFromEntries(lineItem);
+    const entry = pushRealizedEntry(lineItem, body.amount, body.note ?? null);
     await lineItem.save();
 
     await cascadeForMonth(req.userId!, lineItem.monthId);
 
-    const savedEntry = lineItem.entries[lineItem.entries.length - 1];
+    const savedEntry = entry;
     res.status(201).json(toLineItemEntryMutationResponse(lineItem, savedEntry));
   }),
 );
@@ -296,7 +305,6 @@ router.delete(
     }
 
     lineItem.entries.splice(entryIndex, 1);
-    syncRealizedFromEntries(lineItem);
     await lineItem.save();
 
     await cascadeForMonth(req.userId!, lineItem.monthId);

@@ -10,12 +10,16 @@
     "build": "pnpm --filter api build && pnpm --filter frontend build",
     "contrast-check": "node scripts/contrast-check.mjs",
     "responsive-check": "node scripts/responsive-check.mjs",
-    "deploy": "node scripts/deploy.mjs"
+    "deploy": "node scripts/deploy.mjs",
+    "db:backup": "node scripts/db/backup.mjs",
+    "db:restore": "node scripts/db/restore.mjs",
+    "db:migrate:realized-to-entries": "node scripts/db/migrate-realized-to-entries.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "mongodb": "^6.12.0",
     "playwright": "^1.51.0"
   }
 }

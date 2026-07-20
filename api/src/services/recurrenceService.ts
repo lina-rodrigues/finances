@@ -1,5 +1,5 @@
 import type { Types } from "mongoose";
-import { LineItem, type ILineItem } from "../models/LineItem.js";
+import { LineItem, applyRealizedAmountWrite, isRealized, pushRealizedEntry, type ILineItem } from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import {
   RecurringSeries,
@@ -110,7 +110,7 @@ async function applyTemplateToInstance(
   item.type = template.type;
   item.label = template.label;
 
-  if (item.realizedAmount === null) {
+  if (!isRealized(item)) {
     item.plannedAmount = template.plannedAmount;
   }
 
@@ -160,7 +160,7 @@ export async function ensureSeriesInstances(
         type: series.type,
         label: series.label,
         plannedAmount: series.plannedAmount,
-        realizedAmount: null,
+        entries: [],
         seriesId: series._id,
         seriesOccurrenceIndex: occurrenceIndex,
         seriesException: false,
@@ -168,7 +168,7 @@ export async function ensureSeriesInstances(
       earliestAffected = earliestAffected
         ? minYearMonth(earliestAffected, yearMonth)
         : yearMonth;
-    } else if (!item.seriesException && item.realizedAmount === null) {
+    } else if (!item.seriesException && !isRealized(item)) {
       await applyTemplateToInstance(series, item);
     }
   }
@@ -229,7 +229,7 @@ export async function createRecurringSeries(
   }
 
   if (data.realizedAmount !== null) {
-    firstItem.realizedAmount = data.realizedAmount;
+    pushRealizedEntry(firstItem, data.realizedAmount);
     await firstItem.save();
   }
 
@@ -351,7 +351,9 @@ export async function applyRecurringLineItemEdit(
       lineItem.plannedAmount = patch.plannedAmount;
     }
     if (patch.realizedAmount !== undefined) {
-      lineItem.realizedAmount = patch.realizedAmount;
+      if (patch.realizedAmount !== null) {
+        applyRealizedAmountWrite(lineItem, patch.realizedAmount);
+      }
     }
     lineItem.seriesException = true;
     await lineItem.save();
@@ -405,10 +407,12 @@ export async function applyRecurringLineItemEdit(
       if (patch.label !== undefined) {
         instance.label = patch.label;
       }
-      if (patch.plannedAmount !== undefined && instance.realizedAmount === null) {
+      if (patch.plannedAmount !== undefined && !isRealized(instance)) {
         instance.plannedAmount = patch.plannedAmount;
       }
-      instance.realizedAmount = patch.realizedAmount;
+      if (patch.realizedAmount !== null) {
+        applyRealizedAmountWrite(instance, patch.realizedAmount);
+      }
       await instance.save();
       cascadeFrom = cascadeFrom ? minYearMonth(cascadeFrom, instanceYearMonth!) : instanceYearMonth;
       continue;
@@ -423,7 +427,7 @@ export async function applyRecurringLineItemEdit(
     if (patch.label !== undefined) {
       instance.label = patch.label;
     }
-    if (patch.plannedAmount !== undefined && instance.realizedAmount === null) {
+    if (patch.plannedAmount !== undefined && !isRealized(instance)) {
       instance.plannedAmount = patch.plannedAmount;
     }
 
@@ -509,7 +513,7 @@ export async function cancelRecurringSeries(
 
     if (
       compareYearMonth(instanceYearMonth, fromYearMonth) > 0 &&
-      instance.realizedAmount === null
+      !isRealized(instance)
     ) {
       await LineItem.findByIdAndDelete(instance._id);
       cascadeFrom = cascadeFrom

@@ -4,7 +4,7 @@ import { connectDb } from "../db/connection.js";
 import { User } from "../models/User.js";
 import { Category } from "../models/Category.js";
 import { Month } from "../models/Month.js";
-import { LineItem, type LineItemType } from "../models/LineItem.js";
+import { LineItem, isRealized, pushRealizedEntry, type LineItemType } from "../models/LineItem.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
 import { computeEndingBalance, cascadeBalanceFrom } from "../services/balanceService.js";
 import { createRecurringSeries } from "../services/recurrenceService.js";
@@ -113,7 +113,10 @@ async function seedMonth(
         type: item.type,
         label: item.label,
         plannedAmount: item.planned,
-        realizedAmount: item.realized,
+        entries:
+          item.realized !== null
+            ? [{ amount: item.realized, note: null, createdAt: new Date() }]
+            : [],
       };
     }),
   );
@@ -134,10 +137,18 @@ async function setSeriesRealizedForMonth(
     return;
   }
 
-  await LineItem.updateOne(
-    { monthId: month._id, label, seriesId: { $ne: null } },
-    { $set: { realizedAmount } },
-  );
+  const lineItem = await LineItem.findOne({
+    monthId: month._id,
+    label,
+    seriesId: { $ne: null },
+  });
+
+  if (!lineItem || isRealized(lineItem)) {
+    return;
+  }
+
+  pushRealizedEntry(lineItem, realizedAmount);
+  await lineItem.save();
 }
 
 async function seedRecurringSeries(

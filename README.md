@@ -105,6 +105,23 @@ If the frontend shows errors after pulling changes, restart with a clean cache:
 cd frontend && rm -rf .next && pnpm dev
 ```
 
+## Database backup and migration
+
+Requires [MongoDB Database Tools](https://www.mongodb.com/docs/database-tools/) (`mongodump` / `mongorestore`) in PATH. Docker alternative: `docker compose exec -T mongodb mongodump ...`.
+
+**Before migrating production** (removes the legacy `realizedAmount` field from line items):
+
+```bash
+pnpm db:backup
+pnpm db:migrate:realized-to-entries -- --check          # fix MISMATCH / ORPHAN_ENTRIES until exit 0
+pnpm db:migrate:realized-to-entries -- --dry-run        # review planned conversions
+pnpm db:migrate:realized-to-entries -- --apply          # run after backup; deploy new API next
+# rollback if needed:
+pnpm db:restore -- --path backups/finance-<timestamp> --confirm
+```
+
+Realized amounts are stored as embedded **entries** on each line item. The API still returns computed `realizedAmount` in JSON for the UI.
+
 ## Environment Variables
 
 | Variable | Package | Default | Description |
@@ -155,14 +172,16 @@ Income or expense belonging to a month and category:
   "type": "expense",
   "label": "Groceries",
   "plannedAmount": 400.00,
-  "realizedAmount": null,
+  "entries": [
+    { "amount": 120.50, "note": null, "createdAt": "2026-07-15T10:00:00.000Z" }
+  ],
   "seriesId": "...",
   "seriesOccurrenceIndex": 1,
   "seriesException": false
 }
 ```
 
-When `realizedAmount` is `null`, the UI displays `plannedAmount` with a "planned" indicator.
+When there are no entries, the item is unrealized and the UI displays `plannedAmount` with a "planned" indicator. API responses include computed `realizedAmount` (sum of entry amounts, or `null`).
 
 ### Recurring series
 
@@ -192,7 +211,7 @@ Edit and delete on recurring instances support Google Calendar-style scopes: `th
 For each month:
 
 ```
-effectiveAmount  = realizedAmount ?? plannedAmount
+effectiveAmount  = (sum of entries) ?? plannedAmount   // null sum when no entries
 totalIncome      = sum of effective amounts for income items
 totalExpense     = sum of effective amounts for expense items
 endingBalance    = lastMonthBalance + totalIncome - totalExpense

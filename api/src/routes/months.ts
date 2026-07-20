@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { LineItem } from "../models/LineItem.js";
+import { LineItem, applyRealizedAmountWrite } from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
 import {
@@ -146,8 +146,13 @@ router.post(
       type: body.type,
       label: body.label,
       plannedAmount: body.plannedAmount,
-      realizedAmount: body.realizedAmount ?? null,
+      entries: [],
     });
+
+    if (body.realizedAmount != null) {
+      applyRealizedAmountWrite(lineItem, body.realizedAmount);
+      await lineItem.save();
+    }
 
     await cascadeBalanceFrom(req.userId!, yearMonth);
 

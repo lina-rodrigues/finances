@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ILineItem, ILineItemEntry } from "../models/LineItem.js";
+import { getRealizedAmount } from "../models/LineItem.js";
 import { recurrenceInputSchema, recurrenceScopeSchema } from "./recurrence.js";
 
 const lineItemFields = z.object({
@@ -42,12 +43,13 @@ function toEntryResponse(entry: ILineItemEntry) {
 
 export function toLineItemMutationResponse(item: ILineItem) {
   const entries = item.entries ?? [];
+  const realizedAmount = getRealizedAmount(item);
   return {
     id: item._id.toString(),
     type: item.type,
     label: item.label,
     plannedAmount: item.plannedAmount,
-    realizedAmount: item.realizedAmount,
+    realizedAmount,
     entries: entries.map(toEntryResponse),
     entryCount: entries.length,
     seriesId: item.seriesId?.toString() ?? null,
