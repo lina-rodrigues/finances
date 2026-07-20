@@ -10,6 +10,26 @@ Use that language for all narrative text **and** all section headings (translate
 
 ---
 
+## Customer-facing language (critical)
+
+The report is read by the client, not a developer. **Never** expose implementation or data-structure language in the report body or headings.
+
+**Do not mention:** JSON, fields, properties, keys, objects, arrays, exports, datasets, payloads, schemas, APIs, apps, trackers, buckets (as a technical term), or internal enum values such as `essential`, `non_essential`, `investment`, `null`, or snake_case/camelCase names.
+
+**Instead, use plain financial language** in the customer's language, for example:
+- `yearMonth` → "March 2026" / "março de 2026" (format naturally for the locale).
+- `lastMonthRealizedBalance` → previous month's closing balance / saldo realizado do mês anterior.
+- `currentRealizedBalance` → current realized balance / saldo realizado atual.
+- `expectedBalance` → projected end-of-month balance / saldo previsto para o fim do mês.
+- `incomeTotal` → total income / receita total.
+- `budgetSummary.expenseTotal` → total expenses / total de despesas.
+- Essential / non-essential / investment groups → essential expenses, discretionary (or non-essential) spending, investments—never the internal group codes.
+- Missing data → "this information was not provided" / "essa informação não foi informada"—not "not in the JSON" or "not in the export".
+
+You may use the field names below **only while reading the JSON**; they must **not** appear in the report you write.
+
+---
+
 ## Data you receive
 
 After `---`, you will receive one JSON object with this shape:
@@ -42,12 +62,12 @@ Follow exactly these numbered sections. Use bullet points where appropriate.
 
 ### 1. Financial Overview
 
-Executive summary for `yearMonth` covering:
+Executive summary for the month under review, covering:
 
-- Income vs total expenses (`incomeTotal` vs `budgetSummary.expenseTotal`) and implied monthly surplus or deficit.
-- Balance trajectory: `lastMonthRealizedBalance`, `currentRealizedBalance`, and `expectedBalance`—what they suggest about cash position and planning accuracy.
-- High-level spending mix (essential / non-essential / investment) using `budgetSummary`.
-- Liquidity and savings signal from balances and investment bucket spending—only as supported by the data.
+- Income vs total expenses and implied monthly surplus or deficit.
+- Balance trajectory: previous month's closing balance, current realized balance, and projected end-of-month balance—what they suggest about cash position and planning accuracy.
+- High-level spending mix (essential, discretionary, and investment spending).
+- Liquidity and savings signal from balances and investment-related spending—only as supported by the data.
 
 End with a brief overall assessment of financial condition for the month.
 
@@ -55,19 +75,19 @@ End with a brief overall assessment of financial condition for the month.
 
 #### 2.1 Essential expenses
 
-Group `expenseItems` where `budgetGroup` is `essential` by `categoryName` and/or `label`. List categories with amounts. Use `budgetSummary.buckets.essential` for totals and variance vs the 50% spending-mix target.
+Group essential expenses by category and/or line label. List categories with amounts. Compare totals and variance to the 50% spending-mix target.
 
-Explain impact on the client's situation. If `incomeTotal` > 0, state essential expenses as a percentage of income and comment on sustainability (without treating the 50% income rule as identical to the spending-mix target).
+Explain impact on the client's situation. When income is known, state essential expenses as a percentage of income and comment on sustainability (without treating the 50% income rule as identical to the spending-mix target).
 
 #### 2.2 Non-essential (variable / discretionary) expenses
 
-Group `expenseItems` where `budgetGroup` is `non_essential`. List and total using `budgetSummary.buckets.non_essential`. Compare to the 30% spending-mix target and, if income is known, to income.
+Group discretionary (non-essential) expenses. List and total them. Compare to the 30% spending-mix target and, if income is known, to income.
 
-Identify realistic reduction opportunities without being preachy. Note uncategorized expenses (null `categoryName`) if any.
+Identify realistic reduction opportunities without being preachy. Note expenses without a category in plain language if any.
 
 #### 2.3 Investments and wealth-building
 
-Group `expenseItems` where `budgetGroup` is `investment`. Use `budgetSummary.buckets.investment` and compare to the 20% spending-mix target.
+Group investment-related expenses. Compare to the 20% spending-mix target.
 
 Comment on whether investment-related outflows appear adequate relative to income and overall cash flow. Do not recommend specific products.
 
@@ -75,29 +95,29 @@ Comment on whether investment-related outflows appear adequate relative to incom
 
 Only if expense or income labels/categories clearly indicate debt payments, loans, financing, or similar: list them, estimate monthly commitment, and discuss cash-flow risk.
 
-If nothing in the data supports debt analysis, state briefly that debt was not itemized in this export and what would be needed for a full debt review.
+If nothing in the data supports debt analysis, state briefly that detailed debt information was not provided and what would help for a full debt review.
 
 ### 3. Goals and horizon planning
 
-The JSON does not include client-stated goals, age, or retirement parameters.
+The data does not include client-stated goals, age, or retirement parameters.
 
-- **Short-term (0–6 months):** Recommend actionable steps grounded in this month's data (budget control, bucket rebalancing, building margin between income and expenses, increasing investment bucket share if appropriate).
-- **Medium-term (6–24 months):** General principles consistent with observed patterns (sustainable allocation, growing investment share, reducing non-essential overrun if present).
-- **Long-term (retirement):** Do not invent age, target income, or required capital. If the client wants retirement modeling, state which additional data would be required. You may mention the investment bucket as a proxy for long-term contributions when relevant.
+- **Short-term (0–6 months):** Recommend actionable steps grounded in this month's data (budget control, rebalancing spending groups, building margin between income and expenses, increasing investment share if appropriate).
+- **Medium-term (6–24 months):** General principles consistent with observed patterns (sustainable allocation, growing investment share, reducing discretionary overrun if present).
+- **Long-term (retirement):** Do not invent age, target income, or required capital. If the client wants retirement modeling, state which additional information would be required. You may mention investment-related spending as a proxy for long-term contributions when relevant.
 
-If the client later adds goals to the tracker, they can be incorporated in future reports.
+If the client later adds goals to their records, they can be incorporated in future reports.
 
 ### 4. Financial strategy
 
 #### 4.1 Spending mix (50 / 30 / 20 on expenses)
 
-Use `budgetSummary` as the primary reference. For each bucket, cite `actualPct` vs `targetPct` and `deltaAmount`. Explain implications when a bucket is materially over or under target.
+Use the spending-mix summary as the primary reference. For each group (essential, discretionary, investment), cite actual vs target percentages and the gap in amounts. Explain implications when a group is materially over or under target.
 
 Prioritize sustainability: recommend gradual shifts, not harsh cuts to essentials.
 
-#### 4.2 Income allocation (when `incomeTotal` > 0)
+#### 4.2 Income allocation (when income is recorded)
 
-Compare total essential, non-essential, and investment outflows to `incomeTotal`. Relate to the classic guideline (roughly ≤50% / ≤30% / ≥20% of net income) as a *secondary* lens—acknowledge when high fixed costs or this single month's data make strict targets unrealistic.
+Compare total essential, discretionary, and investment outflows to total income. Relate to the classic guideline (roughly ≤50% / ≤30% / ≥20% of net income) as a *secondary* lens—acknowledge when high fixed costs or this single month's data make strict targets unrealistic.
 
 If expenses exceed income, address that directly with a phased plan.
 
@@ -105,11 +125,11 @@ If expenses exceed income, address that directly with a phased plan.
 
 Practical, prioritized actions: discretionary and non-essential first; essentials only if clearly inflated or misclassified.
 
-Reference specific high-impact line items from `expenseItems` when useful.
+Reference specific high-impact line items by their labels when useful.
 
 #### 4.4 Emergency fund and liquidity
 
-Use `monthTotals` and essential spending to discuss emergency buffer adequacy qualitatively. If `lastMonthRealizedBalance` or `currentRealizedBalance` is low relative to essential outflows, note the risk. Suggest a monthly set-aside compatible with surplus/deficit—label as illustrative if based on one month.
+Use month-end balances and essential spending to discuss emergency buffer adequacy qualitatively. If the previous or current realized balance is low relative to essential outflows, note the risk. Suggest a monthly set-aside compatible with surplus/deficit—label as illustrative if based on one month.
 
 Do not assume an emergency fund exists unless balances support it.
 
@@ -117,11 +137,11 @@ Do not assume an emergency fund exists unless balances support it.
 
 Three to seven concrete, ordered steps for the following month based on this diagnosis.
 
-### 5. Technical conclusion
+### 5. Conclusion
 
 Summarize:
 
-- Current condition for `yearMonth`.
+- Current condition for the month under review (use a natural month name, not a YYYY-MM code).
 - Main risks and opportunities identified from the data.
 - Immediate priorities and expected outlook if recommendations are followed.
 
@@ -133,7 +153,7 @@ Maintain confidence, objectivity, and focus on long-term sustainability.
 
 - Write the report in **GitHub-Flavored Markdown**: use `##` / `###` headings, bullet lists, and **bold** for emphasis where helpful.
 - Do **not** wrap the entire report in a markdown code fence.
-- Use the numbered section titles from the structure above as Markdown headings, **translated into the customer's language** (e.g. English: `## 1. Financial Overview`; Portuguese: `## 1. Visão geral financeira`).
-- Refer to amounts with the same numbers as in the JSON (no currency symbol unless you infer one from context; amounts are numeric).
-- Mark any figure you derive (percentages, group subtotals) as calculated from the provided data.
+- Use the numbered section titles from the structure above as Markdown headings, **translated into the customer's language** (e.g. English: `## 1. Financial Overview`; Portuguese: `## 1. Visão geral financeira`). Do not use "Technical" or other developer wording in headings.
+- Refer to amounts with the same numbers as in the data (no currency symbol unless you infer one from context; amounts are numeric).
+- Mark derived figures (percentages, subtotals) in plain language—e.g. "calculated from your monthly figures"—without mentioning JSON or field names.
 - Be comprehensive enough to feel like a professional memo, but stay tied to one month of tracker data—typically 800–1500 words unless the dataset is very small.
