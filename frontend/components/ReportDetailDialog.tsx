@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ReportMarkdown } from "@/components/ReportMarkdown";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import {
@@ -13,11 +13,7 @@ import {
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { useToast } from "@/components/ui/pixelact-ui/toast";
 import { fetchReport, type FinancialReport } from "@/lib/api";
-import {
-  downloadReportDocx,
-  downloadReportPdfFromElement,
-  reportDownloadFilename,
-} from "@/lib/downloadReport";
+import { downloadReportDocx, reportDownloadFilename } from "@/lib/downloadReport";
 import { useTranslation, translateReportError } from "@/lib/i18n";
 
 interface ReportDetailDialogProps {
@@ -26,15 +22,12 @@ interface ReportDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type DownloadFormat = "docx" | "pdf";
-
 export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetailDialogProps) {
   const { t, locale } = useTranslation();
   const { showToast } = useToast();
   const [report, setReport] = useState<FinancialReport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState<DownloadFormat | null>(null);
-  const reportBodyRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!open || !reportId) {
@@ -65,28 +58,20 @@ export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetai
 
   const canDownload = report?.status === "completed" && Boolean(report.content?.trim());
 
-  async function handleDownload(format: DownloadFormat) {
+  async function handleDownloadDocx() {
     if (!report || !canDownload) {
       return;
     }
 
-    setDownloading(format);
+    setDownloading(true);
     try {
-      const filename = reportDownloadFilename(report.title, format);
-      if (format === "docx") {
-        await downloadReportDocx(report.id, filename);
-      } else {
-        const element = reportBodyRef.current;
-        if (!element) {
-          throw new Error("REPORT_DOWNLOAD_FAILED");
-        }
-        await downloadReportPdfFromElement(element, filename);
-      }
+      const filename = reportDownloadFilename(report.title);
+      await downloadReportDocx(report.id, filename);
     } catch (error) {
       console.error(error);
       showToast(t("reports.downloadFailed"), "error");
     } finally {
-      setDownloading(null);
+      setDownloading(false);
     }
   }
 
@@ -107,9 +92,7 @@ export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetai
           )}
 
           {!loading && report?.status === "completed" && report.content && (
-            <div ref={reportBodyRef}>
-              <ReportMarkdown content={report.content} />
-            </div>
+            <ReportMarkdown content={report.content} />
           )}
 
           {!loading && report?.status === "failed" && (
@@ -126,30 +109,17 @@ export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetai
         <DialogFooter className="flex flex-col-reverse gap-2 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             {canDownload && (
-              <>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={downloading !== null}
-                  onClick={() => void handleDownload("docx")}
-                >
-                  {downloading === "docx" ? <Spinner className="size-4" /> : null}
-                  {t("reports.downloadDocx")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={downloading !== null}
-                  onClick={() => void handleDownload("pdf")}
-                >
-                  {downloading === "pdf" ? <Spinner className="size-4" /> : null}
-                  {t("reports.downloadPdf")}
-                </Button>
-              </>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="pressable focus-ring gap-1"
+                disabled={downloading}
+                onClick={() => void handleDownloadDocx()}
+              >
+                {downloading ? <Spinner className="size-4" /> : null}
+                {t("reports.downloadDocx")}
+              </Button>
             )}
           </div>
           <Button type="button" variant="secondary" size="sm" onClick={() => onOpenChange(false)}>

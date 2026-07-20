@@ -63,7 +63,7 @@ router.get(
     }
 
     const buffer = await buildReportDocxBuffer(report);
-    const filename = reportDownloadFilename(report.title, "docx");
+    const filename = reportDownloadFilename(report.title);
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

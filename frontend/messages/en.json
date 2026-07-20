@@ -111,7 +111,6 @@
     "deleteReportDescription": "Remove \"{title}\"? This cannot be undone.",
     "reportDeleted": "Report deleted",
     "downloadDocx": "Download DOCX",
-    "downloadPdf": "Download PDF",
     "downloadFailed": "Could not download the report. Please try again.",
     "status": {
       "pending": "Pending",

@@ -111,7 +111,6 @@
     "deleteReportDescription": "Remover \"{title}\"? Esta ação não pode ser desfeita.",
     "reportDeleted": "Relatório excluído",
     "downloadDocx": "Baixar DOCX",
-    "downloadPdf": "Baixar PDF",
     "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
     "status": {
       "pending": "Pendente",

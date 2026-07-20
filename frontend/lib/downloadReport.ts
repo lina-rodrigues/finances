@@ -1,13 +1,13 @@
 import { getApiUrl } from "@/lib/api";
 
-export function reportDownloadFilename(title: string, extension: "docx" | "pdf"): string {
+export function reportDownloadFilename(title: string): string {
   const base =
     title
       .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
       .trim()
       .replace(/\s+/g, " ")
       .slice(0, 100) || "financial-report";
-  return `${base}.${extension}`;
+  return `${base}.docx`;
 }
 
 function triggerBlobDownload(blob: Blob, filename: string): void {
@@ -35,33 +35,4 @@ export async function downloadReportDocx(reportId: string, filename: string): Pr
 
   const blob = await res.blob();
   triggerBlobDownload(blob, filename);
-}
-
-export async function downloadReportPdfFromElement(
-  element: HTMLElement,
-  filename: string,
-): Promise<void> {
-  const { jsPDF } = await import("jspdf");
-  const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
-
-  await new Promise<void>((resolve, reject) => {
-    pdf.html(element, {
-      callback: (doc) => {
-        try {
-          doc.save(filename);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      },
-      margin: [36, 36, 36, 36],
-      autoPaging: "text",
-      html2canvas: {
-        scale: 0.85,
-        useCORS: true,
-        logging: false,
-      },
-      width: 523,
-    });
-  });
 }
