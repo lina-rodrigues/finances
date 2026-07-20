@@ -101,6 +101,9 @@
     "noReports": "Nenhum relatório neste mês.",
     "reportDetail": "Relatório",
     "reportPending": "Relatório ainda sendo gerado…",
+    "deleteReport": "Excluir relatório",
+    "deleteReportDescription": "Remover o relatório de {date}? Esta ação não pode ser desfeita.",
+    "reportDeleted": "Relatório excluído",
     "status": {
       "pending": "Pendente",
       "completed": "Concluído",

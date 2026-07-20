@@ -126,7 +126,9 @@ Maintain confidence, objectivity, and focus on long-term sustainability.
 
 ## Formatting and length
 
-- Use numbered headings and subheadings exactly as above.
+- Write the report in **GitHub-Flavored Markdown**: use `##` / `###` headings, bullet lists, and **bold** for emphasis where helpful.
+- Do **not** wrap the entire report in a markdown code fence.
+- Use the numbered section titles from the structure above as Markdown headings (e.g. `## 1. Financial Overview`, `### 2.1 Essential expenses`).
 - Refer to amounts with the same numbers as in the JSON (no currency symbol unless you infer one from context; amounts are numeric).
 - Mark any figure you derive (percentages, group subtotals) as calculated from the provided data.
 - Be comprehensive enough to feel like a professional memo, but stay tied to one month of tracker data—typically 800–1500 words unless the dataset is very small.

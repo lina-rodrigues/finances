@@ -101,6 +101,9 @@
     "noReports": "No reports yet for this month.",
     "reportDetail": "Report",
     "reportPending": "Report is still generating…",
+    "deleteReport": "Delete report",
+    "deleteReportDescription": "Remove this report from {date}? This cannot be undone.",
+    "reportDeleted": "Report deleted",
     "status": {
       "pending": "Pending",
       "completed": "Completed",

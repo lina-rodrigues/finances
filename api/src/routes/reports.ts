@@ -65,6 +65,21 @@ router.get(
   }),
 );
 
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const report = await FinancialReport.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.userId,
+    });
+    if (!report) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+    res.status(204).send();
+  }),
+);
+
 router.post(
   "/generate",
   asyncHandler(async (req, res) => {

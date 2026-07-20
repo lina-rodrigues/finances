@@ -4,6 +4,7 @@
 @import "../design-system/tokens.css";
 @import "../design-system/typography.css";
 @import "../design-system/interactions.css";
+@import "../design-system/report-markdown.css";
 
 @custom-variant dark (&:is(.dark *));
 

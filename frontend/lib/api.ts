@@ -399,3 +399,7 @@ export async function generateReport(yearMonth: string): Promise<FinancialReport
     typeof body.error === "string" ? body.error : `Failed to generate report: ${res.statusText}`;
   throw new Error(message);
 }
+
+export async function deleteReport(id: string): Promise<void> {
+  await apiFetch(`/reports/${id}`, "delete report", { method: "DELETE" });
+}
