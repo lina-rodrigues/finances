@@ -1,10 +1,13 @@
 import type { Category, LineItem } from "@/lib/api";
+import { getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
 
 export function effectiveAmount(item: {
   plannedAmount: number;
-  realizedAmount: number | null;
+  realizedAmount?: number | null;
+  entries?: { amount: number }[];
+  entryCount?: number;
 }): number {
-  return item.realizedAmount ?? item.plannedAmount;
+  return getLineItemRealizedAmount(item) ?? item.plannedAmount;
 }
 
 export function computeEndingBalance(
@@ -21,14 +24,20 @@ export function computeEndingBalance(
 
 export function computeRealizedBalance(
   lastMonthBalance: number,
-  lineItems: { type: string; realizedAmount: number | null }[],
+  lineItems: {
+    type: string;
+    realizedAmount?: number | null;
+    entries?: { amount: number }[];
+    entryCount?: number;
+  }[],
 ): number {
   let balance = lastMonthBalance;
   for (const item of lineItems) {
-    if (item.realizedAmount === null) {
+    const realizedAmount = getLineItemRealizedAmount(item);
+    if (realizedAmount === null) {
       continue;
     }
-    balance += item.type === "income" ? item.realizedAmount : -item.realizedAmount;
+    balance += item.type === "income" ? realizedAmount : -realizedAmount;
   }
   return balance;
 }
@@ -53,7 +62,13 @@ export function collectAllLineItems(
 }
 
 export function computeBudgetTotals(
-  lineItems: { plannedAmount: number; realizedAmount: number | null; type: string }[],
+  lineItems: {
+    plannedAmount: number;
+    realizedAmount?: number | null;
+    entries?: { amount: number }[];
+    entryCount?: number;
+    type: string;
+  }[],
 ) {
   let plannedTotal = 0;
   let realizedTotal = 0;
@@ -61,7 +76,7 @@ export function computeBudgetTotals(
   for (const item of lineItems) {
     if (item.type !== "expense") continue;
     plannedTotal += item.plannedAmount;
-    realizedTotal += item.realizedAmount ?? 0;
+    realizedTotal += getLineItemRealizedAmount(item) ?? 0;
   }
 
   return { plannedTotal, realizedTotal };

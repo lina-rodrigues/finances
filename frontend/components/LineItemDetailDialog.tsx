@@ -17,7 +17,7 @@ import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { collectAllLineItems } from "@/lib/monthViewMath";
 import { useMonthView } from "@/lib/MonthViewProvider";
-import { formatLineItemEntryDisplay } from "@/lib/lineItemAmounts";
+import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
 interface LineItemDetailDialogProps {
@@ -64,7 +64,7 @@ export function LineItemDetailDialog({
   const amountClass = isIncome ? "text-income" : "text-expense";
   const amountPrefix = isIncome ? "+" : "-";
   const entries = [...(liveItem.entries ?? [])].reverse();
-  const spent = liveItem.realizedAmount;
+  const spent = getLineItemRealizedAmount(liveItem);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

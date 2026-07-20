@@ -3,6 +3,7 @@
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { LineItemActions } from "@/components/LineItemActions";
 import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
+import { hasLineItemEntries } from "@/lib/lineItemAmounts";
 import { type Category, type LineItem } from "@/lib/api";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
@@ -18,14 +19,14 @@ function collectUpcoming(categories: Category[], uncategorized: LineItem[]): Upc
 
   for (const category of categories) {
     for (const item of category.lineItems) {
-      if (item.type === "expense" && !item.isRealized) {
+      if (item.type === "expense" && !hasLineItemEntries(item)) {
         upcoming.push({ item, icon: category.icon });
       }
     }
   }
 
   for (const item of uncategorized) {
-    if (item.type === "expense" && !item.isRealized) {
+    if (item.type === "expense" && !hasLineItemEntries(item)) {
       upcoming.push({ item, icon: "category" });
     }
   }

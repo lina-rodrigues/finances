@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Category, FlatCategory, LineItem, MonthView } from "@/lib/api";
+import { normalizeLineItem } from "@/lib/lineItemAmounts";
 import { recomputeEndingBalance, recomputeRealizedBalance } from "@/lib/monthViewMath";
 
 export type MonthViewState = MonthView & { flatCategories: FlatCategory[] };
@@ -101,6 +102,17 @@ function findLineItemLocation(state: MonthViewState, itemId: string): LineItemLo
   return null;
 }
 
+function normalizeMonthViewState(data: MonthViewState): MonthViewState {
+  return {
+    ...data,
+    categories: data.categories.map((category) => ({
+      ...category,
+      lineItems: category.lineItems.map(normalizeLineItem),
+    })),
+    uncategorized: data.uncategorized.map(normalizeLineItem),
+  };
+}
+
 function withRecomputedBalance(state: MonthViewState): MonthViewState {
   const lineItemsBase = state.month.lastMonthBalance;
   const expectedBalance = recomputeEndingBalance(
@@ -128,7 +140,7 @@ function withRecomputedBalance(state: MonthViewState): MonthViewState {
 function monthViewReducer(state: MonthViewState, action: MonthViewAction): MonthViewState {
   switch (action.type) {
     case "SET_FROM_SERVER":
-      return action.payload;
+      return normalizeMonthViewState(action.payload);
 
     case "SET_PENDING":
       return state;

@@ -1,7 +1,8 @@
 import type { LineItem } from "@/lib/api";
+import { getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
 
 export function payRemainderAmount(item: LineItem): number | null {
-  const spent = item.realizedAmount ?? 0;
+  const spent = getLineItemRealizedAmount(item) ?? 0;
   const remainder = item.plannedAmount - spent;
   return remainder > 0 ? remainder : null;
 }

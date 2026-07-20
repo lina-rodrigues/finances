@@ -14,6 +14,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/pixelact-ui/collapsible";
 import { type Category, type LineItem } from "@/lib/api";
+import { getLineItemRealizedAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
 import { resolveCategoryIcon } from "@/lib/icons";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
@@ -70,6 +71,7 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
   const formatMoney = useFormatCurrency();
   const isPending = useRowPending(item.id);
   const isIncome = item.type === "income";
+  const spent = getLineItemRealizedAmount(item);
 
   return (
     <button
@@ -80,10 +82,10 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
-        {(item.entryCount ?? 0) > 0 && item.realizedAmount !== null && (
+        {spent !== null && (
           <span className="text-body text-muted-finance text-xs">
             {t("budget.plannedOf", {
-              spent: formatMoney(item.realizedAmount),
+              spent: formatMoney(spent),
               planned: formatMoney(item.plannedAmount),
             })}
           </span>
@@ -93,7 +95,7 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
             <TypeBadge item={item} />
             <RepeatBadge item={item} />
             {isPending && <PendingBadge />}
-            {!item.isRealized && (
+            {!hasLineItemEntries(item) && (
               <Badge
                 font="normal"
                 variant="outline"

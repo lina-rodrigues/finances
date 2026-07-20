@@ -1,4 +1,9 @@
 import type { LineItem, LineItemEntry, LineItemMutationResponse } from "@/lib/api";
+import {
+  isLineItemRealized,
+  normalizeLineItem,
+  sumEntryAmounts,
+} from "@/lib/lineItemAmounts";
 import { effectiveAmount } from "@/lib/monthViewMath";
 
 const TEMP_ID_PREFIX = "temp-";
@@ -21,20 +26,28 @@ type LineItemSeriesMeta = Pick<
 >;
 
 function toLineItemFields(response: LineItemMutationResponse) {
-  return {
+  const entries = response.entries ?? [];
+  const entryCount = response.entryCount ?? entries.length;
+  const base = {
     id: response.id,
     type: response.type,
     label: response.label,
     plannedAmount: response.plannedAmount,
-    realizedAmount: response.realizedAmount,
-    displayAmount: effectiveAmount(response),
-    isRealized: response.realizedAmount !== null,
-    entries: response.entries ?? [],
-    entryCount: response.entryCount ?? response.entries?.length ?? 0,
+    entries,
+    entryCount,
     seriesId: response.seriesId,
     seriesOccurrenceIndex: response.seriesOccurrenceIndex,
     isSeriesException: response.isSeriesException,
+    realizedAmount: response.realizedAmount,
   };
+  return normalizeLineItem({
+    ...base,
+    displayAmount: effectiveAmount(base),
+    isRealized: isLineItemRealized(base),
+    seriesEndType: null,
+    seriesOccurrenceCount: null,
+    seriesEndYearMonth: null,
+  } as LineItem);
 }
 
 export function toLineItemFromMutation(
@@ -60,15 +73,15 @@ export function buildOptimisticLineItem(
 ): LineItem {
   const plannedAmount = patch.plannedAmount;
   const realizedAmount = patch.realizedAmount;
-  return {
+  return normalizeLineItem({
     ...base,
     type: patch.type ?? base.type,
     label: patch.label,
     plannedAmount,
     realizedAmount,
-    displayAmount: effectiveAmount({ plannedAmount, realizedAmount }),
-    isRealized: realizedAmount !== null,
-  };
+    displayAmount: effectiveAmount({ plannedAmount, realizedAmount, entries: base.entries }),
+    isRealized: base.isRealized,
+  });
 }
 
 export function buildOptimisticCreateLineItem(input: {
@@ -78,7 +91,7 @@ export function buildOptimisticCreateLineItem(input: {
   plannedAmount: number;
   realizedAmount: number | null;
 }): LineItem {
-  return {
+  return normalizeLineItem({
     id: input.id,
     type: input.type,
     label: input.label,
@@ -94,11 +107,11 @@ export function buildOptimisticCreateLineItem(input: {
     seriesOccurrenceCount: null,
     seriesEndYearMonth: null,
     isSeriesException: false,
-  };
+  });
 }
 
-function sumEntryAmounts(entries: Pick<LineItemEntry, "amount">[]): number {
-  return entries.reduce((sum, entry) => sum + entry.amount, 0);
+function sumEntryAmountsLocal(entries: Pick<LineItemEntry, "amount">[]): number {
+  return sumEntryAmounts(entries);
 }
 
 export function buildOptimisticAddEntry(
@@ -106,15 +119,14 @@ export function buildOptimisticAddEntry(
   entry: LineItemEntry,
 ): LineItem {
   const entries = [...base.entries, entry];
-  const realizedAmount = sumEntryAmounts(entries);
-  return {
+  const realizedAmount = sumEntryAmountsLocal(entries);
+  return normalizeLineItem({
     ...base,
     entries,
     entryCount: entries.length,
     realizedAmount,
-    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount }),
-    isRealized: true,
-  };
+    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount, entries }),
+  });
 }
 
 export function buildOptimisticRemoveEntry(
@@ -122,15 +134,14 @@ export function buildOptimisticRemoveEntry(
   entryId: string,
 ): LineItem {
   const entries = base.entries.filter((entry) => entry.id !== entryId);
-  const realizedAmount = entries.length > 0 ? sumEntryAmounts(entries) : null;
-  return {
+  const realizedAmount = entries.length > 0 ? sumEntryAmountsLocal(entries) : null;
+  return normalizeLineItem({
     ...base,
     entries,
     entryCount: entries.length,
     realizedAmount,
-    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount }),
-    isRealized: realizedAmount !== null,
-  };
+    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount, entries }),
+  });
 }
 
 export function extractLineItemSeriesMeta(item: LineItem): Partial<LineItemSeriesMeta> {
