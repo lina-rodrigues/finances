@@ -1,5 +1,6 @@
 "use client";
 
+import { BudgetBar } from "@/components/BudgetBar";
 import { Icon } from "@/components/Icon";
 import { LineItemActions } from "@/components/LineItemActions";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
@@ -122,13 +123,11 @@ export function LineItemDetailDialog({
             </div>
           </dl>
 
-          {(liveItem.entryCount ?? 0) > 0 && spent !== null && (
-            <p className="text-body text-muted-finance text-xs">
-              {t("budget.plannedOf", {
-                spent: formatMoney(spent),
-                planned: formatMoney(liveItem.plannedAmount),
-              })}
-            </p>
+          {liveItem.plannedAmount > 0 && (
+            <BudgetBar
+              plannedTotal={liveItem.plannedAmount}
+              realizedTotal={spent ?? 0}
+            />
           )}
 
           <div>
