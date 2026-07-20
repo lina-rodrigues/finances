@@ -153,6 +153,7 @@ If report generation fails in production, check the API logs and configuration:
 |----------------|--------------|-----|
 | “AI reports aren't available right now” | `CURSOR_API_KEY` missing or empty on the API | Add a valid key to the API environment (local `.env` or Vercel project env vars), then redeploy the API |
 | “We couldn't generate your report…” | Cursor API error, network issue, or prompt file problem | Inspect API logs; confirm the key is valid, the API can reach Cursor, and [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt) exists in the deployment |
+| API log: `ENOENT … sdk-agent-store` | AI reports used local SDK mode on a read-only serverless filesystem | Fixed in app code: reports use Cursor **cloud** agents (no disk). Redeploy the API if you still see this on an older build |
 
 After changing API environment variables on Vercel, trigger a new API deployment so the runtime picks them up.
 

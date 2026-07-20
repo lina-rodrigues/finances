@@ -1,12 +1,8 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { Agent, type RunResult } from "@cursor/sdk";
 import {
   REPORT_ERROR_CODES,
   ReportServiceError,
 } from "../constants/reportErrors.js";
-
-const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 function getCursorApiKey(): string {
   const apiKey = process.env.CURSOR_API_KEY?.trim();
@@ -32,10 +28,13 @@ function extractAssistantText(result: RunResult): string {
 
 export async function generateCursorReport(fullPrompt: string): Promise<string> {
   try {
+    // Cloud agents: no local filesystem or repo needed. Local mode writes an
+    // on-disk agent store under ~/.cursor, which fails on Vercel's read-only FS.
     const result = await Agent.prompt(fullPrompt, {
       apiKey: getCursorApiKey(),
       model: { id: "composer-2.5" },
-      local: { cwd: apiRoot },
+      name: "Financial health report",
+      cloud: {},
     });
 
     return extractAssistantText(result);
