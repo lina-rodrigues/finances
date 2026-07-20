@@ -11,6 +11,7 @@
     "seed:fresh": "tsx src/seed/index.ts --fresh"
   },
   "dependencies": {
+    "@cursor/sdk": "^1.0.23",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

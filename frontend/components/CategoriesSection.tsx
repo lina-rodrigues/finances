@@ -33,6 +33,7 @@ export function CategoriesSection() {
           name: uncategorizedLabel,
           order: Number.MAX_SAFE_INTEGER,
           icon: "category",
+          budgetGroup: null,
           lineItems: uncategorized,
         }
       : null;

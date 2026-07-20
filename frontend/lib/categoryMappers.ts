@@ -17,7 +17,7 @@ export function buildOptimisticCategory(
   icon: string,
   order: number,
 ): { category: Category; flatCategory: FlatCategory } {
-  const flatCategory: FlatCategory = { id, name, icon, order };
+  const flatCategory: FlatCategory = { id, name, icon, order, budgetGroup: null };
   return {
     flatCategory,
     category: { ...flatCategory, lineItems: [] },

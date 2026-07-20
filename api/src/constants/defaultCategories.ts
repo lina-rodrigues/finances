@@ -1,3 +1,5 @@
+import type { BudgetGroup } from "./budgetGroup.js";
+
 export type AppLanguage = "en" | "pt";
 
 export interface DefaultCategoryDef {
@@ -6,29 +8,32 @@ export interface DefaultCategoryDef {
   icon: string;
   en: string;
   pt: string;
+  budgetGroup: BudgetGroup | null;
 }
 
 export const DEFAULT_CATEGORY_DEFS: DefaultCategoryDef[] = [
-  { key: "salary", order: 0, icon: "income", en: "Salary", pt: "Salário" },
-  { key: "rent", order: 1, icon: "house", en: "Rent", pt: "Aluguel" },
-  { key: "utilities", order: 2, icon: "bolt", en: "Utilities", pt: "Contas" },
-  { key: "groceries", order: 3, icon: "cartShopping", en: "Groceries", pt: "Mercado" },
-  { key: "diningOut", order: 4, icon: "utensils", en: "Dining Out", pt: "Restaurantes" },
-  { key: "fuel", order: 5, icon: "car", en: "Fuel", pt: "Combustível" },
-  { key: "publicTransit", order: 6, icon: "car", en: "Public Transit", pt: "Transporte público" },
-  { key: "entertainment", order: 7, icon: "film", en: "Entertainment", pt: "Entretenimento" },
-  { key: "other", order: 8, icon: "category", en: "Other", pt: "Outros" },
+  { key: "salary", order: 0, icon: "income", en: "Salary", pt: "Salário", budgetGroup: null },
+  { key: "rent", order: 1, icon: "house", en: "Rent", pt: "Aluguel", budgetGroup: "essential" },
+  { key: "utilities", order: 2, icon: "bolt", en: "Utilities", pt: "Contas", budgetGroup: "essential" },
+  { key: "groceries", order: 3, icon: "cartShopping", en: "Groceries", pt: "Mercado", budgetGroup: "essential" },
+  { key: "diningOut", order: 4, icon: "utensils", en: "Dining Out", pt: "Restaurantes", budgetGroup: "non_essential" },
+  { key: "fuel", order: 5, icon: "car", en: "Fuel", pt: "Combustível", budgetGroup: "essential" },
+  { key: "publicTransit", order: 6, icon: "car", en: "Public Transit", pt: "Transporte público", budgetGroup: "essential" },
+  { key: "entertainment", order: 7, icon: "film", en: "Entertainment", pt: "Entretenimento", budgetGroup: "non_essential" },
+  { key: "other", order: 8, icon: "category", en: "Other", pt: "Outros", budgetGroup: "non_essential" },
 ];
 
 export function getDefaultCategories(language: AppLanguage): {
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
 }[] {
   return DEFAULT_CATEGORY_DEFS.map((def) => ({
     name: language === "pt" ? def.pt : def.en,
     order: def.order,
     icon: def.icon,
+    budgetGroup: def.budgetGroup,
   }));
 }
 

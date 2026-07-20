@@ -40,6 +40,8 @@ Run from the repo root:
 | `pnpm db:restore -- --path backups/... --confirm` | Restore a backup (`--drop` on target DB) |
 | `pnpm db:migrate:realized-to-entries -- --check` | Scan for line items that block the realized→entries migration |
 
+AI reports: set `CURSOR_API_KEY` in `.env`; edit [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt) to change report behavior (requires Node 22.13+ for `@cursor/sdk`).
+
 Cursor commands in `.cursor/commands/` (`/contrast-check`, `/responsive-check`) wrap these scripts with an analyze-propose-approve workflow.
 
 ### Verification workflow for UI changes

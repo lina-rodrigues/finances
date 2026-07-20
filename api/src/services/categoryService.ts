@@ -1,5 +1,7 @@
 import { Category, type ICategory } from "../models/Category.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
+import type { BudgetGroup } from "../constants/budgetGroup.js";
+import { resolveBudgetGroup } from "../constants/budgetGroup.js";
 import { effectiveAmount, getRealizedAmount, isRealized, type ILineItem, type LineItemType } from "../models/LineItem.js";
 import type { IRecurringSeries, RecurrenceEndType } from "../models/RecurringSeries.js";
 import type { Types } from "mongoose";
@@ -32,6 +34,7 @@ export interface CategoryWithLineItems {
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
   lineItems: LineItemResponse[];
 }
 
@@ -40,6 +43,7 @@ export interface FlatCategoryResponse {
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
 }
 
 function normalizeIcon(icon: string | undefined): string {
@@ -55,8 +59,11 @@ export function toFlatCategoryResponse(cat: ICategory): FlatCategoryResponse {
     name: cat.name,
     order: cat.order,
     icon: normalizeIcon(cat.icon),
+    budgetGroup: cat.budgetGroup ?? null,
   };
 }
+
+export { resolveBudgetGroup };
 
 function toLineItemResponse(
   item: ILineItem,

@@ -4,11 +4,12 @@ import { fetchMonthView } from "@/lib/api-server";
 
 export default async function FinancePage() {
   const data = await fetchMonthView();
-  const flatCategories = data.categories.map(({ id, name, order, icon }) => ({
+  const flatCategories = data.categories.map(({ id, name, order, icon, budgetGroup }) => ({
     id,
     name,
     order,
     icon,
+    budgetGroup,
   }));
 
   return (

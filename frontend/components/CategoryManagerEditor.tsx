@@ -8,12 +8,20 @@ import { Icon } from "@/components/Icon";
 import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { Button } from "@/components/ui/pixelact-ui/button";
 import { Input } from "@/components/ui/pixelact-ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/pixelact-ui/select";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   createCategory,
   deleteCategory,
   reorderCategories,
   updateCategory,
+  type BudgetGroup,
   type Category,
   type FlatCategory,
 } from "@/lib/api";
@@ -31,6 +39,17 @@ import { useMutationFeedback } from "@/lib/useMutationFeedback";
 interface EditableCategory extends FlatCategory {
   draftName: string;
   draftIcon: IconName;
+  draftBudgetGroup: BudgetGroup | null;
+}
+
+type BudgetGroupOption = "default" | BudgetGroup;
+
+function toBudgetGroupOption(budgetGroup: BudgetGroup | null): BudgetGroupOption {
+  return budgetGroup ?? "default";
+}
+
+function fromBudgetGroupOption(option: BudgetGroupOption): BudgetGroup | null {
+  return option === "default" ? null : option;
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -40,6 +59,7 @@ function toEditable(cat: FlatCategory): EditableCategory {
     ...cat,
     draftName: cat.name,
     draftIcon: resolveCategoryIcon(cat.icon),
+    draftBudgetGroup: cat.budgetGroup,
   };
 }
 
@@ -64,7 +84,8 @@ function buildReorderedCategories(
 function isDirty(cat: EditableCategory): boolean {
   return (
     cat.draftName.trim() !== cat.name ||
-    cat.draftIcon !== resolveCategoryIcon(cat.icon)
+    cat.draftIcon !== resolveCategoryIcon(cat.icon) ||
+    cat.draftBudgetGroup !== cat.budgetGroup
   );
 }
 
@@ -163,7 +184,11 @@ export const CategoryManagerEditor = forwardRef<
       const ok = await runOptimistic({
         snapshot: () => captureMonthViewState(monthView),
         apply: () => {
-          patchCategory(cat.id, { name: trimmedName, icon: cat.draftIcon });
+          patchCategory(cat.id, {
+            name: trimmedName,
+            icon: cat.draftIcon,
+            budgetGroup: cat.draftBudgetGroup,
+          });
           setCategories((prev) =>
             prev.map((entry) =>
               entry.id === cat.id
@@ -171,14 +196,21 @@ export const CategoryManagerEditor = forwardRef<
                     ...entry,
                     name: trimmedName,
                     icon: cat.draftIcon,
+                    budgetGroup: cat.draftBudgetGroup,
                     draftName: trimmedName,
                     draftIcon: cat.draftIcon,
+                    draftBudgetGroup: cat.draftBudgetGroup,
                   }
                 : entry,
             ),
           );
         },
-        mutate: () => updateCategory(cat.id, { name: trimmedName, icon: cat.draftIcon }),
+        mutate: () =>
+          updateCategory(cat.id, {
+            name: trimmedName,
+            icon: cat.draftIcon,
+            budgetGroup: cat.draftBudgetGroup,
+          }),
         reconcile: () => backgroundReconcile(router),
         rollback: restoreFromSnapshot,
         successMessage: undefined,
@@ -212,7 +244,10 @@ export const CategoryManagerEditor = forwardRef<
     [persistCategory],
   );
 
-  function updateDraft(id: string, patch: Partial<Pick<EditableCategory, "draftName" | "draftIcon">>) {
+  function updateDraft(
+    id: string,
+    patch: Partial<Pick<EditableCategory, "draftName" | "draftIcon" | "draftBudgetGroup">>,
+  ) {
     setCategories((prev) => {
       const next = prev.map((cat) => (cat.id === id ? { ...cat, ...patch } : cat));
       const updated = next.find((cat) => cat.id === id);
@@ -475,6 +510,26 @@ export const CategoryManagerEditor = forwardRef<
                     disabled={rowDisabled || rowSaving}
                     aria-label={cat.name}
                   />
+
+                  <Select
+                    value={toBudgetGroupOption(cat.draftBudgetGroup)}
+                    onValueChange={(value) =>
+                      updateDraft(cat.id, {
+                        draftBudgetGroup: fromBudgetGroupOption(value as BudgetGroupOption),
+                      })
+                    }
+                    disabled={rowDisabled || rowSaving}
+                  >
+                    <SelectTrigger className="w-[9.5rem] shrink-0" aria-label={t("categories.budgetGroup")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">{t("categories.budgetGroupDefault")}</SelectItem>
+                      <SelectItem value="essential">{t("categories.budgetGroupEssential")}</SelectItem>
+                      <SelectItem value="non_essential">{t("categories.budgetGroupNonEssential")}</SelectItem>
+                      <SelectItem value="investment">{t("categories.budgetGroupInvestment")}</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   <div className="flex shrink-0 items-center gap-2">
                     {status === "saving" && (

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Category } from "../models/Category.js";
 import { LineItem } from "../models/LineItem.js";
 import { DEFAULT_CATEGORY_ICON, isAllowedCategoryIcon } from "../constants/categoryIcons.js";
+import { BUDGET_GROUPS } from "../constants/budgetGroup.js";
 import {
   getAllCategoriesFlat,
   reorderCategories,
@@ -19,16 +20,20 @@ const iconSchema = z
   .refine(isAllowedCategoryIcon, { message: "Invalid category icon" })
   .optional();
 
+const budgetGroupSchema = z.enum(BUDGET_GROUPS).nullable().optional();
+
 const createCategorySchema = z.object({
   name: z.string().min(1),
   icon: iconSchema,
   order: z.number().int().optional(),
+  budgetGroup: budgetGroupSchema,
 });
 
 const updateCategorySchema = z.object({
   name: z.string().min(1).optional(),
   icon: iconSchema,
   order: z.number().int().optional(),
+  budgetGroup: budgetGroupSchema,
 });
 
 const reorderSchema = z.object({
@@ -73,6 +78,7 @@ router.post(
       name: body.name,
       icon: body.icon ?? DEFAULT_CATEGORY_ICON,
       order,
+      budgetGroup: body.budgetGroup ?? null,
     });
 
     res.status(201).json(toFlatCategoryResponse(category));

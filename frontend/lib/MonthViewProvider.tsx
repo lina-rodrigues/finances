@@ -54,7 +54,7 @@ type MonthViewAction =
   | {
       type: "PATCH_CATEGORY";
       id: string;
-      patch: Partial<Pick<Category, "name" | "icon" | "order">>;
+      patch: Partial<Pick<Category, "name" | "icon" | "order" | "budgetGroup">>;
     }
   | { type: "ADD_CATEGORY"; category: Category; flatCategory: FlatCategory }
   | { type: "REMOVE_CATEGORY"; id: string }
@@ -76,7 +76,7 @@ interface MonthViewActionsValue {
   removeLineItem: (itemId: string) => void;
   replaceLineItem: (itemId: string, item: LineItem) => void;
   reorderCategories: (categories: Category[]) => void;
-  patchCategory: (id: string, patch: Partial<Pick<Category, "name" | "icon" | "order">>) => void;
+  patchCategory: (id: string, patch: Partial<Pick<Category, "name" | "icon" | "order" | "budgetGroup">>) => void;
   addCategory: (category: Category, flatCategory: FlatCategory) => void;
   removeCategory: (id: string) => void;
   replaceCategoryId: (tempId: string, category: Category, flatCategory: FlatCategory) => void;
@@ -215,11 +215,12 @@ function monthViewReducer(state: MonthViewState, action: MonthViewAction): Month
     }
 
     case "REORDER_CATEGORIES": {
-      const flatCategories = action.categories.map(({ id, name, order, icon }) => ({
+      const flatCategories = action.categories.map(({ id, name, order, icon, budgetGroup }) => ({
         id,
         name,
         order,
         icon,
+        budgetGroup,
       }));
       return { ...state, categories: action.categories, flatCategories };
     }
@@ -309,7 +310,7 @@ export function MonthViewProvider({ initialData, children }: MonthViewProviderPr
   }, []);
 
   const patchCategory = useCallback(
-    (id: string, patch: Partial<Pick<Category, "name" | "icon" | "order">>) => {
+    (id: string, patch: Partial<Pick<Category, "name" | "icon" | "order" | "budgetGroup">>) => {
       dispatch({ type: "PATCH_CATEGORY", id, patch });
     },
     [],

@@ -138,6 +138,10 @@ Realized amounts are stored as embedded **entries** on each line item. The API s
 | `NEXT_PUBLIC_API_URL` | frontend | `http://localhost:4000` | API base URL for fetch calls |
 | `SEED_DEV_EMAIL` | api | `dev@finance.local` | Dev user email for seed script |
 | `SEED_DEV_PASSWORD` | api | `password123` | Dev user password for seed script |
+| `CURSOR_API_KEY` | api | — | Cursor SDK key for AI financial reports (server-only) |
+| `AI_REPORT_PROMPT_PATH` | api | `prompts/financial-health-report.txt` | Optional override for the AI report prompt file |
+
+Edit the default AI report prompt at [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt). Requires Node **22.13+** for `@cursor/sdk`.
 
 ## Data Model
 

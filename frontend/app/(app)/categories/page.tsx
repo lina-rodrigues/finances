@@ -9,11 +9,12 @@ export default async function CategoriesPage({
 }) {
   const { month: monthParam } = await searchParams;
   const data = await fetchMonthView(monthParam);
-  const flatCategories = data.categories.map(({ id, name, order, icon }) => ({
+  const flatCategories = data.categories.map(({ id, name, order, icon, budgetGroup }) => ({
     id,
     name,
     order,
     icon,
+    budgetGroup,
   }));
 
   return (

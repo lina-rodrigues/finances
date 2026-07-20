@@ -85,8 +85,27 @@
     "noUpcomingPayments": "Nenhum pagamento pendente neste mês."
   },
   "reports": {
-    "soon": "EM BREVE!",
-    "comingSoon": "Relatórios e análises"
+    "budgetTitle": "Expectativas de orçamento",
+    "budgetEmpty": "Adicione despesas para ver a distribuição dos gastos.",
+    "budgetTotalExpenses": "Total de despesas",
+    "budgetEssential": "Essencial (50%)",
+    "budgetNonEssential": "Não essencial (30%)",
+    "budgetInvestment": "Investimentos (20%)",
+    "budgetActualVsTarget": "{actual}% dos gastos · meta {target}%",
+    "budgetVsTarget": "vs meta",
+    "aiAssistantTitle": "Assistente de IA",
+    "generateReport": "Gerar relatório",
+    "generateSuccess": "Relatório gerado",
+    "generateFailed": "Não foi possível gerar o relatório",
+    "generatedReports": "Relatórios gerados",
+    "noReports": "Nenhum relatório neste mês.",
+    "reportDetail": "Relatório",
+    "reportPending": "Relatório ainda sendo gerado…",
+    "status": {
+      "pending": "Pendente",
+      "completed": "Concluído",
+      "failed": "Falhou"
+    }
   },
   "categories": {
     "title": "Categorias",
@@ -130,7 +149,12 @@
     "savedBadge": "salvo",
     "unsavedChanges": "Descartar alterações não salvas?",
     "unsavedChangesDescription": "Algumas edições de categorias ainda não foram salvas.",
-    "backToCategories": "Voltar às categorias"
+    "backToCategories": "Voltar às categorias",
+    "budgetGroup": "Grupo de orçamento",
+    "budgetGroupDefault": "Padrão (Não essencial)",
+    "budgetGroupEssential": "Essencial (50%)",
+    "budgetGroupNonEssential": "Não essencial (30%)",
+    "budgetGroupInvestment": "Investimentos (20%)"
   },
   "addItem": {
     "title": "Adicionar",
@@ -206,6 +230,7 @@
     "INVALID_OR_EXPIRED_TOKEN": "Este link é inválido ou expirou.",
     "NOT_FOUND": "Não encontrado.",
     "CATEGORY_HAS_LINE_ITEMS": "Não é possível excluir categoria com itens.",
+    "REPORT_GENERATION_FAILED": "Não foi possível gerar o relatório.",
     "Validation error": "Verifique os dados informados."
   },
   "toast": {

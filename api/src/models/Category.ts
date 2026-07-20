@@ -1,11 +1,13 @@
 import mongoose, { Schema, type Document, type Types } from "mongoose";
 import { DEFAULT_CATEGORY_ICON } from "../constants/categoryIcons.js";
+import type { BudgetGroup } from "../constants/budgetGroup.js";
 
 export interface ICategory extends Document {
   userId: Types.ObjectId;
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
 }
 
 const categorySchema = new Schema<ICategory>(
@@ -14,6 +16,10 @@ const categorySchema = new Schema<ICategory>(
     name: { type: String, required: true },
     order: { type: Number, default: 0 },
     icon: { type: String, default: DEFAULT_CATEGORY_ICON },
+    budgetGroup: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 );

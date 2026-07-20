@@ -85,8 +85,27 @@
     "noUpcomingPayments": "No upcoming payments this month."
   },
   "reports": {
-    "soon": "SOON!",
-    "comingSoon": "Reports and analytics"
+    "budgetTitle": "Budget expectations",
+    "budgetEmpty": "Add expenses to see your spending breakdown.",
+    "budgetTotalExpenses": "Total expenses",
+    "budgetEssential": "Essential (50%)",
+    "budgetNonEssential": "Non-essential (30%)",
+    "budgetInvestment": "Investments (20%)",
+    "budgetActualVsTarget": "{actual}% of spending · target {target}%",
+    "budgetVsTarget": "vs target",
+    "aiAssistantTitle": "AI Assistant",
+    "generateReport": "Generate report",
+    "generateSuccess": "Report generated",
+    "generateFailed": "Could not generate report",
+    "generatedReports": "Generated reports",
+    "noReports": "No reports yet for this month.",
+    "reportDetail": "Report",
+    "reportPending": "Report is still generating…",
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
   },
   "categories": {
     "title": "Categories",
@@ -130,7 +149,12 @@
     "savedBadge": "saved",
     "unsavedChanges": "Discard unsaved changes?",
     "unsavedChangesDescription": "Some category edits have not been saved yet.",
-    "backToCategories": "Back to categories"
+    "backToCategories": "Back to categories",
+    "budgetGroup": "Budget group",
+    "budgetGroupDefault": "Default (Non-essential)",
+    "budgetGroupEssential": "Essential (50%)",
+    "budgetGroupNonEssential": "Non-essential (30%)",
+    "budgetGroupInvestment": "Investments (20%)"
   },
   "addItem": {
     "title": "Add",
@@ -206,6 +230,7 @@
     "INVALID_OR_EXPIRED_TOKEN": "This reset link is invalid or expired.",
     "NOT_FOUND": "Not found.",
     "CATEGORY_HAS_LINE_ITEMS": "Cannot delete category with existing line items.",
+    "REPORT_GENERATION_FAILED": "Could not generate report.",
     "Validation error": "Please check your input."
   },
   "toast": {

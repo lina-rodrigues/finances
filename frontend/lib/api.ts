@@ -1,5 +1,7 @@
 export type LineItemType = "income" | "expense";
 
+export type BudgetGroup = "essential" | "non_essential" | "investment";
+
 export type RecurrenceEndType = "never" | "count" | "until";
 
 export type RecurrenceScope = "this" | "future" | "all";
@@ -59,6 +61,7 @@ export interface Category {
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
   lineItems: LineItem[];
 }
 
@@ -81,6 +84,35 @@ export interface FlatCategory {
   name: string;
   order: number;
   icon: string;
+  budgetGroup: BudgetGroup | null;
+}
+
+export interface BudgetBucketSummary {
+  targetPct: number;
+  targetAmount: number;
+  actualAmount: number;
+  actualPct: number;
+  deltaAmount: number;
+  deltaPct: number;
+}
+
+export interface Budget503020Summary {
+  expenseTotal: number;
+  hasExpenses: boolean;
+  buckets: Record<BudgetGroup, BudgetBucketSummary>;
+}
+
+export type FinancialReportStatus = "pending" | "completed" | "failed";
+
+export interface FinancialReport {
+  id: string;
+  yearMonth: string;
+  status: FinancialReportStatus;
+  promptUsed: string;
+  content: string | null;
+  error: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function getApiUrl(): string {
@@ -129,6 +161,7 @@ export async function createCategory(data: {
   name: string;
   icon?: string;
   order?: number;
+  budgetGroup?: BudgetGroup | null;
 }): Promise<FlatCategory> {
   const res = await apiFetch("/categories", "create category", jsonInit("POST", data));
   return res.json();
@@ -136,7 +169,7 @@ export async function createCategory(data: {
 
 export async function updateCategory(
   id: string,
-  data: Partial<{ name: string; icon: string; order: number }>,
+  data: Partial<{ name: string; icon: string; order: number; budgetGroup: BudgetGroup | null }>,
 ): Promise<FlatCategory> {
   const res = await apiFetch(`/categories/${id}`, "update category", jsonInit("PATCH", data));
   return res.json();
@@ -316,4 +349,53 @@ export function categoryManagePath(yearMonth?: string): string {
   const month = yearMonth ?? getCurrentYearMonth();
   const current = getCurrentYearMonth();
   return month === current ? "/categories/manage" : `/categories/manage?month=${month}`;
+}
+
+export async function fetchBudget503020(yearMonth: string): Promise<Budget503020Summary> {
+  const res = await apiFetch(
+    `/reports/budget?yearMonth=${encodeURIComponent(yearMonth)}`,
+    "fetch budget breakdown",
+    { cache: "no-store" },
+  );
+  return res.json();
+}
+
+export async function fetchReports(yearMonth: string): Promise<FinancialReport[]> {
+  const res = await apiFetch(
+    `/reports?yearMonth=${encodeURIComponent(yearMonth)}`,
+    "fetch reports",
+    { cache: "no-store" },
+  );
+  return res.json();
+}
+
+export async function generateReport(yearMonth: string): Promise<FinancialReport> {
+  const res = await fetch(`${getApiUrl()}/reports/generate`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ yearMonth }),
+  });
+
+  if (res.status === 401 && typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+
+  const body = (await res.json().catch(() => ({}))) as FinancialReport & {
+    report?: FinancialReport;
+    message?: string;
+    error?: string;
+  };
+
+  if (res.ok) {
+    return body;
+  }
+
+  if (body.report) {
+    return body.report;
+  }
+
+  const message =
+    typeof body.error === "string" ? body.error : `Failed to generate report: ${res.statusText}`;
+  throw new Error(message);
 }
