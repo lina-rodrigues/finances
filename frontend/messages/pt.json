@@ -76,8 +76,8 @@
   },
   "nav": {
     "label": "Navegação principal",
-    "finance": "Finanças",
-    "categories": "Categorias",
+    "finance": "Visão geral",
+    "categories": "Detalhado",
     "reports": "Relatórios"
   },
   "finance": {
