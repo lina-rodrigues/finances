@@ -36,6 +36,7 @@ export const updateUserSchema = z.object({
       theme: z.union([z.enum(["light", "dark"]), z.null()]).optional(),
       currency: z.string().min(3).max(3).optional(),
       language: z.enum(["en", "pt"]).optional(),
+      aiReportTone: z.enum(["normal", "formal", "technical", "informal"]).optional(),
     })
     .optional(),
 });

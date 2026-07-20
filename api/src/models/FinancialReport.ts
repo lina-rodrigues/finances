@@ -5,6 +5,7 @@ export type FinancialReportStatus = "pending" | "completed" | "failed";
 export interface IFinancialReport extends Document {
   userId: Types.ObjectId;
   yearMonth: string;
+  title: string;
   status: FinancialReportStatus;
   promptUsed: string;
   content: string | null;
@@ -17,6 +18,7 @@ const financialReportSchema = new Schema<IFinancialReport>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     yearMonth: { type: String, required: true },
+    title: { type: String, default: "", trim: true },
     status: {
       type: String,
       enum: ["pending", "completed", "failed"],
@@ -36,26 +38,37 @@ export const FinancialReport = mongoose.model<IFinancialReport>(
   financialReportSchema,
 );
 
-export interface FinancialReportResponse {
+export interface FinancialReportSummaryResponse {
   id: string;
   yearMonth: string;
+  title: string;
   status: FinancialReportStatus;
-  promptUsed: string;
-  content: string | null;
   error: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export function toFinancialReportResponse(report: IFinancialReport): FinancialReportResponse {
+export interface FinancialReportResponse extends FinancialReportSummaryResponse {
+  promptUsed: string;
+  content: string | null;
+}
+
+export function toFinancialReportSummary(report: IFinancialReport): FinancialReportSummaryResponse {
   return {
     id: report._id.toString(),
     yearMonth: report.yearMonth,
+    title: report.title?.trim() || `Report ${report.yearMonth}`,
     status: report.status,
-    promptUsed: report.promptUsed,
-    content: report.content,
     error: report.error,
     createdAt: report.createdAt.toISOString(),
     updatedAt: report.updatedAt.toISOString(),
+  };
+}
+
+export function toFinancialReportResponse(report: IFinancialReport): FinancialReportResponse {
+  return {
+    ...toFinancialReportSummary(report),
+    promptUsed: report.promptUsed,
+    content: report.content,
   };
 }

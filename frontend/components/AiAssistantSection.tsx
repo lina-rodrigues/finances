@@ -3,16 +3,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
+import { ReportDetailDialog } from "@/components/ReportDetailDialog";
 import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/pixelact-ui/card";
+import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/pixelact-ui/collapsible";
-import { ReportMarkdown } from "@/components/ReportMarkdown";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import { deleteReport, fetchReports, generateReport, type FinancialReport } from "@/lib/api";
+import {
+  deleteReport,
+  fetchReports,
+  generateReport,
+  type FinancialReportSummary,
+} from "@/lib/api";
 import { useTranslation, translateReportError } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -30,25 +35,21 @@ function formatReportDate(iso: string, locale: string): string {
 export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
   const { t, locale } = useTranslation();
   const { loading: mutating, run } = useMutationFeedback();
-  const [reports, setReports] = useState<FinancialReport[]>([]);
+  const [reports, setReports] = useState<FinancialReportSummary[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
-  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [listOpen, setListOpen] = useState(true);
-  const [deletingReport, setDeletingReport] = useState<FinancialReport | null>(null);
+  const [deletingReport, setDeletingReport] = useState<FinancialReportSummary | null>(null);
+  const [viewingReportId, setViewingReportId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const localeTag = locale === "pt" ? "pt-BR" : "en-US";
+  const hasPendingReports = reports.some((report) => report.status === "pending");
 
   const loadReports = useCallback(async () => {
     setLoadingReports(true);
     try {
       const data = await fetchReports(yearMonth);
       setReports(data);
-      setSelectedReportId((current) => {
-        if (current && data.some((report) => report.id === current)) {
-          return current;
-        }
-        return data[0]?.id ?? null;
-      });
     } finally {
       setLoadingReports(false);
     }
@@ -58,13 +59,29 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
     void loadReports();
   }, [loadReports]);
 
-  const selectedReport = reports.find((report) => report.id === selectedReportId) ?? null;
+  useEffect(() => {
+    if (!hasPendingReports) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void loadReports();
+    }, 2500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [hasPendingReports, loadReports]);
+
+  function openReport(report: FinancialReportSummary) {
+    setViewingReportId(report.id);
+    setDetailOpen(true);
+  }
 
   async function handleGenerate() {
     await run(async () => {
       const report = await generateReport(yearMonth);
       await loadReports();
-      setSelectedReportId(report.id);
       setListOpen(true);
       if (report.status !== "completed") {
         throw new Error(report.error ?? "REPORT_GENERATION_FAILED");
@@ -83,6 +100,10 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
     await run(async () => {
       await deleteReport(reportId);
       setDeletingReport(null);
+      if (viewingReportId === reportId) {
+        setDetailOpen(false);
+        setViewingReportId(null);
+      }
       await loadReports();
     }, {
       successMessage: t("reports.reportDeleted"),
@@ -140,21 +161,19 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
               reports.map((report) => (
                 <div
                   key={report.id}
-                  className={`interactive-row inventory-slot flex items-center gap-1 p-1 ${
-                    selectedReportId === report.id ? "ring-2 ring-ring" : ""
-                  }`}
+                  className="interactive-row inventory-slot flex items-center gap-1 p-1"
                 >
                   <button
                     type="button"
                     className="min-w-0 flex-1 p-2 text-left"
-                    onClick={() => setSelectedReportId(report.id)}
+                    onClick={() => openReport(report)}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-body text-sm font-semibold">
-                        {formatReportDate(report.createdAt, localeTag)}
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <span className="text-body text-sm leading-snug font-semibold break-words">
+                        {report.title}
                       </span>
                       <span
-                        className={`text-body text-xs ${
+                        className={`text-body shrink-0 text-xs ${
                           report.status === "completed"
                             ? "text-income"
                             : report.status === "failed"
@@ -165,6 +184,14 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
                         {t(`reports.status.${report.status}`)}
                       </span>
                     </div>
+                    <span className="text-muted-finance text-body mt-1 block text-xs">
+                      {formatReportDate(report.createdAt, localeTag)}
+                    </span>
+                    {report.status === "failed" && report.error && (
+                      <span className="text-body mt-1 block text-xs text-expense">
+                        {translateReportError(report.error, locale)}
+                      </span>
+                    )}
                   </button>
                   <Button
                     type="button"
@@ -181,39 +208,13 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
               ))}
           </CollapsibleContent>
         </Collapsible>
-
-        {selectedReport && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-display text-xs">{t("reports.reportDetail")}</CardTitle>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="pressable focus-ring h-auto gap-1 p-1 text-expense"
-                disabled={mutating}
-                onClick={() => setDeletingReport(selectedReport)}
-              >
-                <Icon name="delete" size="xs" colorClass="text-expense" />
-                <span className="text-body text-xs">{t("reports.deleteReport")}</span>
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-0">
-              {selectedReport.status === "completed" && selectedReport.content && (
-                <ReportMarkdown content={selectedReport.content} />
-              )}
-              {selectedReport.status === "failed" && (
-                <p className="text-body text-sm text-expense">
-                  {translateReportError(selectedReport.error, locale)}
-                </p>
-              )}
-              {selectedReport.status === "pending" && (
-                <p className="text-muted-finance text-body text-sm">{t("reports.reportPending")}</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </section>
+
+      <ReportDetailDialog
+        reportId={viewingReportId}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
 
       <ConfirmDialog
         open={deletingReport !== null}
@@ -226,7 +227,7 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
         description={
           deletingReport
             ? t("reports.deleteReportDescription", {
-                date: formatReportDate(deletingReport.createdAt, localeTag),
+                title: deletingReport.title,
               })
             : undefined
         }

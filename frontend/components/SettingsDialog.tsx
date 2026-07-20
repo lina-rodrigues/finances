@@ -29,7 +29,7 @@ import { getCurrencyOptions } from "@/lib/currencies";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
-import type { AppLanguage } from "@/lib/auth-api";
+import type { AiReportTone, AppLanguage } from "@/lib/auth-api";
 
 type ThemeOption = "system" | "light" | "dark";
 
@@ -49,6 +49,7 @@ type SettingsSnapshot = {
   themeOption: ThemeOption;
   currency: string;
   language: AppLanguage;
+  aiReportTone: AiReportTone;
 };
 
 type SettingsDialogProps = {
@@ -67,6 +68,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [themeOption, setThemeOption] = useState<ThemeOption>("system");
   const [currency, setCurrency] = useState("USD");
   const [language, setLanguage] = useState<AppLanguage>("en");
+  const [aiReportTone, setAiReportTone] = useState<AiReportTone>("normal");
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyContainerRef = useRef<HTMLDivElement>(null);
@@ -91,6 +93,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setThemeOption(themeToOption(user.preferences.theme));
     setCurrency(user.preferences.currency);
     setLanguage(user.preferences.language);
+    setAiReportTone(user.preferences.aiReportTone ?? "normal");
     setCurrencyQuery("");
     setCurrencyOpen(false);
   }
@@ -113,6 +116,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setThemeOption(themeToOption(user.preferences.theme));
     setCurrency(user.preferences.currency);
     setLanguage(user.preferences.language);
+    setAiReportTone(user.preferences.aiReportTone ?? "normal");
     setCurrencyQuery("");
     setCurrencyOpen(false);
   }, [open, user]);
@@ -138,7 +142,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   }, [currencyOpen]);
 
   function captureSettingsSnapshot(): SettingsSnapshot {
-    return { name, themeOption, currency, language };
+    return { name, themeOption, currency, language, aiReportTone };
   }
 
   function rollbackSettings(snapshot: SettingsSnapshot) {
@@ -146,11 +150,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setThemeOption(snapshot.themeOption);
     setCurrency(snapshot.currency);
     setLanguage(snapshot.language);
+    setAiReportTone(snapshot.aiReportTone);
     updateLocalName(snapshot.name);
     updateLocalPreferences({
       theme: optionToTheme(snapshot.themeOption),
       currency: snapshot.currency,
       language: snapshot.language,
+      aiReportTone: snapshot.aiReportTone,
     });
     setLocale(snapshot.language);
   }
@@ -171,6 +177,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         themeOption,
         currency,
         language,
+        aiReportTone,
       }),
       apply: () => updateLocalName(trimmed),
       mutate: async () => {
@@ -220,6 +227,24 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     });
   }
 
+  async function handleAiReportToneChange(next: AiReportTone) {
+    await runOptimistic({
+      snapshot: captureSettingsSnapshot,
+      apply: () => {
+        setAiReportTone(next);
+        updateLocalPreferences({ aiReportTone: next });
+      },
+      mutate: async () => {
+        const updated = await updateUserProfile({ preferences: { aiReportTone: next } });
+        updateLocalName(updated.name);
+        updateLocalPreferences(updated.preferences);
+        setAiReportTone(updated.preferences.aiReportTone ?? "normal");
+      },
+      rollback: rollbackSettings,
+      successMessage: t("settings.saved"),
+    });
+  }
+
   async function handleCurrencySelect(code: string) {
     await runOptimistic({
       snapshot: captureSettingsSnapshot,
@@ -258,6 +283,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     () => ({
       en: t("settings.languageEn"),
       pt: t("settings.languagePt"),
+    }),
+    [t],
+  );
+
+  const aiReportToneItems = useMemo(
+    () => ({
+      normal: t("settings.aiReportToneNormal"),
+      formal: t("settings.aiReportToneFormal"),
+      technical: t("settings.aiReportToneTechnical"),
+      informal: t("settings.aiReportToneInformal"),
     }),
     [t],
   );
@@ -363,6 +398,28 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <SelectContent>
                   <SelectItem value="en">{t("settings.languageEn")}</SelectItem>
                   <SelectItem value="pt">{t("settings.languagePt")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="settings-ai-report-tone">{t("settings.aiReportTone")}</Label>
+            <div className="finance-dialog-field">
+              <Select
+                value={aiReportTone}
+                items={aiReportToneItems}
+                onValueChange={(value) => void handleAiReportToneChange(value as AiReportTone)}
+                disabled={loading}
+              >
+                <SelectTrigger id="settings-ai-report-tone">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">{t("settings.aiReportToneNormal")}</SelectItem>
+                  <SelectItem value="formal">{t("settings.aiReportToneFormal")}</SelectItem>
+                  <SelectItem value="technical">{t("settings.aiReportToneTechnical")}</SelectItem>
+                  <SelectItem value="informal">{t("settings.aiReportToneInformal")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -37,6 +37,7 @@ const defaultPreferences: UserPreferences = {
   theme: null,
   currency: "USD",
   language: detectBrowserLocale(),
+  aiReportTone: "normal",
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);

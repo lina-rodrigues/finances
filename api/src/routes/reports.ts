@@ -3,17 +3,15 @@ import { z } from "zod";
 import {
   FinancialReport,
   toFinancialReportResponse,
+  toFinancialReportSummary,
 } from "../models/FinancialReport.js";
-import { User } from "../models/User.js";
 import { computeBudget503020 } from "../services/budget503020Service.js";
-import { generateCursorReport } from "../services/cursorReportService.js";
 import { buildMonthView } from "../services/monthViewService.js";
 import {
-  buildReportPayload,
-  serializeReportPayload,
-} from "../services/reportPayloadService.js";
-import { loadReportPrompt } from "../services/reportPromptService.js";
-import { ReportServiceError, toReportErrorCode } from "../constants/reportErrors.js";
+  createPendingReport,
+  scheduleReportGeneration,
+} from "../services/reportGenerationService.js";
+import { buildReportDocxBuffer, contentDispositionHeader, reportDownloadFilename } from "../services/reportExportService.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
@@ -48,9 +46,30 @@ router.get(
   asyncHandler(async (req, res) => {
     const { yearMonth } = yearMonthQuerySchema.parse(req.query);
     const reports = await FinancialReport.find({ userId: req.userId, yearMonth })
+      .select("yearMonth title status error createdAt updatedAt")
       .sort({ createdAt: -1 })
       .limit(50);
-    res.json(reports.map(toFinancialReportResponse));
+    res.json(reports.map(toFinancialReportSummary));
+  }),
+);
+
+router.get(
+  "/:id/export/docx",
+  asyncHandler(async (req, res) => {
+    const report = await FinancialReport.findOne({ _id: req.params.id, userId: req.userId });
+    if (!report || report.status !== "completed" || !report.content?.trim()) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const buffer = await buildReportDocxBuffer(report);
+    const filename = reportDownloadFilename(report.title, "docx");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+    res.setHeader("Content-Disposition", contentDispositionHeader(filename));
+    res.send(buffer);
   }),
 );
 
@@ -85,55 +104,14 @@ router.post(
   "/generate",
   asyncHandler(async (req, res) => {
     const { yearMonth } = generateReportSchema.parse(req.body);
-    const prompt = await loadReportPrompt();
-    const user = await User.findById(req.userId).select("preferences.language");
-    if (!user) {
+    const report = await createPendingReport(req.userId!, yearMonth);
+    if (!report) {
       res.status(404).json({ error: "NOT_FOUND" });
       return;
     }
-    const monthView = await buildMonthView(req.userId!, yearMonth);
-    const payload = buildReportPayload({
-      yearMonth,
-      language: user.preferences.language,
-      monthTotals: {
-        lastMonthRealizedBalance: monthView.month.lastMonthRealizedBalance,
-        expectedBalance: monthView.month.expectedBalance,
-        currentRealizedBalance: monthView.month.currentRealizedBalance,
-      },
-      categories: monthView.categories,
-      uncategorized: monthView.uncategorized,
-    });
-    const fullPrompt = serializeReportPayload(prompt, payload);
 
-    const report = await FinancialReport.create({
-      userId: req.userId,
-      yearMonth,
-      status: "pending",
-      promptUsed: prompt,
-      content: null,
-      error: null,
-    });
-
-    try {
-      const content = await generateCursorReport(fullPrompt);
-      report.status = "completed";
-      report.content = content;
-      report.error = null;
-      await report.save();
-      res.status(201).json(toFinancialReportResponse(report));
-    } catch (error) {
-      const errorCode = toReportErrorCode(error);
-      if (!(error instanceof ReportServiceError)) {
-        console.error("Report generation failed:", error);
-      }
-      report.status = "failed";
-      report.error = errorCode;
-      await report.save();
-      res.status(502).json({
-        error: errorCode,
-        report: toFinancialReportResponse(report),
-      });
-    }
+    scheduleReportGeneration(report._id.toString(), req.userId!);
+    res.status(202).json(toFinancialReportSummary(report));
   }),
 );
 

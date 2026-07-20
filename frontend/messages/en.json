@@ -7,6 +7,7 @@
     "confirm": "Confirm",
     "discard": "Discard",
     "loading": "Loading…",
+    "close": "Close",
     "somethingWrong": "Something went wrong. Please try again.",
     "uncategorized": "Uncategorized"
   },
@@ -60,6 +61,11 @@
     "language": "Language",
     "languageEn": "English",
     "languagePt": "Portuguese",
+    "aiReportTone": "AI report tone",
+    "aiReportToneNormal": "Friendly",
+    "aiReportToneFormal": "Formal",
+    "aiReportToneTechnical": "Technical",
+    "aiReportToneInformal": "Informal",
     "logout": "Sign out",
     "saved": "Settings saved",
     "manageCategories": "Manage categories"
@@ -102,8 +108,11 @@
     "reportDetail": "Report",
     "reportPending": "Report is still generating…",
     "deleteReport": "Delete report",
-    "deleteReportDescription": "Remove this report from {date}? This cannot be undone.",
+    "deleteReportDescription": "Remove \"{title}\"? This cannot be undone.",
     "reportDeleted": "Report deleted",
+    "downloadDocx": "Download DOCX",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not download the report. Please try again.",
     "status": {
       "pending": "Pending",
       "completed": "Completed",

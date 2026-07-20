@@ -2,11 +2,13 @@ import { getApiUrl } from "@/lib/api";
 
 export type ThemePreference = "light" | "dark" | null;
 export type AppLanguage = "en" | "pt";
+export type AiReportTone = "normal" | "formal" | "technical" | "informal";
 
 export interface UserPreferences {
   theme: ThemePreference;
   currency: string;
   language: AppLanguage;
+  aiReportTone: AiReportTone;
 }
 
 export interface PublicUser {

@@ -1,4 +1,5 @@
 import mongoose, { Schema, type Document } from "mongoose";
+import type { AiReportTone } from "../constants/aiReportTone.js";
 
 export type ThemePreference = "light" | "dark" | null;
 export type AppLanguage = "en" | "pt";
@@ -7,6 +8,7 @@ export interface UserPreferences {
   theme: ThemePreference;
   currency: string;
   language: AppLanguage;
+  aiReportTone: AiReportTone;
 }
 
 export interface IUser extends Document {
@@ -27,6 +29,7 @@ const userSchema = new Schema<IUser>(
       theme: { type: String, default: null, enum: ["light", "dark", null] },
       currency: { type: String, default: "USD" },
       language: { type: String, default: "en", enum: ["en", "pt"] },
+      aiReportTone: { type: String, default: "normal", enum: ["normal", "formal", "technical", "informal"] },
     },
     resetTokenHash: { type: String, default: null },
     resetTokenExpiresAt: { type: Date, default: null },

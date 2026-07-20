@@ -26,6 +26,8 @@ export interface LineItemResponse {
   seriesEndType: RecurrenceEndType | null;
   seriesOccurrenceCount: number | null;
   seriesEndYearMonth: string | null;
+  seriesStartYearMonth: string | null;
+  seriesCancelled: boolean;
   isSeriesException: boolean;
 }
 
@@ -93,6 +95,8 @@ function toLineItemResponse(
     seriesEndType: series?.endType ?? null,
     seriesOccurrenceCount: series?.occurrenceCount ?? null,
     seriesEndYearMonth: series?.endYearMonth ?? null,
+    seriesStartYearMonth: series?.startYearMonth ?? null,
+    seriesCancelled: series?.cancelledAt != null,
     isSeriesException: item.seriesException,
   };
 }

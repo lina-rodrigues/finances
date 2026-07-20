@@ -7,6 +7,7 @@
     "confirm": "Confirmar",
     "discard": "Descartar",
     "loading": "Carregando…",
+    "close": "Fechar",
     "somethingWrong": "Algo deu errado. Tente novamente.",
     "uncategorized": "Sem categoria"
   },
@@ -60,6 +61,11 @@
     "language": "Idioma",
     "languageEn": "Inglês",
     "languagePt": "Português",
+    "aiReportTone": "Tom do relatório IA",
+    "aiReportToneNormal": "Amigável",
+    "aiReportToneFormal": "Formal",
+    "aiReportToneTechnical": "Técnico",
+    "aiReportToneInformal": "Informal",
     "logout": "Sair",
     "saved": "Configurações salvas",
     "manageCategories": "Gerenciar categorias"
@@ -102,8 +108,11 @@
     "reportDetail": "Relatório",
     "reportPending": "Relatório ainda sendo gerado…",
     "deleteReport": "Excluir relatório",
-    "deleteReportDescription": "Remover o relatório de {date}? Esta ação não pode ser desfeita.",
+    "deleteReportDescription": "Remover \"{title}\"? Esta ação não pode ser desfeita.",
     "reportDeleted": "Relatório excluído",
+    "downloadDocx": "Baixar DOCX",
+    "downloadPdf": "Baixar PDF",
+    "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
     "status": {
       "pending": "Pendente",
       "completed": "Concluído",

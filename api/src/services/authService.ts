@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import type { Types } from "mongoose";
 import { Category } from "../models/Category.js";
 import { User, type AppLanguage, type IUser, type UserPreferences } from "../models/User.js";
+import { DEFAULT_AI_REPORT_TONE, normalizeAiReportTone } from "../constants/aiReportTone.js";
 import { getDefaultCategories } from "../constants/defaultCategories.js";
 import { sendPasswordResetEmail } from "./emailService.js";
 
@@ -50,7 +51,10 @@ export function toPublicUser(user: IUser) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
-    preferences: user.preferences,
+    preferences: {
+      ...user.preferences,
+      aiReportTone: normalizeAiReportTone(user.preferences.aiReportTone),
+    },
   };
 }
 
@@ -93,6 +97,7 @@ export async function registerUser(input: {
       theme: null,
       currency: input.currency,
       language: input.language,
+      aiReportTone: "normal",
     },
   });
 
@@ -170,6 +175,9 @@ export async function updateUserProfile(
     }
     if (updates.preferences.language !== undefined) {
       user.preferences.language = updates.preferences.language;
+    }
+    if (updates.preferences.aiReportTone !== undefined) {
+      user.preferences.aiReportTone = updates.preferences.aiReportTone;
     }
   }
 

@@ -1,0 +1,162 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ReportMarkdown } from "@/components/ReportMarkdown";
+import { Button } from "@/components/ui/pixelact-ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/pixelact-ui/dialog";
+import { Spinner } from "@/components/ui/pixelact-ui/spinner";
+import { useToast } from "@/components/ui/pixelact-ui/toast";
+import { fetchReport, type FinancialReport } from "@/lib/api";
+import {
+  downloadReportDocx,
+  downloadReportPdfFromElement,
+  reportDownloadFilename,
+} from "@/lib/downloadReport";
+import { useTranslation, translateReportError } from "@/lib/i18n";
+
+interface ReportDetailDialogProps {
+  reportId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+type DownloadFormat = "docx" | "pdf";
+
+export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetailDialogProps) {
+  const { t, locale } = useTranslation();
+  const { showToast } = useToast();
+  const [report, setReport] = useState<FinancialReport | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState<DownloadFormat | null>(null);
+  const reportBodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || !reportId) {
+      setReport(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    void fetchReport(reportId)
+      .then((data) => {
+        if (!cancelled) {
+          setReport(data);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, reportId]);
+
+  const canDownload = report?.status === "completed" && Boolean(report.content?.trim());
+
+  async function handleDownload(format: DownloadFormat) {
+    if (!report || !canDownload) {
+      return;
+    }
+
+    setDownloading(format);
+    try {
+      const filename = reportDownloadFilename(report.title, format);
+      if (format === "docx") {
+        await downloadReportDocx(report.id, filename);
+      } else {
+        const element = reportBodyRef.current;
+        if (!element) {
+          throw new Error("REPORT_DOWNLOAD_FAILED");
+        }
+        await downloadReportPdfFromElement(element, filename);
+      }
+    } catch (error) {
+      console.error(error);
+      showToast(t("reports.downloadFailed"), "error");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="dialog-content-frame-report flex flex-col gap-4 overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle className="text-display text-xs normal-case">
+            {report?.title ?? t("reports.reportDetail")}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-2">
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <Spinner className="size-6" />
+            </div>
+          )}
+
+          {!loading && report?.status === "completed" && report.content && (
+            <div ref={reportBodyRef}>
+              <ReportMarkdown content={report.content} />
+            </div>
+          )}
+
+          {!loading && report?.status === "failed" && (
+            <p className="text-body text-sm text-expense">
+              {translateReportError(report.error, locale)}
+            </p>
+          )}
+
+          {!loading && report?.status === "pending" && (
+            <p className="text-muted-finance text-body text-sm">{t("reports.reportPending")}</p>
+          )}
+        </div>
+
+        <DialogFooter className="flex flex-col-reverse gap-2 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {canDownload && (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="pressable focus-ring gap-1"
+                  disabled={downloading !== null}
+                  onClick={() => void handleDownload("docx")}
+                >
+                  {downloading === "docx" ? <Spinner className="size-4" /> : null}
+                  {t("reports.downloadDocx")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="pressable focus-ring gap-1"
+                  disabled={downloading !== null}
+                  onClick={() => void handleDownload("pdf")}
+                >
+                  {downloading === "pdf" ? <Spinner className="size-4" /> : null}
+                  {t("reports.downloadPdf")}
+                </Button>
+              </>
+            )}
+          </div>
+          <Button type="button" variant="secondary" size="sm" onClick={() => onOpenChange(false)}>
+            {t("common.close")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

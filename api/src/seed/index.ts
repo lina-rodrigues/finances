@@ -63,7 +63,7 @@ async function ensureDevUser(): Promise<string> {
       name,
       email,
       passwordHash,
-      preferences: { theme: null, currency: "USD", language: "en" },
+      preferences: { theme: null, currency: "USD", language: "en", aiReportTone: "normal" },
     });
     console.log(`Created dev user: ${email}`);
   }

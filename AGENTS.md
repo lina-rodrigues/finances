@@ -4,7 +4,14 @@ Guidance for AI agents working in this repository. See [README.md](README.md) fo
 
 ## Git workflow
 
-Do not commit or push changes unless the repository owner has explicitly asked you to in that conversation. Propose the commit message and wait for confirmation first.
+**Never commit, push, or deploy on your own.** Always ask the repository owner first and wait for explicit approval in that conversation.
+
+- After completing work, summarize what changed and propose a commit message — do not run `git commit` until they say to.
+- Do not treat a prior "commit and deploy" in an older message as standing permission for later changes; each batch of work needs its own confirmation unless they clearly say otherwise (e.g. "commit as you go").
+- Same rule for `git push` and `pnpm deploy`: ask first, then run only after approval.
+- If the owner skips or rejects a deploy approval prompt, stop — do not retry deploy unless they ask again.
+
+When approved, use [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description` with scopes `frontend` / `api`.
 
 ## What this app is
 
@@ -62,5 +69,4 @@ After UI changes, run `pnpm contrast-check` and `pnpm responsive-check` (see Com
 - TypeScript everywhere; API is ESM with Zod validation at route boundaries.
 - Frontend mutations follow: call `lib/api.ts` helper -> `useMutationFeedback().run()` (handles loading state + success/error toasts) -> `router.refresh()`.
 - Balance math lives in the API (`api/src/services/`); the frontend only displays `displayAmount` / `isRealized` from the month-view response.
-- Commits use [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description` with scopes `frontend` / `api`, e.g. `feat(frontend): add month navigation`, `fix(api): correct balance cascade`.
 - If the frontend misbehaves after changes, clear the Next cache: `cd frontend && rm -rf .next && pnpm dev`.

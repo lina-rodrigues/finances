@@ -104,15 +104,19 @@ export interface Budget503020Summary {
 
 export type FinancialReportStatus = "pending" | "completed" | "failed";
 
-export interface FinancialReport {
+export interface FinancialReportSummary {
   id: string;
   yearMonth: string;
+  title: string;
   status: FinancialReportStatus;
-  promptUsed: string;
-  content: string | null;
   error: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface FinancialReport extends FinancialReportSummary {
+  promptUsed: string;
+  content: string | null;
 }
 
 export function getApiUrl(): string {
@@ -360,13 +364,41 @@ export async function fetchBudget503020(yearMonth: string): Promise<Budget503020
   return res.json();
 }
 
-export async function fetchReports(yearMonth: string): Promise<FinancialReport[]> {
+export async function fetchReports(yearMonth: string): Promise<FinancialReportSummary[]> {
   const res = await apiFetch(
     `/reports?yearMonth=${encodeURIComponent(yearMonth)}`,
     "fetch reports",
     { cache: "no-store" },
   );
   return res.json();
+}
+
+export async function fetchReport(id: string): Promise<FinancialReport> {
+  const res = await apiFetch(`/reports/${id}`, "fetch report", { cache: "no-store" });
+  return res.json();
+}
+
+const REPORT_POLL_INTERVAL_MS = 2500;
+const REPORT_POLL_TIMEOUT_MS = 10 * 60 * 1000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function pollReportUntilSettled(id: string): Promise<FinancialReport> {
+  const started = Date.now();
+
+  while (Date.now() - started < REPORT_POLL_TIMEOUT_MS) {
+    const report = await fetchReport(id);
+    if (report.status !== "pending") {
+      return report;
+    }
+    await sleep(REPORT_POLL_INTERVAL_MS);
+  }
+
+  throw new Error("REPORT_GENERATION_TIMEOUT");
 }
 
 export async function generateReport(yearMonth: string): Promise<FinancialReport> {
@@ -383,12 +415,11 @@ export async function generateReport(yearMonth: string): Promise<FinancialReport
 
   const body = (await res.json().catch(() => ({}))) as FinancialReport & {
     report?: FinancialReport;
-    message?: string;
     error?: string;
   };
 
-  if (res.ok) {
-    return body;
+  if (res.status === 202 || res.status === 201) {
+    return pollReportUntilSettled(body.id);
   }
 
   if (body.report) {

@@ -376,6 +376,18 @@
   max-width: min(24rem, calc(100% - 2rem));
 }
 
+/* AI report reader — wider and taller than standard dialogs */
+.dialog-content-frame-report {
+  width: min(48rem, calc(100% - 1rem));
+  max-width: min(48rem, calc(100% - 1rem));
+  max-height: min(92dvh, calc(100% - 0.75rem));
+}
+
+.dialog-content-frame-report .report-markdown {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
 .category-icon-picker-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
