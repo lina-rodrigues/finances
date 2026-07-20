@@ -114,6 +114,7 @@ async function vercelFetch(pathname, searchParams = {}) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!response.ok) {
@@ -246,14 +247,17 @@ async function pollDeployments(commitSha, timeoutSeconds) {
     let allDone = true;
 
     for (const project of config.projects) {
-      if (!results.has(project.name)) {
-        const deployment = await findDeployment(project.projectId, commitSha);
+      const cached = results.get(project.name) ?? null;
+      const cachedStatus = isProjectDone(project, cached, elapsedSeconds);
+
+      let deployment = cached;
+      if (!cachedStatus.done) {
+        deployment = await findDeployment(project.projectId, commitSha);
         if (deployment) {
           results.set(project.name, deployment);
         }
       }
 
-      const deployment = results.get(project.name) ?? null;
       const status = isProjectDone(project, deployment, elapsedSeconds);
       if (!status.done) {
         allDone = false;
@@ -305,7 +309,10 @@ async function runSmokeChecks() {
   for (const project of config.projects) {
     const checkUrl = project.healthCheck ?? project.url;
     try {
-      const response = await fetch(checkUrl, { method: "GET" });
+      const response = await fetch(checkUrl, {
+        method: "GET",
+        signal: AbortSignal.timeout(15_000),
+      });
       if (!response.ok) {
         console.error(`  ${project.name}: ${checkUrl} → HTTP ${response.status}`);
         return false;
