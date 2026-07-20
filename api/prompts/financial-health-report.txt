@@ -41,6 +41,8 @@ The report is read by the client, not a developer. **Never** expose implementati
 
 **Instead, use plain financial language** in the customer's language, for example:
 - `yearMonth` → "March 2026" / "março de 2026" (format naturally for the locale).
+- `todayContext.date` / `todayContext.weekday` → today's date and day of the week in natural prose (e.g. "Sunday, July 20, 2026" / "domingo, 20 de julho de 2026")—never the raw ISO string or property names.
+- `todayContext.monthProgress` → how far through the month you are (e.g. "day 20 of 31, about two-thirds through" / "dia 20 de 31, já passou da metade do mês")—never "percentElapsed" or similar.
 - `lastMonthRealizedBalance` → previous month's closing balance / saldo realizado do mês anterior.
 - `currentRealizedBalance` → current realized balance / saldo realizado atual.
 - `expectedBalance` → projected end-of-month balance / saldo previsto para o fim do mês.
@@ -60,6 +62,13 @@ After `---`, you will receive one JSON object with this shape:
 - `yearMonth` — month under review (YYYY-MM).
 - `language` — customer language for the report: `en` (English) or `pt` (Brazilian Portuguese).
 - `reportTone` — voice for the report: `normal`, `formal`, `technical`, or `informal`.
+- `todayContext` — when the report is being written and how that relates to the month under review:
+  - `date` — calendar date of report generation (YYYY-MM-DD) in `timezone`.
+  - `weekday` — day of the week for `date` (English name; translate in the report per `language`).
+  - `timezone` — IANA timezone used for `date` (for your reference only; do not quote in the report).
+  - `isReportMonthCurrent` — `true` when `yearMonth` is the same calendar month as `date` (the client is mid-month or still in that month); `false` when reviewing a closed past month or a future month.
+  - `monthProgress` — present only when `isReportMonthCurrent`:
+    - `dayOfMonth`, `daysInMonth`, `daysRemaining`, `percentElapsed` — use these to reason about pacing (e.g. halfway through the month with heavy spending already recorded, only a few days left to recover). Compare realized activity so far to what is still plausible before month-end. Do **not** expose these property names in the report.
 - `monthTotals`:
   - `lastMonthRealizedBalance` — ending balance from the previous month (realized activity only).
   - `expectedBalance` — projected end-of-month balance (uses planned amounts where nothing is realized yet).
@@ -86,6 +95,8 @@ When discussing expenses (and income when useful), state in plain language wheth
 
 This dataset does **not** include: itemized debt schedules, interest rates, age, retirement targets, stated personal goals, or multi-month history. Do not fabricate those. If line items clearly represent debt (e.g. "Credit card", "Loan payment"), you may comment on them; otherwise note that debt detail was not provided.
 
+When `todayContext.isReportMonthCurrent` is `true`, treat the month as **in progress**: use `monthProgress` together with `currentRealizedBalance` vs `expectedBalance` to comment on pacing, runway, and whether spending or saving is ahead of or behind a sensible month-to-date rhythm. When it is `false`, the month under review is **complete or not yet current**—do not say the client is "halfway through" that month; analyze it as a closed period or note that it has not started yet.
+
 ---
 
 ## Report structure
@@ -106,6 +117,7 @@ Executive summary for the month under review, covering:
 
 - Income vs total expenses and implied monthly surplus or deficit.
 - Balance trajectory: previous month's closing balance, current realized balance, and projected end-of-month balance—what they suggest about cash position and planning accuracy.
+- If the month is still in progress (`todayContext.isReportMonthCurrent`), where you are in the calendar month and whether spending, income, and balances so far look on track for the days remaining.
 - High-level spending mix (essential, discretionary, and investment spending).
 - Liquidity and savings signal from balances and investment-related spending—only as supported by the data.
 

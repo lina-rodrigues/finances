@@ -1,6 +1,7 @@
 import type { AiReportTone } from "../constants/aiReportTone.js";
 import { resolveBudgetGroup } from "../constants/budgetGroup.js";
 import type { AppLanguage } from "../models/User.js";
+import { buildReportTodayContext, type ReportTodayContext } from "../utils/reportTodayContext.js";
 import type { CategoryWithLineItems, LineItemResponse } from "./categoryService.js";
 import { computeBudget503020, type Budget503020Summary } from "./budget503020Service.js";
 import { computeSeriesAbsoluteLastMonth } from "./recurrenceService.js";
@@ -29,6 +30,7 @@ export interface ReportPayload {
   yearMonth: string;
   language: AppLanguage;
   reportTone: AiReportTone;
+  todayContext: ReportTodayContext;
   monthTotals: {
     lastMonthRealizedBalance: number;
     expectedBalance: number;
@@ -119,6 +121,7 @@ export function buildReportPayload(input: {
   };
   categories: CategoryWithLineItems[];
   uncategorized: LineItemResponse[];
+  generatedAt?: Date;
 }): ReportPayload {
   const incomeItems: ReportLineItemPayload[] = [];
   const expenseItems: ReportLineItemPayload[] = [];
@@ -152,6 +155,7 @@ export function buildReportPayload(input: {
     yearMonth: input.yearMonth,
     language: input.language,
     reportTone: input.reportTone,
+    todayContext: buildReportTodayContext(input.yearMonth, input.generatedAt),
     monthTotals: input.monthTotals,
     incomeTotal,
     incomeItems,
