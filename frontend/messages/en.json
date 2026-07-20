@@ -96,7 +96,7 @@
     "aiAssistantTitle": "AI Assistant",
     "generateReport": "Generate report",
     "generateSuccess": "Report generated",
-    "generateFailed": "Could not generate report",
+    "generateFailed": "We couldn't generate your report. Please try again in a few minutes.",
     "generatedReports": "Generated reports",
     "noReports": "No reports yet for this month.",
     "reportDetail": "Report",
@@ -230,7 +230,8 @@
     "INVALID_OR_EXPIRED_TOKEN": "This reset link is invalid or expired.",
     "NOT_FOUND": "Not found.",
     "CATEGORY_HAS_LINE_ITEMS": "Cannot delete category with existing line items.",
-    "REPORT_GENERATION_FAILED": "Could not generate report.",
+    "REPORT_GENERATION_FAILED": "We couldn't generate your report. Please try again in a few minutes.",
+    "REPORT_SERVICE_UNAVAILABLE": "AI reports aren't available right now. Please try again later.",
     "Validation error": "Please check your input."
   },
   "toast": {

@@ -82,3 +82,27 @@ export function translateError(code: string, locale: Locale): string {
   const t = (key: string) => getNested(messages[locale], key) ?? getNested(messages.en, key) ?? code;
   return t(`errors.${code}`) ?? code;
 }
+
+/** Maps stored report error codes (or legacy raw messages) to user-facing copy. */
+export function translateReportError(error: string | null, locale: Locale): string {
+  if (!error) {
+    return (
+      getNested(messages[locale], "reports.generateFailed") ??
+      getNested(messages.en, "reports.generateFailed") ??
+      "Could not generate report."
+    );
+  }
+
+  if (/^[A-Z][A-Z0-9_]*$/.test(error)) {
+    const translated = translateError(error, locale);
+    if (translated !== error) {
+      return translated;
+    }
+  }
+
+  return (
+    getNested(messages[locale], "reports.generateFailed") ??
+    getNested(messages.en, "reports.generateFailed") ??
+    "Could not generate report."
+  );
+}

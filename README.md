@@ -143,6 +143,19 @@ Realized amounts are stored as embedded **entries** on each line item. The API s
 
 Edit the default AI report prompt at [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt). Requires Node **22.13+** for `@cursor/sdk`.
 
+### AI reports (operator notes)
+
+End users only see friendly messages in the app (for example, “AI reports aren't available right now”). They never see environment variable names or other setup details.
+
+If report generation fails in production, check the API logs and configuration:
+
+| What users see | Likely cause | Fix |
+|----------------|--------------|-----|
+| “AI reports aren't available right now” | `CURSOR_API_KEY` missing or empty on the API | Add a valid key to the API environment (local `.env` or Vercel project env vars), then redeploy the API |
+| “We couldn't generate your report…” | Cursor API error, network issue, or prompt file problem | Inspect API logs; confirm the key is valid, the API can reach Cursor, and [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt) exists in the deployment |
+
+After changing API environment variables on Vercel, trigger a new API deployment so the runtime picks them up.
+
 ## Data Model
 
 ### Category

@@ -12,6 +12,7 @@ import {
   serializeReportPayload,
 } from "../services/reportPayloadService.js";
 import { loadReportPrompt } from "../services/reportPromptService.js";
+import { ReportServiceError, toReportErrorCode } from "../constants/reportErrors.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
@@ -99,13 +100,15 @@ router.post(
       await report.save();
       res.status(201).json(toFinancialReportResponse(report));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Report generation failed";
+      const errorCode = toReportErrorCode(error);
+      if (!(error instanceof ReportServiceError)) {
+        console.error("Report generation failed:", error);
+      }
       report.status = "failed";
-      report.error = message;
+      report.error = errorCode;
       await report.save();
       res.status(502).json({
-        error: "REPORT_GENERATION_FAILED",
-        message,
+        error: errorCode,
         report: toFinancialReportResponse(report),
       });
     }

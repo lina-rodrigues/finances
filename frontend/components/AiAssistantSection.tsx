@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/pixelact-ui/collapsible";
 import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { fetchReports, generateReport, type FinancialReport } from "@/lib/api";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, translateReportError } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 interface AiAssistantSectionProps {
@@ -68,7 +68,6 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
       }
     }, {
       successMessage: t("reports.generateSuccess"),
-      errorMessage: t("reports.generateFailed"),
     });
   }
 
@@ -156,7 +155,7 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
             )}
             {selectedReport.status === "failed" && (
               <p className="text-body text-sm text-expense">
-                {selectedReport.error ?? t("reports.generateFailed")}
+                {translateReportError(selectedReport.error, locale)}
               </p>
             )}
             {selectedReport.status === "pending" && (

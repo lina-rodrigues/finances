@@ -96,7 +96,7 @@
     "aiAssistantTitle": "Assistente de IA",
     "generateReport": "Gerar relatório",
     "generateSuccess": "Relatório gerado",
-    "generateFailed": "Não foi possível gerar o relatório",
+    "generateFailed": "Não foi possível gerar seu relatório. Tente novamente em alguns minutos.",
     "generatedReports": "Relatórios gerados",
     "noReports": "Nenhum relatório neste mês.",
     "reportDetail": "Relatório",
@@ -230,7 +230,8 @@
     "INVALID_OR_EXPIRED_TOKEN": "Este link é inválido ou expirou.",
     "NOT_FOUND": "Não encontrado.",
     "CATEGORY_HAS_LINE_ITEMS": "Não é possível excluir categoria com itens.",
-    "REPORT_GENERATION_FAILED": "Não foi possível gerar o relatório.",
+    "REPORT_GENERATION_FAILED": "Não foi possível gerar seu relatório. Tente novamente em alguns minutos.",
+    "REPORT_SERVICE_UNAVAILABLE": "Os relatórios de IA não estão disponíveis no momento. Tente novamente mais tarde.",
     "Validation error": "Verifique os dados informados."
   },
   "toast": {
