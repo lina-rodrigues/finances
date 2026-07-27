@@ -2,13 +2,13 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { Icon } from "@/components/Icon";
 import { type FlatCategory } from "@/lib/api";
-import { resolveCategoryIcon } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 
 import {
   Input,
+  Icon,
+  resolveCategoryIcon,
 } from "@lina-rodrigues/cotton-candy";
 interface CategoryComboboxProps {
   id?: string;

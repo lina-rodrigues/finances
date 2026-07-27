@@ -340,9 +340,8 @@ finance/
     ├── DESIGN_SYSTEM.md        # Pointer to @lina-rodrigues/cotton-candy
     ├── design-system/          # Finance-only CSS (reports, category picker)
     ├── app/                    # Next.js App Router (SSR page)
-    ├── components/             # UI (CategoryManager, CategorySection, …)
-    │   └── ui/pixelact-ui/     # Pixel-art component wrappers
-    └── lib/                    # API client, icons, fonts
+    ├── components/             # App feature UI (imports @lina-rodrigues/cotton-candy)
+    └── lib/                    # API client, fonts, i18n
 ```
 
 ## Future Extensions

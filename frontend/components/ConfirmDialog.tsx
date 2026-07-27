@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import { useTranslation } from "@/lib/i18n";
 
 import {
@@ -12,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 interface ConfirmDialogProps {
   open: boolean;

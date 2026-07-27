@@ -2,11 +2,13 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { categoryIcons, formatIconLabel, type IconName } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 
 import {
   Button,
+  categoryIcons,
+  formatIconLabel,
+  type IconName,
 } from "@lina-rodrigues/cotton-candy";
 interface CategoryIconPickerProps {
   value: IconName;

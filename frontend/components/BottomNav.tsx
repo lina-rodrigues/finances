@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Icon } from "@/components/Icon";
 import { getCurrentYearMonth, navPath, type AppTab } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
-import type { IconName } from "@/lib/icons";
 
+import {
+  Icon,
+  type IconName,
+} from "@lina-rodrigues/cotton-candy";
 const tabs: { id: AppTab; icon: IconName; labelKey: string }[] = [
   { id: "finance", icon: "navFinance", labelKey: "nav.finance" },
   { id: "categories", icon: "navCategories", labelKey: "nav.categories" },

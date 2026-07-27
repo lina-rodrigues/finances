@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 
@@ -13,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 interface RepeatScopeDialogProps {
   open: boolean;

@@ -27,7 +27,7 @@ pnpm monorepo, two independently deployable packages. The frontend never touches
 | `frontend/` | Next.js 15 App Router + React 19 + Tailwind CSS 4 | 3000 |
 
 - MongoDB and Mailpit run via `docker compose up -d` (root `docker-compose.yml`). Mailpit UI: http://localhost:8025.
-- `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — must stay in sync with `frontend/lib/icons.ts` `categoryIcons`).
+- `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — must stay in sync with `@lina-rodrigues/cotton-candy` `categoryIcons`).
 - `frontend/app/(app)/page.tsx` is a server component (uses `lib/api-server.ts` with cookie forwarding); auth pages live under `frontend/app/(auth)/`. Interactive pieces call `frontend/lib/api.ts` (client, `credentials: "include"`) then `router.refresh()`.
 - Auth: custom JWT in httpOnly cookie (`finance-token`). Settings in `SettingsDialog` (gear icon). i18n via `frontend/lib/i18n.tsx` + `messages/{en,pt}.json`.
 

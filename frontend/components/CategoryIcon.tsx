@@ -1,13 +1,12 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import {
+  Icon,
   categoryIconColorClass,
   resolveCategoryIcon,
   type IconName,
   type IconSize,
-} from "@/lib/icons";
-
+} from "@lina-rodrigues/cotton-candy";
 interface CategoryIconProps {
   icon: string | IconName | undefined;
   size?: IconSize;

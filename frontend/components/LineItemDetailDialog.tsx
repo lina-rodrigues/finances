@@ -1,7 +1,6 @@
 "use client";
 
 import { BudgetBar } from "@/components/BudgetBar";
-import { Icon } from "@/components/Icon";
 import { LineItemActions } from "@/components/LineItemActions";
 import { getLocaleTag, type LineItem } from "@/lib/api";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
@@ -19,6 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 interface LineItemDetailDialogProps {
   item: LineItem | null;

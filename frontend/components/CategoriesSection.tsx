@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
 import { CategorySection } from "@/components/CategorySection";
-import { Icon } from "@/components/Icon";
 import { categoryManagePath, type Category } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
@@ -19,6 +18,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 export function CategoriesSection() {
   const { t } = useTranslation();

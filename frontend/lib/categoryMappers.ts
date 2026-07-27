@@ -1,6 +1,5 @@
 import type { Category, FlatCategory } from "@/lib/api";
-import type { IconName } from "@/lib/icons";
-
+import type { IconName } from "@lina-rodrigues/cotton-candy";
 const TEMP_CATEGORY_PREFIX = "temp-cat-";
 
 export function createTempCategoryId(): string {

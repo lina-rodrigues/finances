@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { Icon } from "@/components/Icon";
 import { addLineItemEntry, type LineItem } from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import {
@@ -29,6 +28,7 @@ import {
   DialogTitle,
   Input,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 interface PayEntryDialogProps {
   item: LineItem | null;

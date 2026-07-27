@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Icon } from "@/components/Icon";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { useTranslation } from "@/lib/i18n";
 
 import {
   Button,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 export function SettingsButton() {
   const { t } = useTranslation();

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CategoryCombobox } from "@/components/CategoryCombobox";
-import { Icon } from "@/components/Icon";
 import { RepeatConfigFields } from "@/components/RepeatConfigFields";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
 import {
@@ -53,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
 import { CoinCounter } from "@/components/CoinCounter";
-import { Icon } from "@/components/Icon";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
 import { getCurrentYearMonth } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
@@ -15,6 +14,7 @@ import {
   Button,
   Card,
   CardContent,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 export function FinanceOverview() {
   const { t } = useTranslation();

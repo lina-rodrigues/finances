@@ -3,11 +3,9 @@
 import { BudgetBar } from "@/components/BudgetBar";
 import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { Icon } from "@/components/Icon";
 import { PendingBadge } from "@/components/PendingBadge";
 import { type Category, type LineItem } from "@/lib/api";
 import { getLineItemRealizedAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
-import { resolveCategoryIcon } from "@/lib/icons";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
@@ -21,6 +19,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  Icon,
+  resolveCategoryIcon,
 } from "@lina-rodrigues/cotton-candy";
 /** Toggle line-item badges (income/expense, repeat, planned, pending) in category rows. */
 const SHOW_LINE_ITEM_TAGS = false;

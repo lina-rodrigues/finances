@@ -1,10 +1,10 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import { useTranslation } from "@/lib/i18n";
 
 import {
   Badge,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 /**
  * Shown on line item rows while an optimistic mutation is in flight (Tier 1).

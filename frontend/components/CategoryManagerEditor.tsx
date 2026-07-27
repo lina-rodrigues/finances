@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CategoryIconPicker } from "@/components/CategoryIconPicker";
-import { Icon } from "@/components/Icon";
 import {
   createCategory,
   deleteCategory,
@@ -21,7 +20,6 @@ import {
   useMonthView,
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
-import { resolveCategoryIcon, type IconName } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -35,6 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
   Spinner,
+  Icon,
+  resolveCategoryIcon,
+  type IconName,
 } from "@lina-rodrigues/cotton-candy";
 interface EditableCategory extends FlatCategory {
   draftName: string;

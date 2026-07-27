@@ -1,6 +1,8 @@
-import { Icon } from "@/components/Icon";
-import type { IconName } from "@/lib/icons";
 
+import {
+  Icon,
+  type IconName,
+} from "@lina-rodrigues/cotton-candy";
 interface CoinCounterProps {
   amount: string;
   label: string;

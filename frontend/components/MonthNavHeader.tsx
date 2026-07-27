@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Icon } from "@/components/Icon";
 import {
   getCurrentYearMonth,
   getLocaleTag,
@@ -15,6 +14,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import {
   Button,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 function monthParts(yearMonth: string, localeTag: string) {
   const [year, month] = yearMonth.split("-");

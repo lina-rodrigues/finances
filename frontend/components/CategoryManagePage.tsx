@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { CategoryManagerEditor } from "@/components/CategoryManagerEditor";
-import { Icon } from "@/components/Icon";
 import { categoryManagePath, navPath } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Icon,
+} from "@lina-rodrigues/cotton-candy";
 export function CategoryManagePage() {
   const { t } = useTranslation();
   const { month } = useMonthView();

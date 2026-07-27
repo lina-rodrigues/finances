@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Icon } from "@/components/Icon";
 import { updateUserProfile, type ThemePreference } from "@/lib/auth-api";
 import { categoryManagePath } from "@/lib/api";
 import { useAuth } from "@/lib/AuthProvider";
@@ -28,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 type ThemeOption = "system" | "light" | "dark";
 

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { Icon } from "@/components/Icon";
 import { ReportDetailDialog } from "@/components/ReportDetailDialog";
 import {
   deleteReport,
@@ -21,6 +20,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
   Spinner,
+  Icon,
 } from "@lina-rodrigues/cotton-candy";
 interface AiAssistantSectionProps {
   yearMonth: string;

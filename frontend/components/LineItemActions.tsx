@@ -1,14 +1,14 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import type { LineItem } from "@/lib/api";
-import type { IconSize } from "@/lib/icons";
 import { isPayDisabled } from "@/lib/payLineItem";
 import { useTranslation } from "@/lib/i18n";
 
 import {
   Button,
   Spinner,
+  Icon,
+  type IconSize,
 } from "@lina-rodrigues/cotton-candy";
 interface LineItemActionsProps {
   item: LineItem;
