@@ -36,6 +36,20 @@ The frontend uses the **Cotton Candy** design system from the private package [`
 
 See the package [`DESIGN_SYSTEM.md`](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md) for the canonical reference (local pointer: [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md)). UI verification: `pnpm contrast-check`, `pnpm responsive-check`.
 
+### Private package installs (local + Vercel)
+
+Local: use `frontend/.npmrc` (`@lina-rodrigues:registry=https://npm.pkg.github.com`) plus auth in your user `~/.npmrc`.
+
+Vercel (**frontend and API** projects): set sensitive env var **`NPM_RC`** (Production + Preview) to a multiline `.npmrc` that includes the public npm registry and GitHub Packages auth, per [Using private dependencies with Vercel](https://vercel.com/kb/guide/using-private-dependencies-with-vercel). The API needs this too because the monorepo `pnpm install` resolves frontend’s private package from the shared lockfile.
+
+```ini
+registry=https://registry.npmjs.org
+@lina-rodrigues:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT_WITH_read:packages
+```
+
+Prefer a dedicated GitHub PAT with `read:packages` (not a short-lived `gh` login token). After rotating the PAT, update `NPM_RC` and redeploy.
+
 ## Features (v1)
 
 - **User accounts** — custom JWT auth (login, signup with invitation code, forgot/reset password)
