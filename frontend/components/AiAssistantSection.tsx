@@ -4,14 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Icon } from "@/components/Icon";
 import { ReportDetailDialog } from "@/components/ReportDetailDialog";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/pixelact-ui/collapsible";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   deleteReport,
   fetchReports,
@@ -21,6 +13,15 @@ import {
 import { useTranslation, translateReportError } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
+import {
+  Button,
+  Card,
+  CardContent,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface AiAssistantSectionProps {
   yearMonth: string;
 }

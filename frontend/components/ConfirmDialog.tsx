@@ -1,18 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/pixelact-ui/button";
+import { Icon } from "@/components/Icon";
+import { useTranslation } from "@/lib/i18n";
+
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import { Icon } from "@/components/Icon";
-import { useTranslation } from "@/lib/i18n";
-
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

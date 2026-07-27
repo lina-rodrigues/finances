@@ -1,19 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/pixelact-ui/button";
+import { Icon } from "@/components/Icon";
+import { type RecurrenceScope } from "@/lib/recurrence";
+import { useTranslation } from "@/lib/i18n";
+
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import { Icon } from "@/components/Icon";
-import { type RecurrenceScope } from "@/lib/recurrence";
-import { useTranslation } from "@/lib/i18n";
-
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface RepeatScopeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

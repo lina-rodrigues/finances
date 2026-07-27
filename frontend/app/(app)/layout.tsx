@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AppMonthViewProvider } from "@/components/MonthViewShell";
-import { PhoneShell } from "@/components/PhoneShell";
+import { PhoneShell } from "@lina-rodrigues/cotton-candy";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 

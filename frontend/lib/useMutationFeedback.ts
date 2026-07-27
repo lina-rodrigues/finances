@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useToast } from "@/components/ui/pixelact-ui/toast";
 import { useTranslation, translateError } from "@/lib/i18n";
 
+import {
+  useToast,
+} from "@lina-rodrigues/cotton-candy";
 export interface RunOptimisticOptions<TSnapshot> {
   snapshot: () => TSnapshot;
   apply: () => void;

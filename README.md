@@ -32,9 +32,9 @@ Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, and `build`.
 
 ## Design
 
-The frontend uses the **Cotton Candy** design system — a pixel-widget UI built on Pixelact UI, shadcn/ui, Tailwind CSS 4, and Pixelarticons.
+The frontend uses the **Cotton Candy** design system from the private package [`@lina-rodrigues/cotton-candy`](https://github.com/lina-rodrigues/cotton-candy) (Pixelact UI, shadcn bases, Tailwind CSS 4, Pixelarticons).
 
-See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md) for the canonical reference: tools & stack, palette, themes, semantic tokens, layout shell, components, icons, interaction patterns, pitfalls, and the UI verification workflow (`pnpm contrast-check`, `pnpm responsive-check`).
+See the package [`DESIGN_SYSTEM.md`](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md) for the canonical reference (local pointer: [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md)). UI verification: `pnpm contrast-check`, `pnpm responsive-check`.
 
 ## Features (v1)
 
@@ -337,8 +337,8 @@ finance/
 │       ├── services/           # Balance cascade, flat categories
 │       └── seed/               # Default flat categories
 └── frontend/
-    ├── DESIGN_SYSTEM.md        # Themes, colors, icons, interactions
-    ├── design-system/          # CSS tokens and themes
+    ├── DESIGN_SYSTEM.md        # Pointer to @lina-rodrigues/cotton-candy
+    ├── design-system/          # Finance-only CSS (reports, category picker)
     ├── app/                    # Next.js App Router (SSR page)
     ├── components/             # UI (CategoryManager, CategorySection, …)
     │   └── ui/pixelact-ui/     # Pixel-art component wrappers

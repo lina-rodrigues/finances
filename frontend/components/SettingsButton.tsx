@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { SettingsDialog } from "@/components/SettingsDialog";
-import { Button } from "@/components/ui/pixelact-ui/button";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Button,
+} from "@lina-rodrigues/cotton-candy";
 export function SettingsButton() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);

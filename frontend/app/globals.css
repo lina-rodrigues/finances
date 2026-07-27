@@ -1,149 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "../design-system/tokens.css";
-@import "../design-system/typography.css";
-@import "../design-system/interactions.css";
+@import "@lina-rodrigues/cotton-candy/styles.css";
 @import "../design-system/report-markdown.css";
+@import "../design-system/finance-app.css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --font-heading: var(--font-display);
-  --font-sans: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-link: var(--link);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-/* Cotton Candy — cute pink & purple palette */
-:root {
-  --pastel-pink: #fbcfe8;
-  --pastel-lavender: #e9d5ff;
-  --pastel-violet: #c4b5fd;
-  --pastel-rose: #fda4af;
-  --pastel-mint: #bbf7d0;
-  --pastel-purple: #ddd6fe;
-
-  --background: #fdf2ff;
-  --foreground: #3d2a52;
-  --card: #fffbfe;
-  --card-foreground: #3d2a52;
-  --popover: #fffbfe;
-  --popover-foreground: #3d2a52;
-  --primary: #c084fc;
-  --primary-foreground: #2e1065;
-  --secondary: #fbcfe8;
-  --secondary-foreground: #5b2147;
-  --muted: #f3e8ff;
-  --muted-foreground: #7c6898;
-  --accent: #f472b6;
-  --accent-foreground: #4a1030;
-  --destructive: #fb7185;
-  --destructive-foreground: #4a1030;
-  --border: #4a3560;
-  --input: #fffbfe;
-  --ring: #a855f7;
-  --success: #86efac;
-  --success-foreground: #14532d;
-  --warning: #fde68a;
-  --warning-foreground: #713f12;
-  --link: #7e22ce;
-  --radius: 0px;
-  --chart-1: #c084fc;
-  --chart-2: #86efac;
-  --chart-3: #fb7185;
-  --chart-4: #fbcfe8;
-  --chart-5: #e9d5ff;
-  --sidebar: #fffbfe;
-  --sidebar-foreground: #3d2a52;
-  --sidebar-primary: #c084fc;
-  --sidebar-primary-foreground: #2e1065;
-  --sidebar-accent: #f3e8ff;
-  --sidebar-accent-foreground: #5b2147;
-  --sidebar-border: #4a3560;
-  --sidebar-ring: #a855f7;
-}
-
-.dark {
-  --background: #1a1225;
-  --foreground: #f5e6ff;
-  --card: #251a33;
-  --card-foreground: #f5e6ff;
-  --popover: #251a33;
-  --popover-foreground: #f5e6ff;
-  --primary: #c084fc;
-  --primary-foreground: #1a0a2e;
-  --secondary: #3d2a52;
-  --secondary-foreground: #fbcfe8;
-  --muted: #2d1f40;
-  --muted-foreground: #c4b5fd;
-  --accent: #f472b6;
-  --accent-foreground: #3b0718;
-  --destructive: #be4a62;
-  --destructive-foreground: #ffffff;
-  --border: #c4b5fd;
-  --input: #251a33;
-  --ring: #e9d5ff;
-  --success: #4ade80;
-  --success-foreground: #dcfce7;
-  --warning: #ca8a04;
-  --warning-foreground: #fef9c3;
-  --link: #e9d5ff;
-  --chart-1: #c084fc;
-  --chart-2: #4ade80;
-  --chart-3: #f472b6;
-  --chart-4: #7c3aed;
-  --chart-5: #fbcfe8;
-  --sidebar: #251a33;
-  --sidebar-foreground: #f5e6ff;
-  --sidebar-primary: #c084fc;
-  --sidebar-primary-foreground: #1a0a2e;
-  --sidebar-accent: #3d2a52;
-  --sidebar-accent-foreground: #fbcfe8;
-  --sidebar-border: #c4b5fd;
-  --sidebar-ring: #e9d5ff;
-}
+/* Scan package source so Tailwind emits utilities used by Cotton Candy components */
+@source "../node_modules/@lina-rodrigues/cotton-candy/src";
 
 @layer base {
   html,
@@ -151,11 +14,5 @@
     overflow: hidden;
     height: 100%;
     max-height: 100dvh;
-  }
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
 }

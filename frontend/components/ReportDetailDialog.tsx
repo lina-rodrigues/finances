@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { ReportMarkdown } from "@/components/ReportMarkdown";
-import { Button } from "@/components/ui/pixelact-ui/button";
+import { fetchReport, type FinancialReport } from "@/lib/api";
+import { downloadReportDocx, reportDownloadFilename } from "@/lib/downloadReport";
+import { useTranslation, translateReportError } from "@/lib/i18n";
+
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
-import { useToast } from "@/components/ui/pixelact-ui/toast";
-import { fetchReport, type FinancialReport } from "@/lib/api";
-import { downloadReportDocx, reportDownloadFilename } from "@/lib/downloadReport";
-import { useTranslation, translateReportError } from "@/lib/i18n";
-
+  Spinner,
+  useToast,
+} from "@lina-rodrigues/cotton-candy";
 interface ReportDetailDialogProps {
   reportId: string | null;
   open: boolean;

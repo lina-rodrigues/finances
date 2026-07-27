@@ -3,25 +3,6 @@
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Label } from "@/components/ui/pixelact-ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/pixelact-ui/select";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { updateUserProfile, type ThemePreference } from "@/lib/auth-api";
 import { categoryManagePath } from "@/lib/api";
 import { useAuth } from "@/lib/AuthProvider";
@@ -31,6 +12,23 @@ import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import type { AiReportTone, AppLanguage } from "@/lib/auth-api";
 
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 type ThemeOption = "system" | "light" | "dark";
 
 function themeToOption(theme: ThemePreference): ThemeOption {

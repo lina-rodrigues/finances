@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/pixelact-ui/card";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Label } from "@/components/ui/pixelact-ui/label";
 import { forgotPassword } from "@/lib/auth-api";
 import { useTranslation } from "@/lib/i18n";
-import { useToast } from "@/components/ui/pixelact-ui/toast";
 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  useToast,
+} from "@lina-rodrigues/cotton-candy";
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
   const { showToast } = useToast();

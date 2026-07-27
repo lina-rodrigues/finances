@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/pixelact-ui/card";
 import { fetchBudget503020, type Budget503020Summary, type BudgetGroup } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@lina-rodrigues/cotton-candy";
 const BUDGET_GROUPS: BudgetGroup[] = ["essential", "non_essential", "investment"];
 
 interface Budget503020SectionProps {

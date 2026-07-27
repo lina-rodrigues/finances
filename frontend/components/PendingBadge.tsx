@@ -1,9 +1,11 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Badge,
+} from "@lina-rodrigues/cotton-candy";
 /**
  * Shown on line item rows while an optimistic mutation is in flight (Tier 1).
  * Uses the same icon + color + label pattern as the planned badge.

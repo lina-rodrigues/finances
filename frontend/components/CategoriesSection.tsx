@@ -5,20 +5,21 @@ import Link from "next/link";
 import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
 import { CategorySection } from "@/components/CategorySection";
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
+import { categoryManagePath, type Category } from "@/lib/api";
+import { useMonthView } from "@/lib/MonthViewProvider";
+import { useTranslation } from "@/lib/i18n";
+
 import {
+  Button,
+  Card,
+  CardContent,
   Empty,
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/pixelact-ui/empty";
-import { categoryManagePath, type Category } from "@/lib/api";
-import { useMonthView } from "@/lib/MonthViewProvider";
-import { useTranslation } from "@/lib/i18n";
-
+} from "@lina-rodrigues/cotton-candy";
 export function CategoriesSection() {
   const { t } = useTranslation();
   const { month, categories, uncategorized, flatCategories } = useMonthView();

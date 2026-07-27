@@ -3,16 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { addLineItemEntry, type LineItem } from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import {
@@ -30,6 +20,16 @@ import {
 import { payDefaultAmount } from "@/lib/payLineItem";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface PayEntryDialogProps {
   item: LineItem | null;
   open: boolean;

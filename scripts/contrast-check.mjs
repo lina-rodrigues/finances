@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * WCAG 2.1 contrast audit for Cotton Candy theme tokens.
- * Reads CSS variables from frontend/app/globals.css and frontend/design-system/tokens.css.
+ * Reads CSS variables from @lina-rodrigues/cotton-candy package styles.
  *
  * Usage: pnpm contrast-check
  */
@@ -174,13 +174,17 @@ function runTheme(t) {
   return fails;
 }
 
-const globalsPath = path.join(root, "frontend/app/globals.css");
-const tokensPath = path.join(root, "frontend/design-system/tokens.css");
-const globalsCss = readFileSync(globalsPath, "utf8");
+const packageRoot = path.join(
+  root,
+  "frontend/node_modules/@lina-rodrigues/cotton-candy",
+);
+const themePath = path.join(packageRoot, "src/styles/theme.css");
+const tokensPath = path.join(packageRoot, "src/styles/tokens.css");
+const themeCss = readFileSync(themePath, "utf8");
 const tokensCss = readFileSync(tokensPath, "utf8");
 
-const rootVars = blockVars(globalsCss, ":root");
-const darkVars = blockVars(globalsCss, ".dark");
+const rootVars = blockVars(themeCss, ":root");
+const darkVars = blockVars(themeCss, ".dark");
 const tokenRoot = blockVars(tokensCss, ":root");
 const tokenDark = blockVars(tokensCss, ".dark");
 
@@ -188,7 +192,7 @@ const light = buildTheme("Light (day)", rootVars, tokenRoot);
 const dark = buildTheme("Dark (night)", rootVars, tokenRoot, darkVars, tokenDark);
 
 console.log("Finance WCAG contrast check");
-console.log(`Sources: ${path.relative(root, globalsPath)}, ${path.relative(root, tokensPath)}`);
+console.log(`Sources: ${path.relative(root, themePath)}, ${path.relative(root, tokensPath)}`);
 
 const allFails = [...runTheme(light), ...runTheme(dark)];
 

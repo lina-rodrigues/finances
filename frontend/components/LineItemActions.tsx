@@ -1,13 +1,15 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import type { LineItem } from "@/lib/api";
 import type { IconSize } from "@/lib/icons";
 import { isPayDisabled } from "@/lib/payLineItem";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Button,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface LineItemActionsProps {
   item: LineItem;
   onPay: (item: LineItem) => void;

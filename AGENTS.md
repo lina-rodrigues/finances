@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. See [README.md](README.md) for full setup, data model, and API docs; see [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) for the design system.
+Guidance for AI agents working in this repository. See [README.md](README.md) for full setup, data model, and API docs; see [`@lina-rodrigues/cotton-candy`](https://github.com/lina-rodrigues/cotton-candy) ([DESIGN_SYSTEM.md](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md); local pointer in [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md)).
 
 ## Git workflow
 
@@ -60,7 +60,7 @@ Cursor commands in `.cursor/commands/` (`/contrast-check`, `/responsive-check`) 
 
 ## Design system
 
-Canonical UI reference: [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) (Cotton Candy palette, components, tokens, pitfalls, verification workflow).
+Canonical UI reference: [`@lina-rodrigues/cotton-candy` DESIGN_SYSTEM](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md) (Cotton Candy palette, components, tokens, pitfalls, verification workflow).
 
 After UI changes, run `pnpm contrast-check` and `pnpm responsive-check` (see Commands above).
 

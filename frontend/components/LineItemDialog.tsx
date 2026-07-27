@@ -6,23 +6,6 @@ import { CategoryCombobox } from "@/components/CategoryCombobox";
 import { Icon } from "@/components/Icon";
 import { RepeatConfigFields } from "@/components/RepeatConfigFields";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/pixelact-ui/select";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   convertLineItemToRecurrence,
   createCategory,
@@ -56,6 +39,21 @@ import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";
 

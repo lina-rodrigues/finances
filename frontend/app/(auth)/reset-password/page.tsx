@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/pixelact-ui/card";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Label } from "@/components/ui/pixelact-ui/label";
 import { resetPassword } from "@/lib/auth-api";
 import { useTranslation, translateError } from "@/lib/i18n";
-import { useToast } from "@/components/ui/pixelact-ui/toast";
 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  useToast,
+} from "@lina-rodrigues/cotton-candy";
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();

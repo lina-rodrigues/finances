@@ -5,14 +5,17 @@ import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineIt
 import { CoinCounter } from "@/components/CoinCounter";
 import { Icon } from "@/components/Icon";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
 import { getCurrentYearMonth } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+} from "@lina-rodrigues/cotton-candy";
 export function FinanceOverview() {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();

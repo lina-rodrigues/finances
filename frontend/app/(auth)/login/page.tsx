@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/pixelact-ui/card";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Label } from "@/components/ui/pixelact-ui/label";
 import { login } from "@/lib/auth-api";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation, translateError } from "@/lib/i18n";
-import { useToast } from "@/components/ui/pixelact-ui/toast";
 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  useToast,
+} from "@lina-rodrigues/cotton-candy";
 export default function LoginPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();

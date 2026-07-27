@@ -3,21 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/pixelact-ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import { addLineItemEntry, getLocaleTag, type LineItem } from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import {
@@ -36,6 +21,19 @@ import { formatLineItemEntryDisplay } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
+import {
+  Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface AddEntryDialogProps {
   item: LineItem | null;
   open: boolean;

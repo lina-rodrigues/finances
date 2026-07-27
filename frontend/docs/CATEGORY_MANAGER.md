@@ -116,7 +116,7 @@ During reorder, row inputs disable (`reordering` flag).
 | `components/CategoryManagePage.tsx` | Full-page chrome |
 | `components/SettingsDialog.tsx` | Entry link to manage page |
 | `app/(app)/categories/manage/page.tsx` | Server route + month seed |
-| `design-system/tokens.css` | Icon picker grid utilities |
+| `design-system/finance-app.css` | Icon picker grid utilities |
 | `lib/icons.ts` | `dragHandle` icon (`SortVertical`) |
 
 ## Verification

@@ -5,17 +5,6 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CategoryIconPicker } from "@/components/CategoryIconPicker";
 import { Icon } from "@/components/Icon";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Input } from "@/components/ui/pixelact-ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/pixelact-ui/select";
-import { Spinner } from "@/components/ui/pixelact-ui/spinner";
 import {
   createCategory,
   deleteCategory,
@@ -36,6 +25,17 @@ import { resolveCategoryIcon, type IconName } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
+import {
+  Badge,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+} from "@lina-rodrigues/cotton-candy";
 interface EditableCategory extends FlatCategory {
   draftName: string;
   draftIcon: IconName;

@@ -1,17 +1,17 @@
 "use client";
 
 import { useMemo } from "react";
-import { Input } from "@/components/ui/pixelact-ui/input";
+import { type RepeatMode } from "@/lib/recurrence";
+import { useTranslation } from "@/lib/i18n";
+
 import {
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/pixelact-ui/select";
-import { type RepeatMode } from "@/lib/recurrence";
-import { useTranslation } from "@/lib/i18n";
-
+} from "@lina-rodrigues/cotton-candy";
 interface RepeatConfigFieldsProps {
   idPrefix: string;
   mode: RepeatMode;

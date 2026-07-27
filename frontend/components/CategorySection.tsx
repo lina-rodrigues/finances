@@ -5,14 +5,6 @@ import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { Icon } from "@/components/Icon";
 import { PendingBadge } from "@/components/PendingBadge";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import { Card, CardContent } from "@/components/ui/pixelact-ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/pixelact-ui/collapsible";
 import { type Category, type LineItem } from "@/lib/api";
 import { getLineItemRealizedAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
 import { resolveCategoryIcon } from "@/lib/icons";
@@ -21,6 +13,15 @@ import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useRowPending } from "@/lib/MonthViewProvider";
 
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@lina-rodrigues/cotton-candy";
 /** Toggle line-item badges (income/expense, repeat, planned, pending) in category rows. */
 const SHOW_LINE_ITEM_TAGS = false;
 

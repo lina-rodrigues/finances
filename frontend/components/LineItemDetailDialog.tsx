@@ -3,15 +3,6 @@
 import { BudgetBar } from "@/components/BudgetBar";
 import { Icon } from "@/components/Icon";
 import { LineItemActions } from "@/components/LineItemActions";
-import { Badge } from "@/components/ui/pixelact-ui/badge";
-import { Button } from "@/components/ui/pixelact-ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/pixelact-ui/dialog";
 import { getLocaleTag, type LineItem } from "@/lib/api";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
@@ -20,6 +11,15 @@ import { useMonthView } from "@/lib/MonthViewProvider";
 import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@lina-rodrigues/cotton-candy";
 interface LineItemDetailDialogProps {
   item: LineItem | null;
   open: boolean;

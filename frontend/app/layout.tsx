@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/lib/AuthProvider";
 import { ThemeFlashScript } from "@/components/ThemeFlashScript";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@lina-rodrigues/cotton-candy";
 import { jetbrainsMono, nunito, pressStart } from "@/lib/fonts";
 import "./globals.css";
 

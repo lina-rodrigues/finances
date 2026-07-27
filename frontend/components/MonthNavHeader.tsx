@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
-import { Button } from "@/components/ui/pixelact-ui/button";
 import {
   getCurrentYearMonth,
   getLocaleTag,
@@ -14,6 +13,9 @@ import {
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Button,
+} from "@lina-rodrigues/cotton-candy";
 function monthParts(yearMonth: string, localeTag: string) {
   const [year, month] = yearMonth.split("-");
   const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);

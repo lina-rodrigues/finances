@@ -2,13 +2,16 @@
 
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { LineItemActions } from "@/components/LineItemActions";
-import { Alert, AlertDescription } from "@/components/ui/pixelact-ui/alert";
 import { hasLineItemEntries } from "@/lib/lineItemAmounts";
 import { type Category, type LineItem } from "@/lib/api";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
+import {
+  Alert,
+  AlertDescription,
+} from "@lina-rodrigues/cotton-candy";
 interface UpcomingItem {
   item: LineItem;
   icon: string;

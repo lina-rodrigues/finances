@@ -2,10 +2,12 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { Button } from "@/components/ui/pixelact-ui/button";
 import { categoryIcons, formatIconLabel, type IconName } from "@/lib/icons";
 import { useTranslation } from "@/lib/i18n";
 
+import {
+  Button,
+} from "@lina-rodrigues/cotton-candy";
 interface CategoryIconPickerProps {
   value: IconName;
   onChange: (icon: IconName) => void;
