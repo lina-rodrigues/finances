@@ -151,9 +151,7 @@ export function CategorySection({
         <CollapsibleTrigger className="interactive-surface group w-full cursor-pointer px-4 py-3 text-left">
           <div className="flex w-full items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-2">
-              <span className="icon-slot shrink-0">
-                <CategoryIcon icon={iconName} size="sm" />
-              </span>
+              <CategoryIcon icon={iconName} size="sm" className="shrink-0" />
               <h3 className="text-display min-w-0 text-xs normal-case leading-snug break-words">
                 {category.name}
               </h3>

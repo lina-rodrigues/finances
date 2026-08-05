@@ -89,9 +89,7 @@ export function UpcomingPaymentsList({
       {groups.map((group) => (
         <div key={group.id} className="space-y-2">
           <h3 className="text-display flex min-w-0 items-center gap-2 text-xs normal-case leading-snug">
-            <span className="icon-slot shrink-0">
-              <CategoryIcon icon={group.icon} size="sm" />
-            </span>
+            <CategoryIcon icon={group.icon} size="sm" className="shrink-0" />
             <span className="min-w-0 break-words">{group.name}</span>
           </h3>
           <ul className="responsive-list-columns">
