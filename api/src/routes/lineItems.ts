@@ -5,6 +5,7 @@ import {
   applyRealizedAmountWrite,
   ensureEntriesArray,
   pushRealizedEntry,
+  updateRealizedEntry,
 } from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
@@ -21,6 +22,7 @@ import {
   convertToRecurrenceSchema,
   deleteLineItemSchema,
   addLineItemEntrySchema,
+  updateLineItemEntrySchema,
   toLineItemMutationResponse,
   toLineItemEntryMutationResponse,
   updateLineItemSchema,
@@ -277,6 +279,35 @@ router.post(
 
     const savedEntry = lineItem.entries[lineItem.entries.length - 1]!;
     res.status(201).json(toLineItemEntryMutationResponse(lineItem, savedEntry));
+  }),
+);
+
+router.patch(
+  "/:id/entries/:entryId",
+  asyncHandler(async (req, res) => {
+    const owned = await assertLineItemOwnedByUser(req.params.id, req.userId!);
+    if (!owned) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const body = updateLineItemEntrySchema.parse(req.body);
+    const lineItem = await LineItem.findById(req.params.id);
+    if (!lineItem) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    const updatedEntry = updateRealizedEntry(lineItem, req.params.entryId, body);
+    if (!updatedEntry) {
+      res.status(404).json({ error: "NOT_FOUND" });
+      return;
+    }
+
+    await lineItem.save();
+    await cascadeForMonth(req.userId!, lineItem.monthId);
+
+    res.json(toLineItemEntryMutationResponse(lineItem, updatedEntry));
   }),
 );
 

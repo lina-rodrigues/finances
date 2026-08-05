@@ -32,6 +32,21 @@ export const addLineItemEntrySchema = z.object({
   note: z.string().trim().min(1).optional(),
 });
 
+export const updateLineItemEntrySchema = z
+  .object({
+    amount: z
+      .number()
+      .finite()
+      .refine((value) => value !== 0, {
+        message: "Amount must not be zero",
+      })
+      .optional(),
+    note: z.string().trim().min(1).nullable().optional(),
+  })
+  .refine((value) => value.amount !== undefined || value.note !== undefined, {
+    message: "At least one of amount or note is required",
+  });
+
 function toEntryResponse(entry: ILineItemEntry) {
   return {
     id: entry._id.toString(),

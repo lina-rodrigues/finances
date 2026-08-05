@@ -144,6 +144,30 @@ export function buildOptimisticRemoveEntry(
   });
 }
 
+export function buildOptimisticUpdateEntry(
+  base: LineItem,
+  entryId: string,
+  patch: { amount?: number; note?: string | null },
+): LineItem {
+  const entries = base.entries.map((entry) =>
+    entry.id === entryId
+      ? {
+          ...entry,
+          amount: patch.amount ?? entry.amount,
+          note: patch.note !== undefined ? patch.note : entry.note,
+        }
+      : entry,
+  );
+  const realizedAmount = sumEntryAmountsLocal(entries);
+  return normalizeLineItem({
+    ...base,
+    entries,
+    entryCount: entries.length,
+    realizedAmount,
+    displayAmount: effectiveAmount({ plannedAmount: base.plannedAmount, realizedAmount, entries }),
+  });
+}
+
 export function extractLineItemSeriesMeta(item: LineItem): Partial<LineItemSeriesMeta> {
   return {
     seriesEndType: item.seriesEndType,

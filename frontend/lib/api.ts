@@ -259,6 +259,19 @@ export async function addLineItemEntry(
   return res.json();
 }
 
+export async function updateLineItemEntry(
+  id: string,
+  entryId: string,
+  data: { amount?: number; note?: string | null },
+): Promise<LineItemEntryMutationResponse> {
+  const res = await apiFetch(
+    `/line-items/${id}/entries/${entryId}`,
+    "update line item entry",
+    jsonInit("PATCH", data),
+  );
+  return res.json();
+}
+
 export async function deleteLineItemEntry(
   id: string,
   entryId: string,

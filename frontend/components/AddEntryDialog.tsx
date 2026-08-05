@@ -2,10 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { addLineItemEntry, getLocaleTag, type LineItem } from "@/lib/api";
+import {
+  addLineItemEntry,
+  updateLineItemEntry,
+  type LineItem,
+  type LineItemEntry,
+} from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import {
   buildOptimisticAddEntry,
+  buildOptimisticUpdateEntry,
   createTempEntryId,
   extractLineItemSeriesMeta,
   toLineItemFromMutation,
@@ -16,15 +22,10 @@ import {
   useMonthView,
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
-import { formatLineItemEntryDisplay } from "@/lib/lineItemAmounts";
-import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 import {
   Button,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -34,27 +35,22 @@ import {
   Spinner,
   Icon,
 } from "@lina-rodrigues/cotton-candy";
+
 interface AddEntryDialogProps {
   item: LineItem | null;
+  entry?: LineItemEntry | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-function formatEntryDate(iso: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(iso));
-}
-
 export function AddEntryDialog({
   item,
+  entry = null,
   open,
   onOpenChange,
 }: AddEntryDialogProps) {
   const router = useRouter();
-  const { t, locale } = useTranslation();
-  const formatMoney = useFormatCurrency();
+  const { t } = useTranslation();
   const monthView = useMonthView();
   const { setFromServer, replaceLineItem } = useMonthViewActions();
   const { runOptimistic } = useMutationFeedback();
@@ -63,23 +59,27 @@ export function AddEntryDialog({
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [recentOpen, setRecentOpen] = useState(false);
 
-  const localeTag = getLocaleTag(locale);
-  const recentEntries = item ? [...(item.entries ?? [])].slice(-3).reverse() : [];
-  const amountClass = item?.type === "income" ? "text-income" : "text-expense";
+  const isEdit = entry !== null;
 
   useEffect(() => {
     if (!open) {
       setAmount("");
       setNote("");
-      setRecentOpen(false);
       return;
+    }
+
+    if (entry) {
+      setAmount(String(entry.amount));
+      setNote(entry.note ?? "");
+    } else {
+      setAmount("");
+      setNote("");
     }
 
     const timer = window.setTimeout(() => amountInputRef.current?.focus(), 0);
     return () => window.clearTimeout(timer);
-  }, [open, item?.id]);
+  }, [open, item?.id, entry?.id]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -93,15 +93,52 @@ export function AddEntryDialog({
     }
 
     const trimmedNote = note.trim();
-    const tempEntry = {
-      id: createTempEntryId(),
-      amount: parsedAmount,
-      note: trimmedNote.length > 0 ? trimmedNote : null,
-      createdAt: new Date().toISOString(),
-    };
+    const nextNote = trimmedNote.length > 0 ? trimmedNote : null;
 
     setLoading(true);
     try {
+      if (isEdit && entry) {
+        const previousNote = entry.note;
+        const patch: { amount: number; note?: string | null } = {
+          amount: parsedAmount,
+        };
+        if (nextNote !== previousNote) {
+          patch.note = nextNote;
+        }
+
+        await runOptimistic({
+          snapshot: () => captureMonthViewState(monthView),
+          apply: () => {
+            replaceLineItem(
+              item.id,
+              buildOptimisticUpdateEntry(item, entry.id, {
+                amount: parsedAmount,
+                note: nextNote,
+              }),
+            );
+            onOpenChange(false);
+          },
+          mutate: async () => {
+            const response = await updateLineItemEntry(item.id, entry.id, patch);
+            replaceLineItem(
+              item.id,
+              toLineItemFromMutation(response.lineItem, extractLineItemSeriesMeta(item)),
+            );
+          },
+          reconcile: () => backgroundReconcile(router),
+          rollback: (snapshot) => setFromServer(snapshot),
+          successMessage: t("entries.updated"),
+        });
+        return;
+      }
+
+      const tempEntry = {
+        id: createTempEntryId(),
+        amount: parsedAmount,
+        note: nextNote,
+        createdAt: new Date().toISOString(),
+      };
+
       await runOptimistic({
         snapshot: () => captureMonthViewState(monthView),
         apply: () => {
@@ -111,7 +148,7 @@ export function AddEntryDialog({
         mutate: async () => {
           const response = await addLineItemEntry(item.id, {
             amount: parsedAmount,
-            ...(trimmedNote.length > 0 ? { note: trimmedNote } : {}),
+            ...(nextNote ? { note: nextNote } : {}),
           });
           replaceLineItem(
             item.id,
@@ -130,7 +167,7 @@ export function AddEntryDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        data-testid="add-entry-dialog"
+        data-testid={isEdit ? "edit-entry-dialog" : "add-entry-dialog"}
         className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -139,7 +176,7 @@ export function AddEntryDialog({
       >
         <DialogHeader>
           <DialogTitle className="text-display text-xs normal-case">
-            {t("entries.addTitle")}
+            {t(isEdit ? "entries.editEntryTitle" : "entries.addTitle")}
           </DialogTitle>
           {item && (
             <p className="text-body text-muted-finance pt-1 text-sm">{item.label}</p>
@@ -181,43 +218,6 @@ export function AddEntryDialog({
             </div>
           </div>
 
-          {recentEntries.length > 0 && (
-            <Collapsible open={recentOpen} onOpenChange={setRecentOpen}>
-              <CollapsibleTrigger asChild>
-                <Button
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  className="pressable focus-ring h-auto p-0 text-sm"
-                >
-                  <Icon name="chevronDown" size="xs" />
-                  {t("entries.recentEntries")}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2 pt-2">
-                {recentEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-start justify-between gap-2 rounded-sm bg-muted px-2 py-1.5"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-amount text-sm ${amountClass}`}>
-                        {item &&
-                          formatLineItemEntryDisplay(item.type, entry.amount, formatMoney)}
-                      </p>
-                      {entry.note && (
-                        <p className="text-body text-muted-finance truncate text-xs">{entry.note}</p>
-                      )}
-                    </div>
-                    <span className="text-body shrink-0 text-xs text-muted-finance">
-                      {formatEntryDate(entry.createdAt, localeTag)}
-                    </span>
-                  </div>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-
           <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
             <Button
               type="button"
@@ -237,8 +237,12 @@ export function AddEntryDialog({
               className="pressable focus-ring gap-1"
               disabled={loading}
             >
-              {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-              {t("entries.addSubmit")}
+              {loading ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Icon name={isEdit ? "save" : "add"} size="xs" />
+              )}
+              {t(isEdit ? "entries.editSubmit" : "entries.addSubmit")}
             </Button>
           </DialogFooter>
         </form>

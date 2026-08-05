@@ -97,6 +97,26 @@ export function pushRealizedEntry(
   return entry;
 }
 
+export function updateRealizedEntry(
+  item: Pick<ILineItem, "entries">,
+  entryId: string,
+  patch: { amount?: number; note?: string | null },
+): ILineItemEntry | null {
+  const entries = ensureEntriesArray(item);
+  const entry = entries.find((candidate) => candidate._id.toString() === entryId);
+  if (!entry) {
+    return null;
+  }
+
+  if (patch.amount !== undefined) {
+    entry.amount = patch.amount;
+  }
+  if (patch.note !== undefined) {
+    entry.note = patch.note;
+  }
+  return entry;
+}
+
 export function clearEntries(item: Pick<ILineItem, "entries">): void {
   item.entries = [];
 }

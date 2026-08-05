@@ -460,7 +460,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               size="sm"
               className="pressable focus-ring"
             >
-              {loading ? <Spinner className="size-4" /> : t("common.cancel")}
+              {loading ? <Spinner className="size-4" /> : t("common.close")}
             </Button>
           </DialogClose>
         </DialogFooter>
