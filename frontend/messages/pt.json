@@ -10,7 +10,7 @@
     "close": "Fechar",
     "somethingWrong": "Algo deu errado. Tente novamente.",
     "uncategorized": "Sem categoria",
-    "lastInteractionTitle": "Última interação"
+    "lastInteraction": "Última interação: {date}"
   },
   "auth": {
     "login": {
