@@ -136,6 +136,113 @@ pnpm db:restore -- --path backups/finance-<timestamp> --confirm
 
 Realized amounts are stored as embedded **entries** on each line item. The API still returns computed `realizedAmount` in JSON for the UI.
 
+## Credit card statement import (local)
+
+For bulk-importing a Nubank (or similar) credit card bill into a month, use the local script [`api/scripts/import-credit-card.ts`](api/scripts/import-credit-card.ts). It writes via Mongoose (same models as the API) — there is no bulk HTTP endpoint.
+
+Typical flow: pay the card in month **M**, map every purchase on that invoice into month **M** (not the CSV transaction dates), put the mapping in a JSON file, then run the importer against the target DB (usually `.env.prod`).
+
+### Workflow
+
+1. Export the statement CSV from the bank.
+2. Create a mapping file at the repo root (example name: `credit-card-08-2026.json`). Prefer keeping personal statement JSONs out of git.
+3. Fill `items` (see schema below). Roll IOF into the related foreign charge when the CSV lists it separately. Skip card payments (`Pagamento recebido`).
+4. Set `expectedTotal` to the statement purchase total you expect.
+5. Run the importer. It **sums every item’s `realized`** (cent-safe math) and **aborts with no DB writes** if that sum ≠ `expectedTotal`. Fix the JSON and re-run.
+6. On success it creates line items / entries / recurring series and cascades balances from that month forward.
+
+```bash
+# from repo root — paths are relative to api/
+pnpm import:credit-card -- --json ../credit-card-08-2026.json --env ../.env.prod
+
+# optional: pin the user when several accounts share category names
+pnpm import:credit-card -- --json ../credit-card-08-2026.json --env ../.env.prod --user-email you@example.com
+```
+
+Requirements:
+
+- `.env.prod` (or another env file) with `MONGODB_URI` — never commit env files.
+- Target categories must already exist by **name** (e.g. `Lazer`, `Pessoal`, `Formação`, `Alimentação`).
+- For `LineItemEntry` rows, the parent line item must already exist in that `yearMonth` (matched by `parent` label + category).
+- Re-running the same labels in the same month fails on purpose (duplicate guard).
+
+User resolution: `--user-email` / `IMPORT_USER_EMAIL`, otherwise the single user who owns a category named `Lazer`.
+
+### JSON shape
+
+```json
+{
+  "yearMonth": "2026-08",
+  "source": "Nubank_2026-08-05.csv",
+  "expectedTotal": 2261.98,
+  "skipped": [
+    { "date": "2026-07-03", "title": "Pagamento recebido", "amount": -1208.18 }
+  ],
+  "items": []
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `yearMonth` | Target month `YYYY-MM` (usually the month you paid the card) |
+| `source` | Optional note (CSV filename) |
+| `expectedTotal` | Hard gate: must equal sum of all non-null `items[].realized` |
+| `skipped` | Optional audit list of rows not imported (payments, etc.) |
+| `items` | Rows to import (see below) |
+
+### Item fields
+
+| Field | `LineItem` | `LineItemEntry` |
+|-------|------------|-----------------|
+| `type` | `"LineItem"` | `"LineItemEntry"` |
+| `label` | Display name (subscriptions often use `Assinatura: …`) | `null` |
+| `category` | Existing category name | Existing category name of the parent |
+| `parent` | `null` | Parent line item **label** in that month |
+| `planned` | Planned amount on the new line item | `null` (parent planned unchanged) |
+| `realized` | Realized amount (creates one entry); counted in `expectedTotal` | Entry amount; counted in `expectedTotal` |
+| `recurrent` | `true` → create a `RecurringSeries` | `false` |
+| `recurrence` | `{ "endType": "never" }` or `{ "endType": "count", "occurrenceCount": N, "startYearMonth": "YYYY-MM" }` | `null` |
+| `notes` | Optional | Optional; stored on the entry |
+
+Rules of thumb:
+
+- **New purchase / subscription** → `LineItem` with `planned` + `realized` (and `recurrent` when it should continue monthly).
+- **Charge against an existing row** (e.g. more iFood on `iFood`) → `LineItemEntry` with `parent` set; do not change the parent’s planned amount.
+- **Finite installments** → `LineItem` + `recurrence.endType: "count"` (e.g. remaining parcels including the current month). Only the top-level August `realized` counts toward `expectedTotal` — do not also sum `recurrence.materialize[].realized`.
+- Subscriptions that are already cancelled or moved accounts: use the `Assinatura: ` label if you want, but set `recurrent: false`.
+
+Example items:
+
+```json
+{
+  "id": 1,
+  "type": "LineItem",
+  "label": "Assinatura: Spotify",
+  "category": "Lazer",
+  "parent": null,
+  "planned": 59.9,
+  "realized": 59.9,
+  "recurrent": true,
+  "recurrence": { "endType": "never" },
+  "notes": "Dl*Google Spotif"
+}
+```
+
+```json
+{
+  "id": 2,
+  "type": "LineItemEntry",
+  "label": null,
+  "category": "Lazer",
+  "parent": "iFood",
+  "planned": null,
+  "realized": 136.78,
+  "recurrent": false,
+  "recurrence": null,
+  "notes": "iFood - NuPay"
+}
+```
+
 ## Environment Variables
 
 | Variable | Package | Default | Description |
@@ -152,6 +259,7 @@ Realized amounts are stored as embedded **entries** on each line item. The API s
 | `NEXT_PUBLIC_API_URL` | frontend | `http://localhost:4000` | API base URL for fetch calls |
 | `SEED_DEV_EMAIL` | api | `dev@finance.local` | Dev user email for seed script |
 | `SEED_DEV_PASSWORD` | api | `password123` | Dev user password for seed script |
+| `IMPORT_USER_EMAIL` | api | — | Optional default user for `pnpm import:credit-card` when not passing `--user-email` |
 | `CURSOR_API_KEY` | api | — | Cursor SDK key for AI financial reports (server-only) |
 | `AI_REPORT_PROMPT_PATH` | api | `prompts/financial-health-report.txt` | Optional override for the AI report prompt file |
 
@@ -329,6 +437,7 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | `pnpm dev:frontend` | Run frontend only |
 | `pnpm seed` | Seed default categories |
 | `pnpm seed:fresh` | Drop existing data and reseed |
+| `pnpm import:credit-card` | Import a credit-card JSON mapping (pass `-- --json … --env …`; see [Credit card statement import](#credit-card-statement-import-local)) |
 | `pnpm build` | Build both packages |
 | `pnpm contrast-check` | WCAG AA contrast audit of the theme colors |
 | `pnpm responsive-check` | Playwright screenshots (2 themes x 3 months x 8 viewports) into `.responsive-audit/` — requires `pnpm dev` running |
@@ -343,6 +452,7 @@ finance/
 ├── pnpm-workspace.yaml
 ├── scripts/                    # contrast-check, responsive-check
 ├── api/
+│   ├── scripts/                # Local ops (e.g. import-credit-card)
 │   └── src/
 │       ├── constants/          # Allowed category icon keys
 │       ├── models/             # Category, Month, LineItem

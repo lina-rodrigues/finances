@@ -13,7 +13,8 @@
     "deploy": "node scripts/deploy.mjs",
     "db:backup": "node scripts/db/backup.mjs",
     "db:restore": "node scripts/db/restore.mjs",
-    "db:migrate:realized-to-entries": "node scripts/db/migrate-realized-to-entries.mjs"
+    "db:migrate:realized-to-entries": "node scripts/db/migrate-realized-to-entries.mjs",
+    "import:credit-card": "pnpm --filter api import:credit-card --"
   },
   "engines": {
     "node": ">=20"
