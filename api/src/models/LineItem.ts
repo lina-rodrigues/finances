@@ -88,6 +88,7 @@ export function pushRealizedEntry(
 ): ILineItemEntry {
   const entries = ensureEntriesArray(item);
   const entry = {
+    _id: new mongoose.Types.ObjectId(),
     amount,
     note,
     createdAt: new Date(),

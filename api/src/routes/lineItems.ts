@@ -270,12 +270,12 @@ router.post(
 
     ensureEntriesArray(lineItem);
 
-    const entry = pushRealizedEntry(lineItem, body.amount, body.note ?? null);
+    pushRealizedEntry(lineItem, body.amount, body.note ?? null);
     await lineItem.save();
 
     await cascadeForMonth(req.userId!, lineItem.monthId);
 
-    const savedEntry = entry;
+    const savedEntry = lineItem.entries[lineItem.entries.length - 1]!;
     res.status(201).json(toLineItemEntryMutationResponse(lineItem, savedEntry));
   }),
 );
