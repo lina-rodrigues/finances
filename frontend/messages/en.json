@@ -10,7 +10,7 @@
     "close": "Close",
     "somethingWrong": "Something went wrong. Please try again.",
     "uncategorized": "Uncategorized",
-    "lastInteraction": "Last interaction: {date}"
+    "lastInteractionTitle": "Last interaction"
   },
   "auth": {
     "login": {
