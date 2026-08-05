@@ -45,7 +45,7 @@ export function LastInteractionBanner() {
   const formatted = formatLastInteractionDate(lastAt, getLocaleTag(locale));
 
   return (
-    <Alert className="mx-4 mt-2">
+    <Alert className="mb-4">
       <AlertDescription className="text-body">
         {t("common.lastInteraction", { date: formatted })}
       </AlertDescription>

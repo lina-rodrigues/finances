@@ -12,8 +12,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Suspense fallback={null}>
           <AppHeader />
         </Suspense>
-        <LastInteractionBanner />
-        <main className="app-main px-4 pt-4">{children}</main>
+        <main className="app-main px-4 pt-4">
+          <LastInteractionBanner />
+          {children}
+        </main>
         <Suspense fallback={null}>
           <BottomNav />
         </Suspense>
