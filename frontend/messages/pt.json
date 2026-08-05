@@ -226,7 +226,7 @@
     "editEntryTitle": "Editar lançamento",
     "editSubmit": "Salvar",
     "entryActions": "Ações do lançamento",
-    "deleteEntry": "Excluir lançamento",
+    "deleteEntry": "Excluir",
     "deleteEntryDescription": "Remover este lançamento de \"{label}\"?",
     "entriesManagedHint": "Use Pagar ou Adicionar no item para registrar valores.",
     "pay": "Pagar",

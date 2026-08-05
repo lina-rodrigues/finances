@@ -226,7 +226,7 @@
     "editEntryTitle": "Edit entry",
     "editSubmit": "Save",
     "entryActions": "Entry actions",
-    "deleteEntry": "Delete entry",
+    "deleteEntry": "Delete",
     "deleteEntryDescription": "Remove this entry from \"{label}\"?",
     "entriesManagedHint": "Use Pay or Add on the item to record amounts.",
     "pay": "Pay",
