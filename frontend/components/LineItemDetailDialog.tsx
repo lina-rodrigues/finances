@@ -28,6 +28,7 @@ import {
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
 import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
+import { getSeriesBadgeLabel } from "@/lib/recurrence";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -100,6 +101,7 @@ export function LineItemDetailDialog({
   const amountPrefix = isIncome ? "+" : "-";
   const entries = [...(liveItem.entries ?? [])].reverse();
   const spent = getLineItemRealizedAmount(liveItem);
+  const seriesBadge = getSeriesBadgeLabel(liveItem, localeTag);
 
   async function handleDeleteEntry() {
     if (!liveItem || !deletingEntry) {
@@ -156,11 +158,11 @@ export function LineItemDetailDialog({
                   {isIncome ? t("categories.income") : t("categories.expense")}
                 </span>
               </Badge>
-              {liveItem.seriesId && (
+              {seriesBadge && (
                 <Badge font="normal" variant="outline" className="bg-muted h-5 px-2 text-xs text-foreground">
                   <span className="flex items-center gap-1">
                     <Icon name="repeat" size="xs" />
-                    {t("repeat.badge")}
+                    {t(seriesBadge.key, seriesBadge.vars)}
                   </span>
                 </Badge>
               )}

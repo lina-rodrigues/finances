@@ -22,7 +22,11 @@ export function isTempLineItemId(id: string): boolean {
 
 type LineItemSeriesMeta = Pick<
   LineItem,
-  "seriesEndType" | "seriesOccurrenceCount" | "seriesEndYearMonth"
+  | "seriesEndType"
+  | "seriesOccurrenceCount"
+  | "seriesEndYearMonth"
+  | "seriesStartYearMonth"
+  | "seriesCancelled"
 >;
 
 function toLineItemFields(response: LineItemMutationResponse) {
@@ -47,6 +51,8 @@ function toLineItemFields(response: LineItemMutationResponse) {
     seriesEndType: null,
     seriesOccurrenceCount: null,
     seriesEndYearMonth: null,
+    seriesStartYearMonth: null,
+    seriesCancelled: false,
   } as LineItem);
 }
 
@@ -59,6 +65,8 @@ export function toLineItemFromMutation(
     seriesEndType: seriesMeta?.seriesEndType ?? null,
     seriesOccurrenceCount: seriesMeta?.seriesOccurrenceCount ?? null,
     seriesEndYearMonth: seriesMeta?.seriesEndYearMonth ?? null,
+    seriesStartYearMonth: seriesMeta?.seriesStartYearMonth ?? null,
+    seriesCancelled: seriesMeta?.seriesCancelled ?? false,
   };
 }
 
@@ -106,6 +114,8 @@ export function buildOptimisticCreateLineItem(input: {
     seriesEndType: null,
     seriesOccurrenceCount: null,
     seriesEndYearMonth: null,
+    seriesStartYearMonth: null,
+    seriesCancelled: false,
     isSeriesException: false,
   });
 }
@@ -173,6 +183,8 @@ export function extractLineItemSeriesMeta(item: LineItem): Partial<LineItemSerie
     seriesEndType: item.seriesEndType,
     seriesOccurrenceCount: item.seriesOccurrenceCount,
     seriesEndYearMonth: item.seriesEndYearMonth,
+    seriesStartYearMonth: item.seriesStartYearMonth,
+    seriesCancelled: item.seriesCancelled,
   };
 }
 

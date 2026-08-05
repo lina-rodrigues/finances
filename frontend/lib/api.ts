@@ -53,6 +53,8 @@ export interface LineItem {
   seriesEndType: RecurrenceEndType | null;
   seriesOccurrenceCount: number | null;
   seriesEndYearMonth: string | null;
+  seriesStartYearMonth: string | null;
+  seriesCancelled: boolean;
   isSeriesException: boolean;
 }
 

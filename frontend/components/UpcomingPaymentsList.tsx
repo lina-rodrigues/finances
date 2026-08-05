@@ -12,29 +12,53 @@ import {
   Alert,
   AlertDescription,
 } from "@lina-rodrigues/cotton-candy";
-interface UpcomingItem {
-  item: LineItem;
+
+interface UpcomingGroup {
+  id: string;
+  name: string;
   icon: string;
+  items: LineItem[];
 }
 
-function collectUpcoming(categories: Category[], uncategorized: LineItem[]): UpcomingItem[] {
-  const upcoming: UpcomingItem[] = [];
+function isUpcomingExpense(item: LineItem): boolean {
+  return item.type === "expense" && !hasLineItemEntries(item);
+}
+
+function collectUpcomingGroups(
+  categories: Category[],
+  uncategorized: LineItem[],
+  uncategorizedLabel: string,
+): UpcomingGroup[] {
+  const groups: UpcomingGroup[] = [];
 
   for (const category of categories) {
-    for (const item of category.lineItems) {
-      if (item.type === "expense" && !hasLineItemEntries(item)) {
-        upcoming.push({ item, icon: category.icon });
-      }
+    const items = category.lineItems
+      .filter(isUpcomingExpense)
+      .sort((a, b) => a.label.localeCompare(b.label));
+    if (items.length === 0) {
+      continue;
     }
+    groups.push({
+      id: category.id,
+      name: category.name,
+      icon: category.icon,
+      items,
+    });
   }
 
-  for (const item of uncategorized) {
-    if (item.type === "expense" && !hasLineItemEntries(item)) {
-      upcoming.push({ item, icon: "category" });
-    }
+  const uncategorizedItems = uncategorized
+    .filter(isUpcomingExpense)
+    .sort((a, b) => a.label.localeCompare(b.label));
+  if (uncategorizedItems.length > 0) {
+    groups.push({
+      id: "__uncategorized__",
+      name: uncategorizedLabel,
+      icon: "category",
+      items: uncategorizedItems,
+    });
   }
 
-  return upcoming.sort((a, b) => a.item.label.localeCompare(b.item.label));
+  return groups;
 }
 
 interface UpcomingPaymentsListProps {
@@ -50,9 +74,9 @@ export function UpcomingPaymentsList({
 }: UpcomingPaymentsListProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
-  const upcoming = collectUpcoming(categories, uncategorized);
+  const groups = collectUpcomingGroups(categories, uncategorized, t("common.uncategorized"));
 
-  if (upcoming.length === 0) {
+  if (groups.length === 0) {
     return (
       <Alert>
         <AlertDescription className="text-body">{t("finance.noUpcomingPayments")}</AlertDescription>
@@ -61,35 +85,46 @@ export function UpcomingPaymentsList({
   }
 
   return (
-    <ul className="responsive-list-columns">
-      {upcoming.map(({ item, icon }) => (
-        <li key={item.id}>
-          <div className="inventory-slot interactive-surface relative flex min-w-0 w-full items-center gap-3 px-2 py-2 sm:px-3 sm:py-2.5">
-            <button
-              type="button"
-              className="pressable focus-ring absolute inset-0 z-0 cursor-pointer border-0 bg-transparent p-0"
-              onClick={() => handlers.openDetail(item)}
-              aria-label={`${t("entries.detailTitle")}: ${item.label}`}
-            />
-            <CategoryIcon icon={icon} size="sm" className="relative z-10 shrink-0 pointer-events-none" />
-            <span className="text-body relative z-10 min-w-0 flex-1 truncate font-medium pointer-events-none">
-              {item.label}
+    <div className="space-y-4">
+      {groups.map((group) => (
+        <div key={group.id} className="space-y-2">
+          <h3 className="text-display flex min-w-0 items-center gap-2 text-xs normal-case leading-snug">
+            <span className="icon-slot shrink-0">
+              <CategoryIcon icon={group.icon} size="sm" />
             </span>
-            <span className="text-amount text-expense relative z-10 shrink-0 whitespace-nowrap pointer-events-none">
-              -{formatMoney(item.plannedAmount)}
-            </span>
-            <div className="relative z-10 shrink-0">
-              <LineItemActions
-                item={item}
-                layout="inline"
-                onPay={handlers.payItem}
-                onAdd={handlers.openAdd}
-                onEdit={handlers.openEdit}
-              />
-            </div>
-          </div>
-        </li>
+            <span className="min-w-0 break-words">{group.name}</span>
+          </h3>
+          <ul className="responsive-list-columns">
+            {group.items.map((item) => (
+              <li key={item.id}>
+                <div className="inventory-slot interactive-surface relative flex min-w-0 w-full items-center gap-3 px-2 py-2 sm:px-3 sm:py-2.5">
+                  <button
+                    type="button"
+                    className="pressable focus-ring absolute inset-0 z-0 cursor-pointer border-0 bg-transparent p-0"
+                    onClick={() => handlers.openDetail(item)}
+                    aria-label={`${t("entries.detailTitle")}: ${item.label}`}
+                  />
+                  <span className="text-body relative z-10 min-w-0 flex-1 truncate font-medium pointer-events-none">
+                    {item.label}
+                  </span>
+                  <span className="text-amount text-expense relative z-10 shrink-0 whitespace-nowrap pointer-events-none">
+                    -{formatMoney(item.plannedAmount)}
+                  </span>
+                  <div className="relative z-10 shrink-0">
+                    <LineItemActions
+                      item={item}
+                      layout="inline"
+                      onPay={handlers.payItem}
+                      onAdd={handlers.openAdd}
+                      onEdit={handlers.openEdit}
+                    />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
