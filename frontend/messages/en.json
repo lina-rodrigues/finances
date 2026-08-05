@@ -9,7 +9,8 @@
     "loading": "Loading…",
     "close": "Close",
     "somethingWrong": "Something went wrong. Please try again.",
-    "uncategorized": "Uncategorized"
+    "uncategorized": "Uncategorized",
+    "lastInteraction": "Last interaction: {date}"
   },
   "auth": {
     "login": {

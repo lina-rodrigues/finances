@@ -9,7 +9,8 @@
     "loading": "Carregando…",
     "close": "Fechar",
     "somethingWrong": "Algo deu errado. Tente novamente.",
-    "uncategorized": "Sem categoria"
+    "uncategorized": "Sem categoria",
+    "lastInteraction": "Última interação: {date}"
   },
   "auth": {
     "login": {
