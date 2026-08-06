@@ -30,7 +30,7 @@ pnpm monorepo, two independently deployable packages. The frontend never touches
 - `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — mapped to Font Awesome in `frontend/lib/categoryIcons.ts`).
 - `frontend/app/(app)/` uses `<wa-page>` shell (`components/AppShell.tsx`). Server pages use `lib/api-server.ts` with cookie forwarding; auth pages live under `frontend/app/(auth)/`. Interactive pieces call `frontend/lib/api.ts` (client, `credentials: "include"`) then `router.refresh()`.
 - Auth: custom JWT in httpOnly cookie (`finance-token`). Settings at `/settings`. i18n via `frontend/lib/i18n.tsx` + `messages/{en,pt}.json`.
-- Web Awesome: npm package `@web.awesome.me/webawesome-pro`; CSS from package `dist` (bundler), runtime loader from `frontend/public/webawesome` → package **`dist-cdn`**. Theme classes on `<html>`: `wa-theme-default wa-palette-rudimentary` + `wa-light`/`wa-dark`.
+- Web Awesome: npm package `@web.awesome.me/webawesome-pro`; CSS from package `dist` (bundler), runtime loader from `frontend/public/webawesome` (copied from package **`dist-cdn`** via `frontend/scripts/sync-webawesome.mjs` on install/build — do not symlink). Theme classes on `<html>`: `wa-theme-default wa-palette-rudimentary` + `wa-light`/`wa-dark`.
 
 ## Commands
 

@@ -15,7 +15,7 @@ Styles imported in [`app/globals.css`](app/globals.css) from package **`dist`** 
 - `@web.awesome.me/webawesome-pro/dist/styles/utilities.css`
 - `@web.awesome.me/webawesome-pro/dist/styles/native.css`
 
-Runtime components load from **`public/webawesome` → `dist-cdn`** (browser-ready; do not point the loader at plain `dist` — bare imports like `@shoelace-style/animations` fail in the browser).
+Runtime components load from **`public/webawesome`** (copied from package `dist-cdn` by `scripts/sync-webawesome.mjs` on `postinstall` / `prebuild`). Do not point the loader at plain `dist` — bare imports like `@shoelace-style/animations` fail in the browser. Do not use a symlink into `node_modules` (breaks Vercel static collect).
 
 Money amounts use app classes `metric-amount` / `metric-amount--income` / `metric-amount--expense` / `metric-amount--muted` (success / danger / quiet WA tokens).
 

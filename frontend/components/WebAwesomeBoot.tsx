@@ -5,8 +5,8 @@ import { useEffect } from "react";
 const LOADER_ID = "webawesome-loader";
 
 /**
- * Boots Web Awesome from `public/webawesome` → package `dist-cdn`
- * (browser-ready bundle; plain `dist` has bare npm imports that fail natively).
+ * Boots Web Awesome from `public/webawesome` (synced from package `dist-cdn`).
+ * Plain `dist` has bare npm imports that fail natively in the browser.
  * Must load via a native module script — bundling the autoloader breaks
  * its runtime `import("/webawesome/components/...")` calls.
  */

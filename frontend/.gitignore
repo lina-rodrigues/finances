@@ -1,2 +1,5 @@
 .vercel
 .env*
+
+# Generated from @web.awesome.me/webawesome-pro/dist-cdn (see scripts/sync-webawesome.mjs)
+public/webawesome/
