@@ -239,7 +239,7 @@ export function SettingsPage() {
             label={t("settings.theme")}
             value={themeOption}
             disabled={loading || undefined}
-            onChange={(e: Event) => void handleThemeChange(eventValue(e) as ThemeOption)}
+            onChange={(e) => void handleThemeChange(eventValue(e) as ThemeOption)}
           >
             <wa-option value="system">{t("settings.themeSystem")}</wa-option>
             <wa-option value="light">{t("settings.themeLight")}</wa-option>
@@ -314,7 +314,7 @@ export function SettingsPage() {
             label={t("settings.language")}
             value={language}
             disabled={loading || undefined}
-            onChange={(e: Event) => void handleLanguageChange(eventValue(e) as AppLanguage)}
+            onChange={(e) => void handleLanguageChange(eventValue(e) as AppLanguage)}
           >
             <wa-option value="en">{t("settings.languageEn")}</wa-option>
             <wa-option value="pt">{t("settings.languagePt")}</wa-option>
@@ -325,7 +325,7 @@ export function SettingsPage() {
             label={t("settings.aiReportTone")}
             value={aiReportTone}
             disabled={loading || undefined}
-            onChange={(e: Event) => void handleAiReportToneChange(eventValue(e) as AiReportTone)}
+            onChange={(e) => void handleAiReportToneChange(eventValue(e) as AiReportTone)}
           >
             <wa-option value="normal">{t("settings.aiReportToneNormal")}</wa-option>
             <wa-option value="formal">{t("settings.aiReportToneFormal")}</wa-option>

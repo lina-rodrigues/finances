@@ -523,7 +523,7 @@ export const CategoryManagerEditor = forwardRef<
                     value={toBudgetGroupOption(cat.draftBudgetGroup)}
                     disabled={rowDisabled || rowSaving || undefined}
                     aria-label={t("categories.budgetGroup")}
-                    onChange={(e: Event) =>
+                    onChange={(e) =>
                       updateDraft(cat.id, {
                         draftBudgetGroup: fromBudgetGroupOption(eventValue(e) as BudgetGroupOption),
                       })
