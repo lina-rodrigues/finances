@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. See [README.md](README.md) for full setup, data model, and API docs; see [`@lina-rodrigues/cotton-candy`](https://github.com/lina-rodrigues/cotton-candy) ([DESIGN_SYSTEM.md](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md); local pointer in [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md)).
+Guidance for AI agents working in this repository. See [README.md](README.md) for full setup, data model, and API docs; see [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) for Web Awesome Pro theming. Agent skills: [`skills/webawesome`](skills/webawesome/), [`skills/webawesome-design`](skills/webawesome-design/).
 
 ## Git workflow
 
@@ -15,7 +15,7 @@ When approved, use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## What this app is
 
-A personal finance tracker: monthly income/expense line items with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward between months. Single page (month view) with a retro pixel-art "Cotton Candy" pink/purple aesthetic.
+A personal finance tracker: monthly income/expense line items with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward between months. App shell with Finance / Categories / Reports / Settings, professional Web Awesome Pro UI (Active theme, Shoelace palette, green brand).
 
 ## Architecture
 
@@ -24,12 +24,13 @@ pnpm monorepo, two independently deployable packages. The frontend never touches
 | Package | Tech | Port |
 |---------|------|------|
 | `api/` | Express + Mongoose + Zod + TypeScript (ESM, `tsx`) | 4000 |
-| `frontend/` | Next.js 15 App Router + React 19 + Tailwind CSS 4 | 3000 |
+| `frontend/` | Next.js 15 App Router + React 19 + Web Awesome Pro | 3000 |
 
 - MongoDB and Mailpit run via `docker compose up -d` (root `docker-compose.yml`). Mailpit UI: http://localhost:8025.
-- `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — must stay in sync with `@lina-rodrigues/cotton-candy` `categoryIcons`).
-- `frontend/app/(app)/page.tsx` is a server component (uses `lib/api-server.ts` with cookie forwarding); auth pages live under `frontend/app/(auth)/`. Interactive pieces call `frontend/lib/api.ts` (client, `credentials: "include"`) then `router.refresh()`.
-- Auth: custom JWT in httpOnly cookie (`finance-token`). Settings in `SettingsDialog` (gear icon). i18n via `frontend/lib/i18n.tsx` + `messages/{en,pt}.json`.
+- `api/src/`: `routes/` (REST + auth), `services/` (balance cascade, auth, email), `models/`, `schemas/` (Zod), `constants/categoryIcons.ts` (allowed icon keys — mapped to Font Awesome in `frontend/lib/categoryIcons.ts`).
+- `frontend/app/(app)/` uses `<wa-page>` shell (`components/AppShell.tsx`). Server pages use `lib/api-server.ts` with cookie forwarding; auth pages live under `frontend/app/(auth)/`. Interactive pieces call `frontend/lib/api.ts` (client, `credentials: "include"`) then `router.refresh()`.
+- Auth: custom JWT in httpOnly cookie (`finance-token`). Settings at `/settings`. i18n via `frontend/lib/i18n.tsx` + `messages/{en,pt}.json`.
+- Web Awesome: npm package `@web.awesome.me/webawesome-pro`; CSS from package `dist` (bundler), runtime loader from `frontend/public/webawesome` → package **`dist-cdn`**. Theme classes on `<html>`: `wa-theme-default wa-palette-rudimentary` + `wa-light`/`wa-dark`.
 
 ## Commands
 
@@ -40,8 +41,7 @@ Run from the repo root:
 | `pnpm dev` | Run API + frontend in parallel (check if already running first — it usually is) |
 | `pnpm seed` / `pnpm seed:fresh` | Seed dev user + demo data (`seed:fresh` drops all users/data) |
 | `pnpm build` | Build both packages |
-| `pnpm contrast-check` | WCAG AA audit of theme colors (reads CSS only, no server needed) |
-| `pnpm responsive-check` | Playwright screenshots: 2 themes x 3 months x 8 viewports into `.responsive-audit/<theme>/<month>/` (requires dev server on :3000) |
+| `pnpm responsive-check` | Playwright screenshots into `.responsive-audit/` (requires dev server on :3000; visual pass — prefer light/dark + sidebar/drawer) |
 | `pnpm deploy` | Push `main` to GitHub and wait for Vercel production deploys (requires `VERCEL_TOKEN`; API `CANCELED` is normal for frontend-only changes) |
 | `pnpm db:backup` | `mongodump` full database to `backups/finance-<timestamp>/` |
 | `pnpm db:restore -- --path backups/... --confirm` | Restore a backup (`--drop` on target DB) |
@@ -49,24 +49,22 @@ Run from the repo root:
 
 AI reports: set `CURSOR_API_KEY` in `.env`; edit [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt) to change report behavior (requires Node 22.13+ for `@cursor/sdk`).
 
-Cursor commands in `.cursor/commands/` (`/contrast-check`, `/responsive-check`) wrap these scripts with an analyze-propose-approve workflow.
-
 ### Verification workflow for UI changes
 
-1. Make the change.
-2. `pnpm contrast-check` — must report 0 failures.
-3. `pnpm responsive-check`, then **actually read the screenshots** in `.responsive-audit/` (light and dark, all three months). Check specifically: nothing clipped or truncated (especially money amounts and badges), amounts right-aligned, both themes correct.
-4. `.responsive-audit/` is generated output — never commit it or treat it as source.
+1. Make the change using Web Awesome components/utilities/patterns — avoid custom CSS.
+2. Visual check: light and dark, desktop sidebar and mobile nav drawer; amounts readable; dialogs dismiss correctly.
+3. `.responsive-audit/` is generated output — never commit it or treat it as source.
+
+`pnpm contrast-check` targeted the old Cotton Candy theme CSS and is no longer the primary gate.
 
 ## Design system
 
-Canonical UI reference: [`@lina-rodrigues/cotton-candy` DESIGN_SYSTEM](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md) (Cotton Candy palette, components, tokens, pitfalls, verification workflow).
-
-After UI changes, run `pnpm contrast-check` and `pnpm responsive-check` (see Commands above).
+Canonical UI: [Web Awesome](https://webawesome.com/docs/) + project skills in `skills/`. Prefer patterns (Dashboard, Transactions, Settings, Login, Data Display, Empty State).
 
 ## Code conventions
 
 - TypeScript everywhere; API is ESM with Zod validation at route boundaries.
-- Frontend mutations follow: call `lib/api.ts` helper -> `useMutationFeedback().run()` (handles loading state + success/error toasts) -> `router.refresh()`.
+- Frontend mutations follow: call `lib/api.ts` helper -> `useMutationFeedback().run()` (WA toast) -> `router.refresh()`.
 - Balance math lives in the API (`api/src/services/`); the frontend only displays `displayAmount` / `isRealized` from the month-view response.
+- Always close Web Awesome custom element tags (`<wa-input></wa-input>`).
 - If the frontend misbehaves after changes, clear the Next cache: `cd frontend && rm -rf .next && pnpm dev`.

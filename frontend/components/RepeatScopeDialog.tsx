@@ -1,19 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 interface RepeatScopeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,6 +26,21 @@ export function RepeatScopeDialog({
   onConfirm,
 }: RepeatScopeDialogProps) {
   const { t } = useTranslation();
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
+
+  const title = mode === "edit" ? t("repeat.editScopeTitle") : t("repeat.deleteScopeTitle");
 
   const options: { value: RecurrenceScope; label: string; description: string }[] = [
     {
@@ -61,23 +66,25 @@ export function RepeatScopeDialog({
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? t("repeat.editScopeTitle") : t("repeat.deleteScopeTitle")}
-          </DialogTitle>
-          <DialogDescription className="text-body text-muted-finance pt-2">
-            {loading && loadingDescription ? loadingDescription : t("repeat.scopePrompt")}
-          </DialogDescription>
-        </DialogHeader>
+    <wa-dialog
+      ref={dialogRef}
+      label={title}
+      open={open || undefined}
+      light-dismiss
+      style={{ "--width": "32rem" } as React.CSSProperties}
+    >
+      <div className="wa-stack wa-gap-m">
+        <p className="wa-caption-l wa-color-text-quiet" style={{ margin: 0 }}>
+          {loading && loadingDescription ? loadingDescription : t("repeat.scopePrompt")}
+        </p>
 
-        <fieldset className="space-y-2" disabled={loading}>
-          <legend className="sr-only">{t("repeat.scopePrompt")}</legend>
+        <fieldset className="wa-stack wa-gap-s" disabled={loading} style={{ border: 0, margin: 0, padding: 0 }}>
+          <legend className="wa-visually-hidden">{t("repeat.scopePrompt")}</legend>
           {options.map((option) => (
             <label
               key={option.value}
-              className="interactive-surface flex cursor-pointer gap-3 p-3"
+              className="wa-cluster wa-gap-s"
+              style={{ cursor: loading ? "not-allowed" : "pointer", alignItems: "flex-start" }}
             >
               <input
                 type="radio"
@@ -85,49 +92,41 @@ export function RepeatScopeDialog({
                 value={option.value}
                 checked={scope === option.value}
                 onChange={() => onScopeChange(option.value)}
-                className="mt-1"
+                style={{ marginTop: "0.25rem" }}
               />
-              <span className="min-w-0">
-                <span className="text-body block font-semibold">{option.label}</span>
-                <span className="text-body text-muted-finance block text-sm">
-                  {option.description}
-                </span>
+              <span className="wa-stack wa-gap-3xs" style={{ minWidth: 0 }}>
+                <span style={{ fontWeight: 600 }}>{option.label}</span>
+                <span className="wa-caption-m wa-color-text-quiet">{option.description}</span>
               </span>
             </label>
           ))}
         </fieldset>
+      </div>
 
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="pressable focus-ring gap-1"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
-            <Icon name="cancel" size="xs" />
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant={mode === "delete" ? "destructive" : "default"}
-            size="sm"
-            className="pressable focus-ring gap-1"
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? (
-              <Spinner className="size-4" />
-            ) : mode === "delete" ? (
-              <Icon name="delete" size="xs" colorClass="text-destructive-foreground" />
-            ) : (
-              <Icon name="save" size="xs" />
-            )}
-            {mode === "delete" ? t("common.delete") : t("common.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <div slot="footer" className="wa-cluster wa-gap-s">
+        <wa-button
+          type="button"
+          variant="neutral"
+          appearance="outlined"
+          size="s"
+          disabled={loading || undefined}
+          onClick={() => onOpenChange(false)}
+        >
+          <wa-icon slot="start" name="xmark"></wa-icon>
+          {t("common.cancel")}
+        </wa-button>
+        <wa-button
+          type="button"
+          variant={mode === "delete" ? "danger" : "brand"}
+          size="s"
+          loading={loading || undefined}
+          disabled={loading || undefined}
+          onClick={onConfirm}
+        >
+          <wa-icon slot="start" name={mode === "delete" ? "trash" : "floppy-disk"}></wa-icon>
+          {mode === "delete" ? t("common.delete") : t("common.save")}
+        </wa-button>
+      </div>
+    </wa-dialog>
   );
 }

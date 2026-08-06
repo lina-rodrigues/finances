@@ -6,22 +6,16 @@ import { useState } from "react";
 import { login } from "@/lib/auth-api";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation, translateError } from "@/lib/i18n";
+import { showToast } from "@/lib/toast";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  useToast,
-} from "@lina-rodrigues/cotton-candy";
+function eventValue(event: { target: EventTarget | null }): string {
+  return (event.target as HTMLInputElement & { value: string }).value;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();
   const { t, locale } = useTranslation();
-  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,62 +30,54 @@ export default function LoginPage() {
       router.refresh();
     } catch (err) {
       const code = err instanceof Error ? err.message : "REQUEST_FAILED";
-      showToast(translateError(code, locale), "error");
+      void showToast(translateError(code, locale), { variant: "danger" });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-display text-xs normal-case">{t("auth.login.title")}</CardTitle>
-        <p className="text-muted-finance text-body text-sm">{t("auth.login.subtitle")}</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="email">{t("auth.login.email")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="password">{t("auth.login.password")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button type="submit" className="pressable focus-ring w-full gap-1" disabled={loading}>
+    <wa-card>
+      <div className="wa-stack wa-gap-l">
+        <div className="wa-stack wa-gap-2xs">
+          <h1 className="wa-heading-m">{t("auth.login.title")}</h1>
+          <p className="wa-caption-m wa-color-text-quiet">{t("auth.login.subtitle")}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="wa-stack wa-gap-m settings-form">
+          <wa-input
+            id="email"
+            type="email"
+            label={t("auth.login.email")}
+            autocomplete="email"
+            required
+            value={email}
+            onInput={(e) => setEmail(eventValue(e))}
+          ></wa-input>
+          <wa-input
+            id="password"
+            type="password"
+            label={t("auth.login.password")}
+            autocomplete="current-password"
+            required
+            value={password}
+            onInput={(e) => setPassword(eventValue(e))}
+          ></wa-input>
+          <wa-button type="submit" variant="brand" disabled={loading || undefined} style={{ width: "100%" }}>
             {loading ? t("common.loading") : t("auth.login.submit")}
-          </Button>
+          </wa-button>
         </form>
-        <div className="text-body mt-4 space-y-2 text-center text-sm">
-          <Link href="/forgot-password" className="text-primary underline-offset-2 hover:underline">
+
+        <div className="wa-stack wa-gap-s" style={{ textAlign: "center" }}>
+          <Link href="/forgot-password" className="wa-caption-m">
             {t("auth.login.forgotPassword")}
           </Link>
-          <p>
+          <p className="wa-caption-m wa-color-text-quiet">
             {t("auth.login.noAccount")}{" "}
-            <Link href="/signup" className="text-primary underline-offset-2 hover:underline">
-              {t("auth.login.signUp")}
-            </Link>
+            <Link href="/signup">{t("auth.login.signUp")}</Link>
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </wa-card>
   );
 }

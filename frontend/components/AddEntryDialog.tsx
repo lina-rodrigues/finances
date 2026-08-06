@@ -24,18 +24,6 @@ import {
 } from "@/lib/MonthViewProvider";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
-
 interface AddEntryDialogProps {
   item: LineItem | null;
   entry?: LineItemEntry | null;
@@ -54,13 +42,28 @@ export function AddEntryDialog({
   const monthView = useMonthView();
   const { setFromServer, replaceLineItem } = useMonthViewActions();
   const { runOptimistic } = useMutationFeedback();
+  const formId = useId();
   const amountFieldId = useId();
-  const amountInputRef = useRef<HTMLInputElement>(null);
+  const amountInputRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isEdit = entry !== null;
+  const title = t(isEdit ? "entries.editEntryTitle" : "entries.addTitle");
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) {
@@ -165,88 +168,72 @@ export function AddEntryDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        data-testid={isEdit ? "edit-entry-dialog" : "add-entry-dialog"}
-        className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-          amountInputRef.current?.focus();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="text-display text-xs normal-case">
-            {t(isEdit ? "entries.editEntryTitle" : "entries.addTitle")}
-          </DialogTitle>
-          {item && (
-            <p className="text-body text-muted-finance pt-1 text-sm">{item.label}</p>
-          )}
-        </DialogHeader>
+    <wa-dialog
+      ref={dialogRef}
+      label={title}
+      open={open || undefined}
+      light-dismiss
+      data-testid={isEdit ? "edit-entry-dialog" : "add-entry-dialog"}
+      style={{ "--width": "32rem" } as React.CSSProperties}
+    >
+      {item ? (
+        <p className="wa-caption-l wa-color-text-quiet" style={{ margin: "0 0 var(--wa-space-m)" }}>
+          {item.label}
+        </p>
+      ) : null}
 
-        <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-          <div className="space-y-1">
-            <label htmlFor={amountFieldId} className="text-body text-sm font-semibold">
-              {t("entries.addAmount")}
-            </label>
-            <div className="finance-dialog-field">
-              <Input
-                ref={amountInputRef}
-                id={amountFieldId}
-                type="number"
-                step="0.01"
-                placeholder={t("entries.addAmount")}
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-          </div>
+      <form id={formId} onSubmit={handleSubmit} className="wa-stack wa-gap-m">
+        <div className="wa-stack wa-gap-2xs">
+          <label htmlFor={amountFieldId}>{t("entries.addAmount")}</label>
+          <wa-input
+            ref={amountInputRef}
+            id={amountFieldId}
+            type="number"
+            step="0.01"
+            placeholder={t("entries.addAmount")}
+            value={amount}
+            onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
+            required
+            disabled={loading || undefined}
+          ></wa-input>
+        </div>
 
-          <div className="space-y-1">
-            <label htmlFor={`${amountFieldId}-note`} className="text-body text-sm font-semibold">
-              {t("entries.addNote")}
-            </label>
-            <div className="finance-dialog-field">
-              <Input
-                id={`${amountFieldId}-note`}
-                placeholder={t("entries.addNote")}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                disabled={loading}
-              />
-            </div>
-          </div>
+        <div className="wa-stack wa-gap-2xs">
+          <label htmlFor={`${amountFieldId}-note`}>{t("entries.addNote")}</label>
+          <wa-input
+            id={`${amountFieldId}-note`}
+            placeholder={t("entries.addNote")}
+            value={note}
+            onInput={(event) => setNote((event.target as HTMLInputElement).value)}
+            disabled={loading || undefined}
+          ></wa-input>
+        </div>
+      </form>
 
-          <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              <Icon name="cancel" size="xs" />
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              disabled={loading}
-            >
-              {loading ? (
-                <Spinner className="size-4" />
-              ) : (
-                <Icon name={isEdit ? "save" : "add"} size="xs" />
-              )}
-              {t(isEdit ? "entries.editSubmit" : "entries.addSubmit")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div slot="footer" className="wa-cluster wa-gap-s">
+        <wa-button
+          type="button"
+          variant="neutral"
+          appearance="outlined"
+          size="s"
+          disabled={loading || undefined}
+          onClick={() => onOpenChange(false)}
+        >
+          <wa-icon slot="start" name="xmark"></wa-icon>
+          {t("common.cancel")}
+        </wa-button>
+        <wa-button
+          type="submit"
+          form={formId}
+          variant="brand"
+          size="s"
+          loading={loading || undefined}
+          disabled={loading || undefined}
+        >
+          <wa-icon slot="start" name={isEdit ? "floppy-disk" : "plus"}></wa-icon>
+          {t(isEdit ? "entries.editSubmit" : "entries.addSubmit")}
+        </wa-button>
+      </div>
+    </wa-dialog>
   );
 }

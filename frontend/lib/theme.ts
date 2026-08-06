@@ -22,7 +22,10 @@ export function resolveEffectiveTheme(preference: ThemePreference): "light" | "d
 }
 
 function applyEffectiveTheme(isDark: boolean): void {
-  document.documentElement.classList.toggle("dark", isDark);
+  const root = document.documentElement;
+  root.classList.toggle("wa-dark", isDark);
+  root.classList.toggle("wa-light", !isDark);
+  root.classList.remove("dark");
 }
 
 export function applyThemePreference(preference: ThemePreference): "light" | "dark" {

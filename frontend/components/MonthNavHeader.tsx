@@ -12,15 +12,11 @@ import {
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 
-import {
-  Button,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 function monthParts(yearMonth: string, localeTag: string) {
   const [year, month] = yearMonth.split("-");
   const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
   return {
-    month: date.toLocaleDateString(localeTag, { month: "long" }).toUpperCase(),
+    month: date.toLocaleDateString(localeTag, { month: "long" }),
     year,
   };
 }
@@ -50,27 +46,25 @@ export function MonthNavHeader() {
   const followingMonth = nextYearMonth(yearMonth);
 
   return (
-    <div className="flex items-center justify-center gap-4">
-      <Button variant="default" size="sm" className="pressable focus-ring" asChild>
-        <Link href={monthPagePath(previousMonth, tab)} aria-label={t("month.previousMonth")}>
-          <Icon name="chevronLeft" size="md" colorClass="text-primary-foreground" />
-        </Link>
-      </Button>
+    <div className="wa-cluster wa-gap-m wa-align-items-center">
+      <Link href={monthPagePath(previousMonth, tab)} aria-label={t("month.previousMonth")}>
+        <wa-button appearance="plain" size="s">
+          <wa-icon name="chevron-left" label={t("month.previousMonth")}></wa-icon>
+        </wa-button>
+      </Link>
 
-      <div className="text-center">
-        <h1 className="text-display text-fin-balance text-xl">{monthName}</h1>
-        {year && (
-          <div className="text-muted-finance text-body mt-0.5 text-xs font-semibold tracking-widest">
-            {year}
-          </div>
-        )}
+      <div className="wa-stack wa-gap-3xs" style={{ textAlign: "center" }}>
+        <strong className="wa-heading-m" style={{ textTransform: "capitalize" }}>
+          {monthName}
+        </strong>
+        {year ? <span className="wa-caption-m wa-color-text-quiet">{year}</span> : null}
       </div>
 
-      <Button variant="default" size="sm" className="pressable focus-ring" asChild>
-        <Link href={monthPagePath(followingMonth, tab)} aria-label={t("month.nextMonth")}>
-          <Icon name="chevronRight" size="md" colorClass="text-primary-foreground" />
-        </Link>
-      </Button>
+      <Link href={monthPagePath(followingMonth, tab)} aria-label={t("month.nextMonth")}>
+        <wa-button appearance="plain" size="s">
+          <wa-icon name="chevron-right" label={t("month.nextMonth")}></wa-icon>
+        </wa-button>
+      </Link>
     </div>
   );
 }

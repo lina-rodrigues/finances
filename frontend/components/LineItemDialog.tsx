@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CategoryCombobox } from "@/components/CategoryCombobox";
 import { RepeatConfigFields } from "@/components/RepeatConfigFields";
 import { RepeatScopeDialog } from "@/components/RepeatScopeDialog";
@@ -38,22 +38,6 @@ import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";
 
@@ -103,9 +87,13 @@ export function LineItemDialog({
   const monthView = useMonthView();
   const { setFromServer, setPending, addLineItem, replaceLineItem } = useMonthViewActions();
   const { loading, run, runOptimistic } = useMutationFeedback();
+  const formId = useId();
   const categoryFieldId = useId();
   const labelFieldId = useId();
-  const labelInputRef = useRef<HTMLInputElement>(null);
+  const labelInputRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
 
   const [editSubFlow, setEditSubFlow] = useState<EditSubFlow>("edit");
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
@@ -155,6 +143,16 @@ export function LineItemDialog({
   }
 
   useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
+
+  useEffect(() => {
     if (!open) {
       return;
     }
@@ -170,7 +168,8 @@ export function LineItemDialog({
       setStartYearMonth(yearMonth);
       setOccurrenceCount("12");
       setEndYearMonth(yearMonth);
-      return;
+      const timer = window.setTimeout(() => labelInputRef.current?.focus(), 0);
+      return () => window.clearTimeout(timer);
     }
 
     if (item) {
@@ -234,7 +233,7 @@ export function LineItemDialog({
     });
 
     await runOptimistic({
-      snapshot: () => ({
+      snapshot: (): LineItemOptimisticSnapshot => ({
         monthView: captureMonthViewState(monthView),
         form: captureDialogForm(),
       }),
@@ -312,7 +311,7 @@ export function LineItemDialog({
     });
 
     await runOptimistic({
-      snapshot: () => ({
+      snapshot: (): LineItemOptimisticSnapshot => ({
         monthView: captureMonthViewState(monthView),
         form: captureDialogForm(),
       }),
@@ -401,36 +400,26 @@ export function LineItemDialog({
 
   const testId = mode === "create" ? "add-line-item-dialog" : "edit-line-item-dialog";
 
-  const typeItems = useMemo(
-    () => ({
-      expense: t("categories.expense"),
-      income: t("categories.income"),
-    }),
-    [t],
-  );
-
-  function handleDialogOpenAutoFocus(event: Event) {
-    if (mode !== "create") {
-      return;
-    }
-    event.preventDefault();
-    labelInputRef.current?.focus();
-  }
+  const activeSubmit =
+    mode === "create"
+      ? handleCreateSubmit
+      : editSubFlow === "makeRecurring"
+        ? handleMakeRecurringSubmit
+        : handleEditSubmit;
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          data-testid={testId}
-          className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
-          onOpenAutoFocus={handleDialogOpenAutoFocus}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-display text-xs normal-case">{dialogTitle}</DialogTitle>
-          </DialogHeader>
-
-          {mode === "create" && (
-            <form onSubmit={handleCreateSubmit} className="finance-dialog-form space-y-3">
+      <wa-dialog
+        ref={dialogRef}
+        label={dialogTitle}
+        open={open || undefined}
+        light-dismiss
+        data-testid={testId}
+        style={{ "--width": "32rem" } as React.CSSProperties}
+      >
+        <form id={formId} onSubmit={activeSubmit} className="wa-stack wa-gap-m">
+          {mode === "create" ? (
+            <>
               <CategoryCombobox
                 id={categoryFieldId}
                 value={categoryName}
@@ -439,78 +428,57 @@ export function LineItemDialog({
                 disabled={loading}
               />
 
-              <div className="space-y-1">
-                <label htmlFor={`${categoryFieldId}-type`} className="text-body text-sm font-semibold">
-                  {t("addItem.type")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Select
-                    value={type}
-                    items={typeItems}
-                    onValueChange={(value) => setType(value as LineItemType)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger id={`${categoryFieldId}-type`} size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expense">{t("categories.expense")}</SelectItem>
-                      <SelectItem value="income">{t("categories.income")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={`${categoryFieldId}-type`}>{t("addItem.type")}</label>
+                <wa-select
+                  id={`${categoryFieldId}-type`}
+                  value={type}
+                  disabled={loading || undefined}
+                  onChange={(event) => setType((event.target as HTMLSelectElement).value as LineItemType)}
+                >
+                  <wa-option value="expense">{t("categories.expense")}</wa-option>
+                  <wa-option value="income">{t("categories.income")}</wa-option>
+                </wa-select>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor={labelFieldId} className="text-body text-sm font-semibold">
-                  {t("addItem.label")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    ref={labelInputRef}
-                    id={labelFieldId}
-                    placeholder={t("addItem.label")}
-                    value={label}
-                    onChange={(event) => setLabel(event.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={labelFieldId}>{t("addItem.label")}</label>
+                <wa-input
+                  ref={labelInputRef}
+                  id={labelFieldId}
+                  placeholder={t("addItem.label")}
+                  value={label}
+                  onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
+                  required
+                  disabled={loading || undefined}
+                ></wa-input>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor={`${labelFieldId}-planned`} className="text-body text-sm font-semibold">
-                  {t("addItem.planned")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    id={`${labelFieldId}-planned`}
-                    type="number"
-                    step="0.01"
-                    placeholder={t("addItem.planned")}
-                    value={plannedAmount}
-                    onChange={(event) => setPlannedAmount(event.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={`${labelFieldId}-planned`}>{t("addItem.planned")}</label>
+                <wa-input
+                  id={`${labelFieldId}-planned`}
+                  type="number"
+                  step="0.01"
+                  placeholder={t("addItem.planned")}
+                  value={plannedAmount}
+                  onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
+                  required
+                  disabled={loading || undefined}
+                ></wa-input>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor={`${labelFieldId}-realized`} className="text-body text-sm font-semibold">
-                  {t("addItem.realized")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    id={`${labelFieldId}-realized`}
-                    type="number"
-                    step="0.01"
-                    placeholder={t("categories.realized")}
-                    value={realizedAmount}
-                    onChange={(event) => setRealizedAmount(event.target.value)}
-                    disabled={loading}
-                  />
-                </div>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={`${labelFieldId}-realized`}>{t("addItem.realized")}</label>
+                <wa-input
+                  id={`${labelFieldId}-realized`}
+                  type="number"
+                  step="0.01"
+                  placeholder={t("categories.realized")}
+                  value={realizedAmount}
+                  onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
+                  disabled={loading || undefined}
+                ></wa-input>
               </div>
 
               <RepeatConfigFields
@@ -525,146 +493,89 @@ export function LineItemDialog({
                 onEndYearMonthChange={setEndYearMonth}
                 disabled={loading}
               />
+            </>
+          ) : null}
 
-              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  onClick={() => onOpenChange(false)}
-                  disabled={loading}
-                >
-                  <Icon name="cancel" size="xs" />
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={loading}
-                >
-                  {loading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-                  {t("addItem.submit")}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-
-          {mode === "edit" && editSubFlow === "edit" && (
-            <form onSubmit={handleEditSubmit} className="finance-dialog-form space-y-3">
-              <div className="space-y-1">
-                <label htmlFor={labelFieldId} className="text-body text-sm font-semibold">
-                  {t("addItem.label")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    id={labelFieldId}
-                    placeholder={t("addItem.label")}
-                    value={label}
-                    onChange={(event) => setLabel(event.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
+          {mode === "edit" && editSubFlow === "edit" ? (
+            <>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={labelFieldId}>{t("addItem.label")}</label>
+                <wa-input
+                  id={labelFieldId}
+                  placeholder={t("addItem.label")}
+                  value={label}
+                  onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
+                  required
+                  disabled={loading || undefined}
+                ></wa-input>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor={`${labelFieldId}-planned`} className="text-body text-sm font-semibold">
-                  {t("addItem.planned")}
-                </label>
-                <div className="finance-dialog-field">
-                  <Input
-                    id={`${labelFieldId}-planned`}
-                    type="number"
-                    step="0.01"
-                    placeholder={t("addItem.planned")}
-                    value={plannedAmount}
-                    onChange={(event) => setPlannedAmount(event.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={`${labelFieldId}-planned`}>{t("addItem.planned")}</label>
+                <wa-input
+                  id={`${labelFieldId}-planned`}
+                  type="number"
+                  step="0.01"
+                  placeholder={t("addItem.planned")}
+                  value={plannedAmount}
+                  onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
+                  required
+                  disabled={loading || undefined}
+                ></wa-input>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor={`${labelFieldId}-realized`} className="text-body text-sm font-semibold">
-                  {t("addItem.realized")}
-                </label>
+              <div className="wa-stack wa-gap-2xs">
+                <label htmlFor={`${labelFieldId}-realized`}>{t("addItem.realized")}</label>
                 {item && item.entryCount > 0 ? (
-                  <div className="finance-dialog-field space-y-1">
-                    <p className={`text-amount text-sm ${item.type === "income" ? "text-income" : "text-expense"}`}>
+                  <div className="wa-stack wa-gap-2xs">
+                    <p
+                      className={`metric-amount--inline ${item.type === "income" ? "metric-amount--income" : "metric-amount--expense"}`}
+                      style={{ margin: 0 }}
+                    >
                       {item.type === "income" ? "+" : "-"}
                       {formatMoney(item.realizedAmount ?? 0)}
                     </p>
-                    <p className="text-body text-muted-finance text-xs">{t("entries.entriesManagedHint")}</p>
+                    <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
+                      {t("entries.entriesManagedHint")}
+                    </p>
                   </div>
                 ) : (
-                  <div className="finance-dialog-field">
-                    <Input
-                      id={`${labelFieldId}-realized`}
-                      type="number"
-                      step="0.01"
-                      placeholder={t("categories.realized")}
-                      value={realizedAmount}
-                      onChange={(event) => setRealizedAmount(event.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
+                  <wa-input
+                    id={`${labelFieldId}-realized`}
+                    type="number"
+                    step="0.01"
+                    placeholder={t("categories.realized")}
+                    value={realizedAmount}
+                    onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
+                    disabled={loading || undefined}
+                  ></wa-input>
                 )}
               </div>
 
-              {item && !item.seriesId && (
-                <div className="border-t border-border pt-3">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="pressable focus-ring w-full gap-1 sm:w-auto"
-                    onClick={() => {
-                      setRepeatMode("never");
-                      setStartYearMonth(yearMonth);
-                      setOccurrenceCount("12");
-                      setEndYearMonth(yearMonth);
-                      setEditSubFlow("makeRecurring");
-                    }}
-                    disabled={loading}
-                  >
-                    <Icon name="repeat" size="xs" />
-                    {t("repeat.makeRecurring")}
-                  </Button>
-                </div>
-              )}
-
-              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
-                <Button
+              {item && !item.seriesId ? (
+                <wa-button
                   type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  onClick={handleCancel}
-                  disabled={loading}
+                  variant="neutral"
+                  appearance="outlined"
+                  size="s"
+                  disabled={loading || undefined}
+                  onClick={() => {
+                    setRepeatMode("never");
+                    setStartYearMonth(yearMonth);
+                    setOccurrenceCount("12");
+                    setEndYearMonth(yearMonth);
+                    setEditSubFlow("makeRecurring");
+                  }}
                 >
-                  <Icon name="cancel" size="xs" />
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={loading}
-                >
-                  {loading ? <Spinner className="size-4" /> : <Icon name="save" size="xs" />}
-                  {t("editItem.submit")}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
+                  <wa-icon slot="start" name="arrows-rotate"></wa-icon>
+                  {t("repeat.makeRecurring")}
+                </wa-button>
+              ) : null}
+            </>
+          ) : null}
 
-          {mode === "edit" && editSubFlow === "makeRecurring" && item && (
-            <form onSubmit={handleMakeRecurringSubmit} className="finance-dialog-form space-y-3">
+          {mode === "edit" && editSubFlow === "makeRecurring" && item ? (
+            <>
               <RepeatConfigFields
                 idPrefix={`make-recurring-${item.id}`}
                 mode={repeatMode}
@@ -680,39 +591,70 @@ export function LineItemDialog({
                 lockStartMonth
               />
 
-              {loading && (
-                <p className="text-body text-muted-finance text-sm">{t("repeat.updatingSeries")}</p>
-              )}
+              {loading ? (
+                <p className="wa-caption-l wa-color-text-quiet" style={{ margin: 0 }}>
+                  {t("repeat.updatingSeries")}
+                </p>
+              ) : null}
+            </>
+          ) : null}
+        </form>
 
-              <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  onClick={handleCancel}
-                  disabled={loading}
-                >
-                  <Icon name="cancel" size="xs" />
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="sm"
-                  className="pressable focus-ring gap-1"
-                  disabled={loading || repeatMode === "none"}
-                >
-                  {loading ? <Spinner className="size-4" /> : <Icon name="repeat" size="xs" />}
-                  {t("repeat.makeRecurringSubmit")}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+        <div slot="footer" className="wa-cluster wa-gap-s">
+          <wa-button
+            type="button"
+            variant="neutral"
+            appearance="outlined"
+            size="s"
+            disabled={loading || undefined}
+            onClick={handleCancel}
+          >
+            <wa-icon slot="start" name="xmark"></wa-icon>
+            {t("common.cancel")}
+          </wa-button>
+          {mode === "create" ? (
+            <wa-button
+              type="submit"
+              form={formId}
+              variant="brand"
+              size="s"
+              loading={loading || undefined}
+              disabled={loading || undefined}
+            >
+              <wa-icon slot="start" name="plus"></wa-icon>
+              {t("addItem.submit")}
+            </wa-button>
+          ) : null}
+          {mode === "edit" && editSubFlow === "edit" ? (
+            <wa-button
+              type="submit"
+              form={formId}
+              variant="brand"
+              size="s"
+              loading={loading || undefined}
+              disabled={loading || undefined}
+            >
+              <wa-icon slot="start" name="floppy-disk"></wa-icon>
+              {t("editItem.submit")}
+            </wa-button>
+          ) : null}
+          {mode === "edit" && editSubFlow === "makeRecurring" ? (
+            <wa-button
+              type="submit"
+              form={formId}
+              variant="brand"
+              size="s"
+              loading={loading || undefined}
+              disabled={loading || repeatMode === "none" || undefined}
+            >
+              <wa-icon slot="start" name="arrows-rotate"></wa-icon>
+              {t("repeat.makeRecurringSubmit")}
+            </wa-button>
+          ) : null}
+        </div>
+      </wa-dialog>
 
-      {mode === "edit" && item && (
+      {mode === "edit" && item ? (
         <RepeatScopeDialog
           open={scopeDialogOpen}
           onOpenChange={(isOpen) => {
@@ -727,7 +669,7 @@ export function LineItemDialog({
           loadingDescription={t("repeat.updatingSeries")}
           onConfirm={() => performEditSave(scope)}
         />
-      )}
+      ) : null}
     </>
   );
 }

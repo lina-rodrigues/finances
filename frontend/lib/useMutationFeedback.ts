@@ -2,10 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useTranslation, translateError } from "@/lib/i18n";
+import { showToast } from "@/lib/toast";
 
-import {
-  useToast,
-} from "@lina-rodrigues/cotton-candy";
 export interface RunOptimisticOptions<TSnapshot> {
   snapshot: () => TSnapshot;
   apply: () => void;
@@ -17,7 +15,6 @@ export interface RunOptimisticOptions<TSnapshot> {
 }
 
 export function useMutationFeedback() {
-  const { showToast } = useToast();
   const { t, locale } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -27,18 +24,18 @@ export function useMutationFeedback() {
       try {
         await fn();
         if (options?.successMessage) {
-          showToast(options.successMessage, "success");
+          void showToast(options.successMessage, { variant: "success", icon: "check" });
         }
       } catch (err) {
         console.error(err);
         const code = err instanceof Error ? err.message : "";
         const translated = code ? translateError(code, locale) : t("common.somethingWrong");
-        showToast(options?.errorMessage ?? translated, "error");
+        void showToast(options?.errorMessage ?? translated, { variant: "danger" });
       } finally {
         setLoading(false);
       }
     },
-    [showToast, t, locale],
+    [t, locale],
   );
 
   const runOptimistic = useCallback(
@@ -49,7 +46,7 @@ export function useMutationFeedback() {
       try {
         await options.mutate();
         if (options.successMessage) {
-          showToast(options.successMessage, "success");
+          void showToast(options.successMessage, { variant: "success", icon: "check" });
         }
         options.reconcile?.();
         return true;
@@ -58,11 +55,11 @@ export function useMutationFeedback() {
         options.rollback(snapshot);
         const code = err instanceof Error ? err.message : "";
         const translated = code ? translateError(code, locale) : t("common.somethingWrong");
-        showToast(options.errorMessage ?? translated, "error");
+        void showToast(options.errorMessage ?? translated, { variant: "danger" });
         return false;
       }
     },
-    [showToast, t, locale],
+    [t, locale],
   );
 
   return { loading, run, runOptimistic };

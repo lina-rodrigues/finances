@@ -79,7 +79,7 @@
     "currentBudget": "Orçamento atual",
     "current": "Atual",
     "ending": "Saldo final",
-    "levelUp": "Level up! Seu saldo melhorou"
+    "levelUp": "Saldo melhorou"
   },
   "nav": {
     "label": "Navegação principal",
@@ -213,7 +213,7 @@
     "updatingSeries": "Atualizando série…"
   },
   "budget": {
-    "plannedOf": "{spent} de {planned} planejado"
+    "plannedOf": "{spent} de {planned}"
   },
   "entries": {
     "addTitle": "Adicionar lançamento",
@@ -229,6 +229,7 @@
     "editEntryTitle": "Editar lançamento",
     "editSubmit": "Salvar",
     "entryActions": "Ações do lançamento",
+    "itemActions": "Ações do item",
     "deleteEntry": "Excluir",
     "deleteEntryDescription": "Remover este lançamento de \"{label}\"?",
     "entriesManagedHint": "Use Pagar ou Adicionar no item para registrar valores.",

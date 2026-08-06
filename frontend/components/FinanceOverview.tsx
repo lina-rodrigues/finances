@@ -1,70 +1,79 @@
 "use client";
 
-import { useState } from "react";
 import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
-import { CoinCounter } from "@/components/CoinCounter";
+import { PageTitle } from "@/components/PageTitle";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
-import { getCurrentYearMonth } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
+function amountTone(amount: number): "metric-amount--income" | "metric-amount--expense" | "metric-amount--muted" {
+  if (amount > 0) return "metric-amount--income";
+  if (amount < 0) return "metric-amount--expense";
+  return "metric-amount--muted";
+}
+
 export function FinanceOverview() {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const { month, categories, uncategorized, flatCategories } = useMonthView();
   const host = useLineItemDialogHost({ flatCategories, yearMonth: month.yearMonth });
-  const leveledUp =
-    month.expectedBalance > month.lastMonthRealizedBalance &&
-    month.yearMonth <= getCurrentYearMonth();
+
+  const metrics = [
+    {
+      key: "last",
+      label: t("month.lastMonth"),
+      amount: month.lastMonthRealizedBalance,
+    },
+    {
+      key: "expected",
+      label: t("month.expectedBudget"),
+      amount: month.expectedBalance,
+    },
+    {
+      key: "current",
+      label: t("month.currentBudget"),
+      amount: month.currentRealizedBalance,
+    },
+  ] as const;
 
   return (
     <>
-      <div className="space-y-5">
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 p-4 text-center">
-            {leveledUp && (
-              <Badge className="bg-income-subtle text-income h-auto max-w-full whitespace-normal text-center">
-                <span className="flex flex-wrap items-center justify-center gap-1">
-                  <Icon name="arrowUp" size="xs" colorClass="text-income" />
-                  {t("month.levelUp")}
+      <div className="wa-stack wa-gap-l">
+        <PageTitle
+          actions={
+            <wa-button
+              type="button"
+              variant="brand"
+              data-testid="add-item-trigger-fab"
+              onClick={() => host.openCreate()}
+            >
+              <wa-icon slot="start" name="plus"></wa-icon>
+              {t("categories.addItem")}
+            </wa-button>
+          }
+        >
+          {t("nav.finance")}
+        </PageTitle>
+
+        <div
+          className="wa-grid wa-gap-m"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 1fr))" }}
+        >
+          {metrics.map((metric) => (
+            <wa-card key={metric.key}>
+              <div className="wa-stack wa-gap-2xs">
+                <span className="wa-caption-s wa-color-text-quiet">{metric.label}</span>
+                <span className={`metric-amount ${amountTone(metric.amount)}`}>
+                  {formatMoney(metric.amount)}
                 </span>
-              </Badge>
-            )}
+              </div>
+            </wa-card>
+          ))}
+        </div>
 
-            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-4">
-              <CoinCounter
-                plain
-                label={t("month.lastMonth")}
-                amount={formatMoney(month.lastMonthRealizedBalance)}
-                icon="balance"
-              />
-              <CoinCounter
-                plain
-                label={t("month.expectedBudget")}
-                amount={formatMoney(month.expectedBalance)}
-                highlight
-                icon="planned"
-              />
-              <CoinCounter
-                plain
-                label={t("month.currentBudget")}
-                amount={formatMoney(month.currentRealizedBalance)}
-                icon="endingBalance"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <section className="py-5">
-          <h2 className="text-display mb-3 text-sm">{t("finance.upcomingPayments")}</h2>
+        <section className="wa-stack wa-gap-m">
+          <h2 className="wa-heading-s">{t("finance.upcomingPayments")}</h2>
           <UpcomingPaymentsList
             categories={categories}
             uncategorized={uncategorized}
@@ -72,18 +81,6 @@ export function FinanceOverview() {
           />
         </section>
       </div>
-
-      <Button
-        type="button"
-        variant="default"
-        size="lg"
-        className="add-item-fab pressable focus-ring box-shadow-margin sm:hidden"
-        data-testid="add-item-trigger-fab"
-        aria-label={t("categories.addItem")}
-        onClick={() => host.openCreate()}
-      >
-        <Icon name="add" size="md" />
-      </Button>
 
       <LineItemDialogPanels host={host} />
     </>

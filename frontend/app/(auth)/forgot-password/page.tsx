@@ -4,20 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { forgotPassword } from "@/lib/auth-api";
 import { useTranslation } from "@/lib/i18n";
+import { showToast } from "@/lib/toast";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  useToast,
-} from "@lina-rodrigues/cotton-candy";
+function eventValue(event: { target: EventTarget | null }): string {
+  return (event.target as HTMLInputElement & { value: string }).value;
+}
+
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
-  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -28,51 +22,48 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setSent(true);
-      showToast(t("auth.forgotPassword.success"), "success");
+      void showToast(t("auth.forgotPassword.success"), { variant: "success", icon: "check" });
     } catch {
-      showToast(t("common.somethingWrong"), "error");
+      void showToast(t("common.somethingWrong"), { variant: "danger" });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-display text-xs normal-case">
-          {t("auth.forgotPassword.title")}
-        </CardTitle>
-        <p className="text-muted-finance text-body text-sm">{t("auth.forgotPassword.subtitle")}</p>
-      </CardHeader>
-      <CardContent>
+    <wa-card>
+      <div className="wa-stack wa-gap-l">
+        <div className="wa-stack wa-gap-2xs">
+          <h1 className="wa-heading-m">{t("auth.forgotPassword.title")}</h1>
+          <p className="wa-caption-m wa-color-text-quiet">{t("auth.forgotPassword.subtitle")}</p>
+        </div>
+
         {sent ? (
-          <p className="text-body text-sm">{t("auth.forgotPassword.success")}</p>
+          <wa-callout variant="success">
+            <wa-icon slot="icon" name="check"></wa-icon>
+            {t("auth.forgotPassword.success")}
+          </wa-callout>
         ) : (
-          <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-            <div className="space-y-1">
-              <Label htmlFor="email">{t("auth.forgotPassword.email")}</Label>
-              <div className="finance-dialog-field">
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button type="submit" className="pressable focus-ring w-full" disabled={loading}>
+          <form onSubmit={handleSubmit} className="wa-stack wa-gap-m settings-form">
+            <wa-input
+              id="email"
+              type="email"
+              label={t("auth.forgotPassword.email")}
+              autocomplete="email"
+              required
+              value={email}
+              onInput={(e) => setEmail(eventValue(e))}
+            ></wa-input>
+            <wa-button type="submit" variant="brand" disabled={loading || undefined} style={{ width: "100%" }}>
               {loading ? t("common.loading") : t("auth.forgotPassword.submit")}
-            </Button>
+            </wa-button>
           </form>
         )}
-        <p className="text-body mt-4 text-center text-sm">
-          <Link href="/login" className="text-primary underline-offset-2 hover:underline">
-            {t("auth.forgotPassword.backToLogin")}
-          </Link>
+
+        <p className="wa-caption-m" style={{ textAlign: "center" }}>
+          <Link href="/login">{t("auth.forgotPassword.backToLogin")}</Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </wa-card>
   );
 }

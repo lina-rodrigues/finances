@@ -1,18 +1,238 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@lina-rodrigues/cotton-candy/styles.css";
+@import "@web.awesome.me/webawesome-pro/dist/styles/themes/default.css";
+@import "@web.awesome.me/webawesome-pro/dist/styles/color/palettes/rudimentary.css";
+@import "@web.awesome.me/webawesome-pro/dist/styles/utilities.css";
+@import "@web.awesome.me/webawesome-pro/dist/styles/native.css";
 @import "../design-system/report-markdown.css";
-@import "../design-system/finance-app.css";
 
-/* Scan package source so Tailwind emits utilities used by Cotton Candy components */
-@source "../node_modules/@lina-rodrigues/cotton-candy/src";
+:root {
+  --wa-font-family-body: Inter, sans-serif;
+  --wa-font-family-heading: Inter, sans-serif;
+  --wa-font-family-code: "Geist Mono", monospace;
+  --wa-font-family-longform: Aleo, serif;
+  --wa-font-weight-body: 400;
+  --wa-font-weight-heading: 650;
+  --wa-font-weight-code: 400;
+  --wa-font-weight-longform: 400;
+  --wa-border-radius-scale: 1;
+  --wa-border-width-scale: 1;
+  --wa-space-scale: 1;
+}
 
-@layer base {
-  html,
-  body {
-    overflow: hidden;
-    height: 100%;
-    max-height: 100dvh;
+html,
+body {
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: var(--wa-color-text-normal);
+  background: var(--wa-color-surface-lowered);
+  font-family: var(--wa-font-family-body, Inter, sans-serif);
+}
+
+/* Avoid FOUCE without blanking the whole tree */
+wa-icon:not(:defined),
+wa-button:not(:defined),
+wa-badge:not(:defined),
+wa-spinner:not(:defined),
+wa-input:not(:defined),
+wa-textarea:not(:defined),
+wa-select:not(:defined),
+wa-option:not(:defined),
+wa-card:not(:defined),
+wa-callout:not(:defined),
+wa-divider:not(:defined),
+wa-dialog:not(:defined),
+wa-details:not(:defined),
+wa-progress-bar:not(:defined),
+wa-dropdown:not(:defined),
+wa-dropdown-item:not(:defined),
+wa-combobox:not(:defined),
+wa-toast:not(:defined),
+wa-page:not(:defined) {
+  visibility: hidden;
+}
+
+wa-page {
+  --menu-width: 16rem;
+  min-height: 100dvh;
+  background: var(--wa-color-surface-lowered);
+}
+
+wa-page[view="mobile"] {
+  --menu-width: auto;
+}
+
+wa-page::part(main-content) {
+  padding-block: var(--wa-space-xl);
+  padding-inline: var(--wa-space-l);
+}
+
+.app-main {
+  width: min(100%, 56rem);
+  margin-inline: auto;
+}
+
+.auth-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--wa-space-xl) var(--wa-space-l);
+}
+
+.auth-shell__inner {
+  width: min(100%, 28rem);
+}
+
+.nav-link,
+.nav-link:link,
+.nav-link:visited,
+.nav-link:hover,
+.nav-link:active,
+.nav-link:focus,
+.nav-link:focus-visible {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-s) var(--wa-space-m);
+  border-radius: var(--wa-border-radius-m);
+  color: var(--wa-color-text-normal);
+  text-decoration: none !important;
+  -webkit-text-decoration: none !important;
+  outline: none;
+  box-shadow: none;
+  font: inherit;
+  line-height: 1.25;
+}
+
+.nav-link:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+}
+
+.nav-link:focus-visible {
+  box-shadow: 0 0 0 var(--wa-border-width-l, 2px) var(--wa-color-focus);
+}
+
+.nav-link[aria-current="page"] {
+  background: var(--wa-color-brand-fill-quiet);
+  color: var(--wa-color-brand-on-quiet);
+  font-weight: var(--wa-font-weight-semibold, 600);
+}
+
+.metric-amount {
+  font-family: var(--wa-font-family-code);
+  font-size: var(--wa-font-size-xl);
+  font-weight: var(--wa-font-weight-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line-item / list amounts — same tabular code face, body size/weight */
+.metric-amount--inline {
+  font-family: var(--wa-font-family-code);
+  font-size: var(--wa-font-size-m);
+  font-weight: var(--wa-font-weight-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-amount--income {
+  color: var(--wa-color-success-on-normal, var(--wa-color-success-60));
+}
+
+.metric-amount--expense {
+  color: var(--wa-color-danger-on-normal, var(--wa-color-danger-60));
+}
+
+.metric-amount--muted {
+  color: var(--wa-color-text-quiet);
+}
+
+/* wa-details summary is a flex row (slot + chevron). Slot must shrink, not force 100% width. */
+wa-details.category-details::part(summary) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.category-card-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-s);
+  flex-wrap: nowrap;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.category-card-heading__icon {
+  font-size: var(--wa-font-size-m);
+  flex: 0 0 auto;
+}
+
+.category-card-heading__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-card-heading__total {
+  /* Match line-item amounts (metric-amount--inline): body size/weight */
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.upcoming-payments-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40rem) {
+  .upcoming-payments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-m);
+  width: 100%;
+  padding: var(--wa-space-s) var(--wa-space-m);
+  border: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-m);
+  background: var(--wa-color-surface-raised);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
+}
+
+.list-row:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+}
+
+.list-row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--wa-border-width-l, 2px) var(--wa-color-focus);
+}
+
+.settings-form wa-input,
+.settings-form wa-select,
+.settings-form wa-textarea {
+  width: 100%;
+}
+
+.category-drag-opacity {
+  opacity: 0.5;
+}
+
+.report-markdown {
+  max-width: 100%;
 }

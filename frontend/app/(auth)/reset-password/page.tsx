@@ -5,40 +5,34 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { resetPassword } from "@/lib/auth-api";
 import { useTranslation, translateError } from "@/lib/i18n";
+import { showToast } from "@/lib/toast";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  useToast,
-} from "@lina-rodrigues/cotton-candy";
+function eventValue(event: { target: EventTarget | null }): string {
+  return (event.target as HTMLInputElement & { value: string }).value;
+}
+
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token") ?? "";
   const { t, locale } = useTranslation();
-  const { showToast } = useToast();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token) {
-      showToast(t("auth.resetPassword.invalidToken"), "error");
+      void showToast(t("auth.resetPassword.invalidToken"), { variant: "danger" });
       return;
     }
     setLoading(true);
     try {
       await resetPassword(token, password);
-      showToast(t("auth.resetPassword.success"), "success");
+      void showToast(t("auth.resetPassword.success"), { variant: "success", icon: "check" });
       router.push("/login");
     } catch (err) {
       const code = err instanceof Error ? err.message : "REQUEST_FAILED";
-      showToast(translateError(code, locale), "error");
+      void showToast(translateError(code, locale), { variant: "danger" });
     } finally {
       setLoading(false);
     }
@@ -46,47 +40,45 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-body text-sm">{t("auth.resetPassword.invalidToken")}</p>
-          <Link href="/login" className="text-primary mt-4 inline-block text-sm underline-offset-2 hover:underline">
+      <wa-card>
+        <div className="wa-stack wa-gap-m">
+          <wa-callout variant="danger">
+            <wa-icon slot="icon" name="circle-exclamation"></wa-icon>
+            {t("auth.resetPassword.invalidToken")}
+          </wa-callout>
+          <Link href="/login" className="wa-caption-m">
             {t("auth.forgotPassword.backToLogin")}
           </Link>
-        </CardContent>
-      </Card>
+        </div>
+      </wa-card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-display text-xs normal-case">
-          {t("auth.resetPassword.title")}
-        </CardTitle>
-        <p className="text-muted-finance text-body text-sm">{t("auth.resetPassword.subtitle")}</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="password">{t("auth.resetPassword.password")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button type="submit" className="pressable focus-ring w-full" disabled={loading}>
+    <wa-card>
+      <div className="wa-stack wa-gap-l">
+        <div className="wa-stack wa-gap-2xs">
+          <h1 className="wa-heading-m">{t("auth.resetPassword.title")}</h1>
+          <p className="wa-caption-m wa-color-text-quiet">{t("auth.resetPassword.subtitle")}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="wa-stack wa-gap-m settings-form">
+          <wa-input
+            id="password"
+            type="password"
+            label={t("auth.resetPassword.password")}
+            autocomplete="new-password"
+            required
+            minlength={8}
+            value={password}
+            onInput={(e) => setPassword(eventValue(e))}
+          ></wa-input>
+          <wa-button type="submit" variant="brand" disabled={loading || undefined} style={{ width: "100%" }}>
             {loading ? t("common.loading") : t("auth.resetPassword.submit")}
-          </Button>
+          </wa-button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </wa-card>
   );
 }
 

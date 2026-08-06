@@ -83,7 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     return subscribeSystemTheme((isDark) => {
-      document.documentElement.classList.toggle("dark", isDark);
+      const root = document.documentElement;
+      root.classList.toggle("wa-dark", isDark);
+      root.classList.toggle("wa-light", !isDark);
+      root.classList.remove("dark");
     });
   }, [preferences.theme]);
 

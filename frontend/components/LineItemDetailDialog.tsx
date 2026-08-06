@@ -1,9 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AddEntryDialog } from "@/components/AddEntryDialog";
-import { BudgetBar } from "@/components/BudgetBar";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EntryActionsMenu } from "@/components/EntryActionsMenu";
 import { LineItemActions } from "@/components/LineItemActions";
@@ -31,17 +30,6 @@ import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lin
 import { getSeriesBadgeLabel } from "@/lib/recurrence";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
-
-import {
-  Badge,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 
 interface LineItemDetailDialogProps {
   item: LineItem | null;
@@ -74,6 +62,9 @@ export function LineItemDetailDialog({
   const { setFromServer, replaceLineItem } = useMonthViewActions();
   const { runOptimistic } = useMutationFeedback();
   const localeTag = getLocaleTag(locale);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
   const [editingEntry, setEditingEntry] = useState<LineItemEntry | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<LineItemEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -84,6 +75,16 @@ export function LineItemDetailDialog({
       : collectAllLineItems(monthView.categories, monthView.uncategorized).find(
           (candidate) => candidate.id === item.id,
         ) ?? item;
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) {
@@ -97,7 +98,7 @@ export function LineItemDetailDialog({
   }
 
   const isIncome = liveItem.type === "income";
-  const amountClass = isIncome ? "text-income" : "text-expense";
+  const amountClass = isIncome ? "metric-amount--income" : "metric-amount--expense";
   const amountPrefix = isIncome ? "+" : "-";
   const entries = [...(liveItem.entries ?? [])].reverse();
   const spent = getLineItemRealizedAmount(liveItem);
@@ -135,89 +136,97 @@ export function LineItemDetailDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          data-testid="line-item-detail-dialog"
-          className="flex max-h-[85dvh] flex-col overflow-hidden"
-        >
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="text-display text-xs normal-case">
-              {t("entries.detailTitle")}
-            </DialogTitle>
-            <p className="text-body pt-1 text-sm font-semibold">{liveItem.label}</p>
-          </DialogHeader>
+      <wa-dialog
+        ref={dialogRef}
+        label={t("entries.detailTitle")}
+        open={open || undefined}
+        light-dismiss
+        data-testid="line-item-detail-dialog"
+        style={{ "--width": "32rem" } as React.CSSProperties}
+      >
+        <div className="wa-stack wa-gap-m">
+          <p style={{ margin: 0, fontWeight: 600 }}>{liveItem.label}</p>
 
-          <div className="shrink-0 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                font="normal"
-                className={`h-5 px-2 text-xs ${isIncome ? "bg-income-subtle text-income" : "bg-expense-subtle text-expense"}`}
-              >
-                <span className="flex items-center gap-1">
-                  <Icon name={isIncome ? "income" : "expense"} size="xs" />
-                  {isIncome ? t("categories.income") : t("categories.expense")}
+          <div className="wa-cluster wa-gap-s">
+            <wa-badge variant={isIncome ? "success" : "danger"} appearance="outlined">
+              <span className="wa-cluster wa-gap-2xs wa-align-items-center">
+                <wa-icon name={isIncome ? "money-bill" : "credit-card"}></wa-icon>
+                {isIncome ? t("categories.income") : t("categories.expense")}
+              </span>
+            </wa-badge>
+            {seriesBadge ? (
+              <wa-badge variant="neutral" appearance="outlined">
+                <span className="wa-cluster wa-gap-2xs wa-align-items-center">
+                  <wa-icon name="arrows-rotate"></wa-icon>
+                  {t(seriesBadge.key, seriesBadge.vars)}
                 </span>
-              </Badge>
-              {seriesBadge && (
-                <Badge font="normal" variant="outline" className="bg-muted h-5 px-2 text-xs text-foreground">
-                  <span className="flex items-center gap-1">
-                    <Icon name="repeat" size="xs" />
-                    {t(seriesBadge.key, seriesBadge.vars)}
-                  </span>
-                </Badge>
-              )}
-            </div>
-
-            <dl className="grid grid-cols-2 gap-3">
-              <div>
-                <dt className="text-body text-muted-finance text-xs">{t("entries.plannedLabel")}</dt>
-                <dd className={`text-amount text-sm ${amountClass}`}>
-                  {amountPrefix}
-                  {formatMoney(liveItem.plannedAmount)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-body text-muted-finance text-xs">{t("entries.spentLabel")}</dt>
-                <dd className={`text-amount text-sm ${amountClass}`}>
-                  {spent === null ? (
-                    <span className="text-muted-finance">—</span>
-                  ) : (
-                    <>
-                      {amountPrefix}
-                      {formatMoney(spent)}
-                    </>
-                  )}
-                </dd>
-              </div>
-            </dl>
-
-            {liveItem.plannedAmount > 0 && (
-              <BudgetBar
-                plannedTotal={liveItem.plannedAmount}
-                realizedTotal={spent ?? 0}
-              />
-            )}
+              </wa-badge>
+            ) : null}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
-            <h3 className="text-body mb-2 text-sm font-semibold">{t("entries.detailsTitle")}</h3>
+          <dl
+            className="wa-grid wa-gap-m"
+            style={{ gridTemplateColumns: "1fr 1fr", margin: 0 }}
+          >
+            <div>
+              <dt className="wa-caption-m wa-color-text-quiet">{t("entries.plannedLabel")}</dt>
+              <dd className={amountClass} style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
+                {amountPrefix}
+                {formatMoney(liveItem.plannedAmount)}
+              </dd>
+            </div>
+            <div>
+              <dt className="wa-caption-m wa-color-text-quiet">{t("entries.spentLabel")}</dt>
+              <dd className={amountClass} style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
+                {spent === null ? (
+                  <span className="wa-color-text-quiet">—</span>
+                ) : (
+                  <>
+                    {amountPrefix}
+                    {formatMoney(spent)}
+                  </>
+                )}
+              </dd>
+            </div>
+          </dl>
+
+          <div>
+            <h3 className="wa-heading-s" style={{ margin: "0 0 var(--wa-space-s)" }}>
+              {t("entries.detailsTitle")}
+            </h3>
             {entries.length === 0 ? (
-              <p className="text-body text-muted-finance text-sm">{t("entries.detailsEmpty")}</p>
+              <p className="wa-caption-s wa-color-text-quiet" style={{ margin: 0 }}>
+                {t("entries.detailsEmpty")}
+              </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="wa-stack wa-gap-s" style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {entries.map((entry) => (
                   <li
                     key={entry.id}
-                    className="flex items-start justify-between gap-2 rounded-sm bg-muted px-2 py-2"
+                    className="wa-cluster wa-gap-s"
+                    style={{
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      padding: "var(--wa-space-s)",
+                      background: "var(--wa-color-neutral-fill-quiet)",
+                    }}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-amount text-sm ${amountClass}`}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p
+                        className={amountClass}
+                        style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}
+                      >
                         {formatLineItemEntryDisplay(liveItem.type, entry.amount, formatMoney)}
                       </p>
-                      {entry.note && (
-                        <p className="text-body text-muted-finance break-words text-xs">{entry.note}</p>
-                      )}
-                      <p className="text-body text-muted-finance text-xs">
+                      {entry.note ? (
+                        <p
+                          className="wa-caption-m wa-color-text-quiet"
+                          style={{ margin: 0, overflowWrap: "anywhere" }}
+                        >
+                          {entry.note}
+                        </p>
+                      ) : null}
+                      <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
                         {formatEntryDateTime(entry.createdAt, localeTag)}
                       </p>
                     </div>
@@ -231,30 +240,20 @@ export function LineItemDetailDialog({
               </ul>
             )}
           </div>
+        </div>
 
-          <DialogFooter className="shrink-0 flex-col gap-3 border-t border-border pt-3 sm:flex-col sm:items-stretch">
-            <LineItemActions
-              item={liveItem}
-              layout="footer"
-              loading={paying}
-              onPay={handlers.payItem}
-              onAdd={handlers.openAdd}
-              onEdit={handlers.openEdit}
-              onDelete={handlers.requestDelete}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="pressable focus-ring w-full gap-1 sm:w-auto sm:self-end"
-              onClick={() => onOpenChange(false)}
-            >
-              <Icon name="cancel" size="xs" />
-              {t("common.cancel")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div slot="footer">
+          <LineItemActions
+            item={liveItem}
+            layout="footer"
+            loading={paying}
+            onPay={handlers.payItem}
+            onAdd={handlers.openAdd}
+            onEdit={handlers.openEdit}
+            onDelete={handlers.requestDelete}
+          />
+        </div>
+      </wa-dialog>
 
       <AddEntryDialog
         item={liveItem}

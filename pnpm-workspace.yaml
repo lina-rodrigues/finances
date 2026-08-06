@@ -8,6 +8,6 @@ onlyBuiltDependencies:
 allowBuilds:
   core-js: set this to true or false
   esbuild: set this to true or false
-  sharp: set this to true or false
+  sharp: true
 minimumReleaseAgeExclude:
   - '@lina-rodrigues/cotton-candy@1.1.0'

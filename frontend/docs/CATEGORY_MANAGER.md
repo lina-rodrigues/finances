@@ -21,7 +21,7 @@ The original modal squeezed every category into one wrapping row inside a **24re
 Shared UI and logic live in **`CategoryManagerEditor`**. **`CategoryIconPicker`** is reused for list rows and the add form.
 
 ```
-SettingsDialog
+SettingsPage (/settings)
   └── Link → /categories/manage
 
 /categories/manage
@@ -32,7 +32,7 @@ SettingsDialog
 
 ### Manage page (`/categories/manage`)
 
-- Uses full phone-shell width (no dialog cap).
+- Uses the `<wa-page>` content column.
 - Back link returns to `/categories` preserving `?month=`.
 - Horizontal room for name inputs and row actions across mobile and desktop.
 
@@ -45,7 +45,7 @@ SettingsDialog
 - **Mobile (`< sm`)**: up/down arrow buttons remain as an accessibility fallback (`sm:hidden`).
 - **Desktop**: drag handle (`SortVertical` icon) is primary reorder affordance.
 - **Delete**: icon-only destructive button at row end.
-- **Status**: inline badge — “saving” / “saved” / “error” (auto-save feedback); no per-row Save button. Badges use semantic text classes on subtle backgrounds (`text-planned`, `text-income`, `text-expense`).
+- **Status**: inline badge — “saving” / “saved” / “error” (auto-save feedback); no per-row Save button. Badges use WA `variant` (`neutral` / `success` / `danger`).
 
 ### Add category (top of list)
 
@@ -114,7 +114,7 @@ During reorder, row inputs disable (`reordering` flag).
 | `components/CategoryManagerEditor.tsx` | List, add form, DnD, auto-save |
 | `components/CategoryIconPicker.tsx` | Visual icon grid popover |
 | `components/CategoryManagePage.tsx` | Full-page chrome |
-| `components/SettingsDialog.tsx` | Entry link to manage page |
+| `components/SettingsPage.tsx` | Entry link to manage page |
 | `app/(app)/categories/manage/page.tsx` | Server route + month seed |
 | `design-system/finance-app.css` | Icon picker grid utilities |
 | `lib/icons.ts` | `dragHandle` icon (`SortVertical`) |
@@ -123,7 +123,7 @@ During reorder, row inputs disable (`reordering` flag).
 
 After UI changes:
 
-1. `pnpm contrast-check` — 0 failures.
+1. Visual check light/dark — icons and amounts readable.
 2. `pnpm responsive-check` — inspect `.responsive-audit/` at 375px and desktop widths; confirm rows don’t clip names, icon picker fits, page usable in light and dark themes.
 
 ## Future ideas (out of scope)

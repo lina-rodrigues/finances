@@ -1,7 +1,7 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="scroll-viewport flex h-dvh items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md shrink-0">{children}</div>
+    <div className="auth-shell">
+      <div className="auth-shell__inner">{children}</div>
     </div>
   );
 }

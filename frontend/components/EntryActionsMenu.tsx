@@ -3,8 +3,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "@/lib/i18n";
 
-import { Button, Icon } from "@lina-rodrigues/cotton-candy";
-
 interface EntryActionsMenuProps {
   onEdit: () => void;
   onDelete: () => void;
@@ -43,58 +41,70 @@ export function EntryActionsMenu({ onEdit, onDelete, disabled = false }: EntryAc
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative shrink-0">
-      <Button
+    <div ref={containerRef} style={{ position: "relative", flexShrink: 0 }}>
+      <wa-button
         type="button"
-        variant="link"
-        size="sm"
-        className="pressable focus-ring h-8 w-8 p-0"
+        appearance="plain"
+        size="s"
         aria-label={t("entries.entryActions")}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        disabled={disabled}
+        disabled={disabled || undefined}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className="flex flex-col items-center justify-center gap-0.5" aria-hidden="true">
-          <span className="size-1 rounded-full bg-current" />
-          <span className="size-1 rounded-full bg-current" />
-          <span className="size-1 rounded-full bg-current" />
-        </span>
-      </Button>
-      {open && (
+        <wa-icon name="ellipsis-vertical" label={t("entries.entryActions")}></wa-icon>
+      </wa-button>
+      {open ? (
         <div
           id={menuId}
           role="menu"
           aria-label={t("entries.entryActions")}
-          className="absolute top-full right-0 z-[60] mt-1 min-w-36 border bg-background py-1 shadow-(--pixel-box-shadow)"
+          className="wa-stack wa-gap-3xs"
+          style={{
+            position: "absolute",
+            top: "100%",
+            right: 0,
+            zIndex: 60,
+            marginTop: "var(--wa-space-2xs)",
+            minWidth: "9rem",
+            padding: "var(--wa-space-2xs)",
+            background: "var(--wa-color-surface-raised)",
+            border: "1px solid var(--wa-color-surface-border)",
+            boxShadow: "var(--wa-shadow-m)",
+          }}
         >
-          <button
+          <wa-button
             type="button"
+            appearance="plain"
+            size="s"
             role="menuitem"
-            className="interactive-row pressable focus-ring flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+            style={{ justifyContent: "flex-start", width: "100%" }}
             onClick={() => {
               setOpen(false);
               onEdit();
             }}
           >
-            <Icon name="edit" size="xs" />
+            <wa-icon slot="start" name="pen"></wa-icon>
             {t("entries.edit")}
-          </button>
-          <button
+          </wa-button>
+          <wa-button
             type="button"
+            appearance="plain"
+            size="s"
+            variant="danger"
             role="menuitem"
-            className="interactive-row pressable focus-ring flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-expense"
+            style={{ justifyContent: "flex-start", width: "100%" }}
             onClick={() => {
               setOpen(false);
               onDelete();
             }}
           >
-            <Icon name="delete" size="xs" colorClass="text-expense" />
+            <wa-icon slot="start" name="trash"></wa-icon>
             {t("entries.deleteEntry")}
-          </button>
+          </wa-button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

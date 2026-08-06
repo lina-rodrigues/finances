@@ -8,11 +8,6 @@ import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 
-import {
-  Alert,
-  AlertDescription,
-} from "@lina-rodrigues/cotton-candy";
-
 interface UpcomingGroup {
   id: string;
   name: string;
@@ -78,46 +73,47 @@ export function UpcomingPaymentsList({
 
   if (groups.length === 0) {
     return (
-      <Alert>
-        <AlertDescription className="text-body">{t("finance.noUpcomingPayments")}</AlertDescription>
-      </Alert>
+      <wa-callout variant="neutral">
+        <wa-icon slot="icon" name="circle-info"></wa-icon>
+        {t("finance.noUpcomingPayments")}
+      </wa-callout>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="wa-grid wa-gap-l upcoming-payments-grid">
       {groups.map((group) => (
-        <div key={group.id} className="space-y-2">
-          <h3 className="text-display flex min-w-0 items-center gap-2 text-xs normal-case leading-snug">
-            <CategoryIcon icon={group.icon} size="sm" className="shrink-0" />
-            <span className="min-w-0 break-words">{group.name}</span>
+        <div key={group.id} className="wa-stack wa-gap-s">
+          <h3 className="wa-cluster wa-gap-s wa-align-items-center wa-heading-xs">
+            <CategoryIcon icon={group.icon} />
+            <span style={{ minWidth: 0 }}>{group.name}</span>
           </h3>
-          <ul className="responsive-list-columns">
+          <ul className="wa-stack wa-gap-s" style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {group.items.map((item) => (
               <li key={item.id}>
-                <div className="inventory-slot interactive-surface relative flex min-w-0 w-full items-center gap-3 px-2 py-2 sm:px-3 sm:py-2.5">
-                  <button
-                    type="button"
-                    className="pressable focus-ring absolute inset-0 z-0 cursor-pointer border-0 bg-transparent p-0"
-                    onClick={() => handlers.openDetail(item)}
-                    aria-label={`${t("entries.detailTitle")}: ${item.label}`}
-                  />
-                  <span className="text-body relative z-10 min-w-0 flex-1 truncate font-medium pointer-events-none">
+                <button
+                  type="button"
+                  className="list-row"
+                  onClick={() => handlers.openDetail(item)}
+                  aria-label={`${t("entries.detailTitle")}: ${item.label}`}
+                >
+                  <span className="wa-caption-m" style={{ minWidth: 0, flex: 1 }}>
                     {item.label}
                   </span>
-                  <span className="text-amount text-expense relative z-10 shrink-0 whitespace-nowrap pointer-events-none">
+                  <span
+                    className="metric-amount--inline metric-amount--expense"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
                     -{formatMoney(item.plannedAmount)}
                   </span>
-                  <div className="relative z-10 shrink-0">
-                    <LineItemActions
-                      item={item}
-                      layout="inline"
-                      onPay={handlers.payItem}
-                      onAdd={handlers.openAdd}
-                      onEdit={handlers.openEdit}
-                    />
-                  </div>
-                </div>
+                  <LineItemActions
+                    item={item}
+                    layout="inline"
+                    onPay={handlers.payItem}
+                    onAdd={handlers.openAdd}
+                    onEdit={handlers.openEdit}
+                  />
+                </button>
               </li>
             ))}
           </ul>

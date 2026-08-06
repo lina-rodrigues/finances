@@ -2,31 +2,26 @@
 
 import Link from "next/link";
 import { CategoryManagerEditor } from "@/components/CategoryManagerEditor";
-import { categoryManagePath, navPath } from "@/lib/api";
+import { PageTitle } from "@/components/PageTitle";
+import { navPath } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
-import {
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 export function CategoryManagePage() {
   const { t } = useTranslation();
   const { month } = useMonthView();
   const backHref = navPath("categories", month.yearMonth);
 
   return (
-    <div className="pb-6">
-      <div className="mb-4 flex flex-col gap-3">
-        <Link
-          href={backHref}
-          className="pressable focus-ring text-body inline-flex w-fit items-center gap-1 text-sm text-link"
-        >
-          <Icon name="chevronLeft" size="xs" />
+    <div className="wa-stack wa-gap-l">
+      <div className="wa-stack wa-gap-s">
+        <Link href={backHref} className="wa-cluster wa-gap-2xs wa-caption-m">
+          <wa-icon name="chevron-left"></wa-icon>
           {t("categories.backToCategories")}
         </Link>
-        <div>
-          <h1 className="text-display text-sm">{t("categories.manageTitle")}</h1>
-          <p className="text-muted-finance text-body mt-1 text-sm">{t("categories.manageHint")}</p>
+        <div className="wa-stack wa-gap-2xs">
+          <PageTitle>{t("categories.manageTitle")}</PageTitle>
+          <p className="wa-caption-m wa-color-text-quiet">{t("categories.manageHint")}</p>
         </div>
       </div>
 

@@ -12,16 +12,6 @@ import {
 import { useTranslation, translateReportError } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 interface AiAssistantSectionProps {
   yearMonth: string;
 }
@@ -31,6 +21,12 @@ function formatReportDate(iso: string, locale: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(iso));
+}
+
+function statusTone(status: FinancialReportSummary["status"]): string {
+  if (status === "completed") return "metric-amount--income";
+  if (status === "failed") return "metric-amount--expense";
+  return "wa-color-text-quiet";
 }
 
 export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
@@ -80,16 +76,19 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
   }
 
   async function handleGenerate() {
-    await run(async () => {
-      const report = await generateReport(yearMonth);
-      await loadReports();
-      setListOpen(true);
-      if (report.status !== "completed") {
-        throw new Error(report.error ?? "REPORT_GENERATION_FAILED");
-      }
-    }, {
-      successMessage: t("reports.generateSuccess"),
-    });
+    await run(
+      async () => {
+        const report = await generateReport(yearMonth);
+        await loadReports();
+        setListOpen(true);
+        if (report.status !== "completed") {
+          throw new Error(report.error ?? "REPORT_GENERATION_FAILED");
+        }
+      },
+      {
+        successMessage: t("reports.generateSuccess"),
+      },
+    );
   }
 
   async function handleDeleteConfirm() {
@@ -98,117 +97,120 @@ export function AiAssistantSection({ yearMonth }: AiAssistantSectionProps) {
     }
 
     const reportId = deletingReport.id;
-    await run(async () => {
-      await deleteReport(reportId);
-      setDeletingReport(null);
-      if (viewingReportId === reportId) {
-        setDetailOpen(false);
-        setViewingReportId(null);
-      }
-      await loadReports();
-    }, {
-      successMessage: t("reports.reportDeleted"),
-    });
+    await run(
+      async () => {
+        await deleteReport(reportId);
+        setDeletingReport(null);
+        if (viewingReportId === reportId) {
+          setDetailOpen(false);
+          setViewingReportId(null);
+        }
+        await loadReports();
+      },
+      {
+        successMessage: t("reports.reportDeleted"),
+      },
+    );
   }
 
   return (
     <>
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-display text-sm">{t("reports.aiAssistantTitle")}</h2>
-          <Button
+      <section className="wa-stack wa-gap-m">
+        <div className="wa-cluster wa-gap-s wa-align-items-center">
+          <h2 className="wa-heading-s" style={{ marginInlineEnd: "auto" }}>
+            {t("reports.aiAssistantTitle")}
+          </h2>
+          <wa-button
             type="button"
-            variant="default"
-            size="sm"
-            className="pressable focus-ring gap-1"
+            variant="brand"
+            disabled={mutating || undefined}
             onClick={() => void handleGenerate()}
-            disabled={mutating}
           >
             {mutating && !deletingReport ? (
-              <Spinner className="size-4" />
+              <wa-spinner slot="start" style={{ fontSize: "0.875rem" }}></wa-spinner>
             ) : (
-              <Icon name="navReports" size="xs" />
+              <wa-icon slot="start" name="sparkles"></wa-icon>
             )}
             {t("reports.generateReport")}
-          </Button>
+          </wa-button>
         </div>
 
-        <Collapsible open={listOpen} onOpenChange={setListOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="pressable focus-ring w-full justify-between"
-            >
-              <span>{t("reports.generatedReports")}</span>
-              <Icon name={listOpen ? "arrowUp" : "chevronDown"} size="xs" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2 space-y-2">
+        <wa-details
+          open={listOpen}
+          onWaShow={() => setListOpen(true)}
+          onWaHide={() => setListOpen(false)}
+        >
+          <span slot="summary">{t("reports.generatedReports")}</span>
+
+          <div className="wa-stack wa-gap-s">
             {loadingReports && (
-              <p className="text-muted-finance text-body text-sm">{t("common.loading")}</p>
+              <p className="wa-caption-m wa-color-text-quiet">{t("common.loading")}</p>
             )}
 
             {!loadingReports && reports.length === 0 && (
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-muted-finance text-body text-sm">{t("reports.noReports")}</p>
-                </CardContent>
-              </Card>
+              <wa-callout variant="neutral">
+                <wa-icon slot="icon" name="file-lines"></wa-icon>
+                {t("reports.noReports")}
+              </wa-callout>
             )}
 
             {!loadingReports &&
               reports.map((report) => (
-                <div
-                  key={report.id}
-                  className="interactive-row inventory-slot flex items-center gap-1 p-1"
-                >
+                <div key={report.id} className="list-row" style={{ position: "relative" }}>
                   <button
                     type="button"
-                    className="min-w-0 flex-1 p-2 text-left"
+                    className="wa-stack wa-gap-2xs"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      border: 0,
+                      background: "transparent",
+                      padding: 0,
+                      textAlign: "left",
+                      color: "inherit",
+                      font: "inherit",
+                      cursor: "pointer",
+                    }}
                     onClick={() => openReport(report)}
                   >
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                      <span className="text-body text-sm leading-snug font-semibold break-words">
+                    <div
+                      className="wa-cluster wa-gap-s"
+                      style={{ justifyContent: "space-between", width: "100%" }}
+                    >
+                      <span
+                        className="wa-caption-m"
+                        style={{ fontWeight: "var(--wa-font-weight-semibold)", minWidth: 0 }}
+                      >
                         {report.title}
                       </span>
-                      <span
-                        className={`text-body shrink-0 text-xs ${
-                          report.status === "completed"
-                            ? "text-income"
-                            : report.status === "failed"
-                              ? "text-expense"
-                              : "text-planned"
-                        }`}
-                      >
+                      <span className={`wa-caption-s ${statusTone(report.status)}`}>
                         {t(`reports.status.${report.status}`)}
                       </span>
                     </div>
-                    <span className="text-muted-finance text-body mt-1 block text-xs">
+                    <span className="wa-caption-s wa-color-text-quiet">
                       {formatReportDate(report.createdAt, localeTag)}
                     </span>
                     {report.status === "failed" && report.error && (
-                      <span className="text-body mt-1 block text-xs text-expense">
+                      <span className="wa-caption-s metric-amount--expense">
                         {translateReportError(report.error, locale)}
                       </span>
                     )}
                   </button>
-                  <Button
+                  <wa-button
                     type="button"
-                    variant="link"
-                    size="sm"
-                    className="pressable focus-ring h-auto shrink-0 p-2"
+                    appearance="plain"
+                    size="s"
+                    variant="danger"
                     aria-label={t("reports.deleteReport")}
-                    disabled={mutating}
+                    disabled={mutating || undefined}
                     onClick={() => setDeletingReport(report)}
                   >
-                    <Icon name="delete" size="xs" colorClass="text-expense" />
-                  </Button>
+                    <wa-icon name="trash"></wa-icon>
+                  </wa-button>
                 </div>
               ))}
-          </CollapsibleContent>
-        </Collapsible>
+          </div>
+        </wa-details>
       </section>
 
       <ReportDetailDialog

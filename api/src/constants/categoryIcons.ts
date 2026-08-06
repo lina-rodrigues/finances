@@ -1,3 +1,4 @@
+/** Stable icon keys stored on categories. Frontend maps these to Font Awesome names. */
 export const ALLOWED_CATEGORY_ICONS = [
   "category",
   "income",

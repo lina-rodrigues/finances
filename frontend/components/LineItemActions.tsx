@@ -4,12 +4,6 @@ import type { LineItem } from "@/lib/api";
 import { isPayDisabled } from "@/lib/payLineItem";
 import { useTranslation } from "@/lib/i18n";
 
-import {
-  Button,
-  Spinner,
-  Icon,
-  type IconSize,
-} from "@lina-rodrigues/cotton-candy";
 interface LineItemActionsProps {
   item: LineItem;
   onPay: (item: LineItem) => void;
@@ -20,9 +14,6 @@ interface LineItemActionsProps {
   payDisabled?: boolean;
   loading?: boolean;
 }
-
-const inlineIconButtonClass =
-  "pressable focus-ring h-auto min-h-0 p-1.5 no-underline shadow-none outline-none active:translate-y-0 hover:bg-transparent";
 
 export function LineItemActions({
   item,
@@ -41,118 +32,116 @@ export function LineItemActions({
   const addLabel = t("entries.addSubmit");
   const editLabel = t("entries.edit");
   const deleteLabel = t("common.delete");
-  const inlineIconSize: IconSize = "sm";
-  const footerSizeClass = "gap-1";
+  const moreLabel = t("entries.itemActions");
 
   if (iconOnly) {
     return (
       <div
-        className="flex shrink-0 items-center justify-end gap-2"
+        className="wa-cluster wa-gap-s"
+        style={{ flexShrink: 0, justifyContent: "flex-end" }}
         onClick={(event) => event.stopPropagation()}
       >
-        <Button
+        <wa-button
           type="button"
-          variant="link"
-          size="sm"
-          className={inlineIconButtonClass}
-          disabled={loading || disabledPay}
+          appearance="plain"
+          size="s"
+          disabled={loading || disabledPay || undefined}
+          loading={loading || undefined}
           onClick={() => onPay(item)}
           aria-label={payLabel}
           title={payLabel}
         >
-          {loading ? (
-            <Spinner className="size-4" />
-          ) : (
-            <Icon name="pay" size={inlineIconSize} colorClass="text-income" />
-          )}
-        </Button>
-        <Button
+          <wa-icon name="circle-dollar-to-slot" label={payLabel}></wa-icon>
+        </wa-button>
+        <wa-button
           type="button"
-          variant="link"
-          size="sm"
-          className={inlineIconButtonClass}
-          disabled={loading}
+          appearance="plain"
+          size="s"
+          disabled={loading || undefined}
           onClick={() => onAdd(item)}
           aria-label={addLabel}
           title={addLabel}
         >
-          <Icon name="add" size={inlineIconSize} colorClass="text-link" />
-        </Button>
-        <Button
+          <wa-icon name="plus" label={addLabel}></wa-icon>
+        </wa-button>
+        <wa-button
           type="button"
-          variant="link"
-          size="sm"
-          className={inlineIconButtonClass}
-          disabled={loading}
+          appearance="plain"
+          size="s"
+          disabled={loading || undefined}
           onClick={() => onEdit(item)}
           aria-label={editLabel}
           title={editLabel}
         >
-          <Icon name="edit" size={inlineIconSize} colorClass="text-muted-foreground" />
-        </Button>
+          <wa-icon name="pen" label={editLabel}></wa-icon>
+        </wa-button>
       </div>
     );
   }
 
+  function handleMoreSelect(event: Event) {
+    const detail = (event as CustomEvent<{ item: { value?: string } }>).detail;
+    const value = detail?.item?.value;
+    if (value === "edit") {
+      onEdit(item);
+    } else if (value === "delete" && onDelete) {
+      onDelete(item);
+    }
+  }
+
   return (
     <div
-      className="flex flex-wrap items-center gap-2"
+      className="wa-cluster wa-gap-s"
+      style={{ flexWrap: "wrap" }}
       onClick={(event) => event.stopPropagation()}
     >
-      <Button
+      <wa-button
         type="button"
-        variant="default"
-        size="sm"
-        className={`pressable focus-ring ${footerSizeClass}`}
-        disabled={loading || disabledPay}
+        variant="brand"
+        size="s"
+        disabled={loading || disabledPay || undefined}
+        loading={loading || undefined}
         onClick={() => onPay(item)}
         aria-label={payLabel}
       >
-        {loading ? (
-          <Spinner className="size-3" />
-        ) : (
-          <Icon name="pay" size="xs" colorClass="text-primary-foreground" />
-        )}
+        <wa-icon slot="start" name="circle-dollar-to-slot"></wa-icon>
         {payLabel}
-      </Button>
-      <Button
+      </wa-button>
+      <wa-button
         type="button"
-        variant="secondary"
-        size="sm"
-        className={`pressable focus-ring ${footerSizeClass}`}
-        disabled={loading}
+        variant="neutral"
+        appearance="outlined"
+        size="s"
+        disabled={loading || undefined}
         onClick={() => onAdd(item)}
         aria-label={addLabel}
       >
-        <Icon name="add" size="xs" />
+        <wa-icon slot="start" name="plus"></wa-icon>
         {addLabel}
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        className={`pressable focus-ring ${footerSizeClass}`}
-        disabled={loading}
-        onClick={() => onEdit(item)}
-        aria-label={editLabel}
-      >
-        <Icon name="edit" size="xs" />
-        {editLabel}
-      </Button>
-      {onDelete && (
-        <Button
+      </wa-button>
+      <wa-dropdown placement="top-end" onWaSelect={handleMoreSelect}>
+        <wa-button
+          slot="trigger"
           type="button"
-          variant="secondary"
-          size="sm"
-          className={`pressable focus-ring text-destructive ${footerSizeClass}`}
-          disabled={loading}
-          onClick={() => onDelete(item)}
-          aria-label={deleteLabel}
+          variant="neutral"
+          appearance="outlined"
+          size="s"
+          disabled={loading || undefined}
+          aria-label={moreLabel}
         >
-          <Icon name="delete" size="xs" colorClass="text-expense" />
-          {deleteLabel}
-        </Button>
-      )}
+          <wa-icon name="ellipsis" label={moreLabel}></wa-icon>
+        </wa-button>
+        <wa-dropdown-item value="edit">
+          <wa-icon slot="icon" name="pen"></wa-icon>
+          {editLabel}
+        </wa-dropdown-item>
+        {onDelete ? (
+          <wa-dropdown-item value="delete" variant="danger">
+            <wa-icon slot="icon" name="trash"></wa-icon>
+            {deleteLabel}
+          </wa-dropdown-item>
+        ) : null}
+      </wa-dropdown>
     </div>
   );
 }

@@ -5,7 +5,6 @@ import { getLocaleTag, type Category, type LineItem } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { collectAllLineItems } from "@/lib/monthViewMath";
 import { useMonthView } from "@/lib/MonthViewProvider";
-import { Alert, AlertDescription } from "@lina-rodrigues/cotton-candy";
 
 function formatLastInteractionDate(iso: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
@@ -45,12 +44,9 @@ export function LastInteractionBanner() {
   const formatted = formatLastInteractionDate(lastAt, getLocaleTag(locale));
 
   return (
-    <div className="mb-4">
-      <Alert>
-        <AlertDescription className="text-body">
-          {t("common.lastInteraction", { date: formatted })}
-        </AlertDescription>
-      </Alert>
-    </div>
+    <wa-callout variant="neutral" appearance="plain">
+      <wa-icon slot="icon" name="clock"></wa-icon>
+      {t("common.lastInteraction", { date: formatted })}
+    </wa-callout>
   );
 }

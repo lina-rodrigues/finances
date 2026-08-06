@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/lib/AuthProvider";
 import { ThemeFlashScript } from "@/components/ThemeFlashScript";
-import { Toaster } from "@lina-rodrigues/cotton-candy";
-import { jetbrainsMono, nunito, pressStart } from "@/lib/fonts";
+import { WebAwesomeBoot } from "@/components/WebAwesomeBoot";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,14 +21,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${nunito.variable} ${pressStart.variable} ${jetbrainsMono.variable} bg-dots font-sans`}
-      >
+    <html
+      lang="en"
+      className="wa-theme-default wa-palette-rudimentary wa-light"
+      suppressHydrationWarning
+    >
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.bunny.net/css?family=aleo:400|geist-mono:400|inter:400,500,600,650,700&display=swap"
+        />
+      </head>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <ThemeFlashScript />
-          <Toaster position="top-right" />
           {children}
+          <WebAwesomeBoot />
         </AuthProvider>
       </body>
     </html>

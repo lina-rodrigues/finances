@@ -19,17 +19,6 @@ import {
 import { payDefaultAmount } from "@/lib/payLineItem";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 interface PayEntryDialogProps {
   item: LineItem | null;
   open: boolean;
@@ -42,10 +31,26 @@ export function PayEntryDialog({ item, open, onOpenChange }: PayEntryDialogProps
   const monthView = useMonthView();
   const { setFromServer, replaceLineItem } = useMonthViewActions();
   const { runOptimistic } = useMutationFeedback();
+  const formId = useId();
   const amountFieldId = useId();
-  const amountInputRef = useRef<HTMLInputElement>(null);
+  const amountInputRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const title = t("entries.payTitle");
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open || !item) {
@@ -57,12 +62,12 @@ export function PayEntryDialog({ item, open, onOpenChange }: PayEntryDialogProps
     setAmount(defaultAmount !== null ? String(defaultAmount) : "");
 
     const timer = window.setTimeout(() => {
-      const input = amountInputRef.current;
+      const input = amountInputRef.current as (HTMLElement & { select?: () => void }) | null;
       if (!input) {
         return;
       }
       input.focus();
-      input.select();
+      input.select?.();
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -111,71 +116,65 @@ export function PayEntryDialog({ item, open, onOpenChange }: PayEntryDialogProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        data-testid="pay-entry-dialog"
-        className="max-h-[85dvh] overflow-x-hidden overflow-y-auto"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-          amountInputRef.current?.focus();
-          amountInputRef.current?.select();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="text-display text-xs normal-case">
-            {t("entries.payTitle")}
-          </DialogTitle>
-          {item && (
-            <p className="text-body text-muted-finance pt-1 text-sm">{item.label}</p>
-          )}
-        </DialogHeader>
+    <wa-dialog
+      ref={dialogRef}
+      label={title}
+      open={open || undefined}
+      light-dismiss
+      data-testid="pay-entry-dialog"
+      style={{ "--width": "32rem" } as React.CSSProperties}
+    >
+      {item ? (
+        <p className="wa-caption-l wa-color-text-quiet" style={{ margin: "0 0 var(--wa-space-m)" }}>
+          {item.label}
+        </p>
+      ) : null}
 
-        <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-          <div className="space-y-1">
-            <label htmlFor={amountFieldId} className="text-body text-sm font-semibold">
-              {t("entries.addAmount")}
-            </label>
-            <div className="finance-dialog-field">
-              <Input
-                ref={amountInputRef}
-                id={amountFieldId}
-                type="number"
-                step="0.01"
-                placeholder={t("entries.addAmount")}
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                onFocus={(event) => event.target.select()}
-                required
-                disabled={loading}
-              />
-            </div>
-          </div>
+      <form id={formId} onSubmit={handleSubmit} className="wa-stack wa-gap-m">
+        <div className="wa-stack wa-gap-2xs">
+          <label htmlFor={amountFieldId}>{t("entries.addAmount")}</label>
+          <wa-input
+            ref={amountInputRef}
+            id={amountFieldId}
+            type="number"
+            step="0.01"
+            placeholder={t("entries.addAmount")}
+            value={amount}
+            onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
+            onFocus={(event) => {
+              const target = event.target as HTMLInputElement & { select?: () => void };
+              target.select?.();
+            }}
+            required
+            disabled={loading || undefined}
+          ></wa-input>
+        </div>
+      </form>
 
-          <DialogFooter className="gap-2 border-t border-border pt-3 sm:justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              <Icon name="cancel" size="xs" />
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              disabled={loading}
-            >
-              {loading ? <Spinner className="size-4" /> : <Icon name="pay" size="xs" />}
-              {t("entries.pay")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div slot="footer" className="wa-cluster wa-gap-s">
+        <wa-button
+          type="button"
+          variant="neutral"
+          appearance="outlined"
+          size="s"
+          disabled={loading || undefined}
+          onClick={() => onOpenChange(false)}
+        >
+          <wa-icon slot="start" name="xmark"></wa-icon>
+          {t("common.cancel")}
+        </wa-button>
+        <wa-button
+          type="submit"
+          form={formId}
+          variant="brand"
+          size="s"
+          loading={loading || undefined}
+          disabled={loading || undefined}
+        >
+          <wa-icon slot="start" name="circle-dollar-to-slot"></wa-icon>
+          {t("entries.pay")}
+        </wa-button>
+      </div>
+    </wa-dialog>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
 import { buildOptimisticCategory, createTempCategoryId } from "@/lib/categoryMappers";
+import { resolveCategoryIconKey } from "@/lib/categoryIcons";
 import {
   captureMonthViewState,
   useMonthView,
@@ -23,23 +24,9 @@ import {
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
-import {
-  Badge,
-  Button,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Spinner,
-  Icon,
-  resolveCategoryIcon,
-  type IconName,
-} from "@lina-rodrigues/cotton-candy";
 interface EditableCategory extends FlatCategory {
   draftName: string;
-  draftIcon: IconName;
+  draftIcon: string;
   draftBudgetGroup: BudgetGroup | null;
 }
 
@@ -53,13 +40,17 @@ function fromBudgetGroupOption(option: BudgetGroupOption): BudgetGroup | null {
   return option === "default" ? null : option;
 }
 
+function eventValue(event: { target: EventTarget | null }): string {
+  return (event.target as HTMLInputElement & { value: string }).value;
+}
+
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 function toEditable(cat: FlatCategory): EditableCategory {
   return {
     ...cat,
     draftName: cat.name,
-    draftIcon: resolveCategoryIcon(cat.icon),
+    draftIcon: resolveCategoryIconKey(cat.icon),
     draftBudgetGroup: cat.budgetGroup,
   };
 }
@@ -85,7 +76,7 @@ function buildReorderedCategories(
 function isDirty(cat: EditableCategory): boolean {
   return (
     cat.draftName.trim() !== cat.name ||
-    cat.draftIcon !== resolveCategoryIcon(cat.icon) ||
+    cat.draftIcon !== resolveCategoryIconKey(cat.icon) ||
     cat.draftBudgetGroup !== cat.budgetGroup
   );
 }
@@ -119,7 +110,7 @@ export const CategoryManagerEditor = forwardRef<
     sortToEditable(monthView.flatCategories),
   );
   const [newName, setNewName] = useState("");
-  const [newIcon, setNewIcon] = useState<IconName>("category");
+  const [newIcon, setNewIcon] = useState("category");
   const [deletingCategory, setDeletingCategory] = useState<EditableCategory | null>(null);
   const [reordering, setReordering] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -404,46 +395,56 @@ export const CategoryManagerEditor = forwardRef<
 
   return (
     <>
-      <div className="space-y-4">
-        <div>
-          <p className="text-display mb-2 text-xs">{t("categories.addCategory")}</p>
-          <div className="inventory-slot flex flex-wrap items-center gap-2 p-2">
-            <CategoryIconPicker
-              value={newIcon}
-              onChange={setNewIcon}
-              disabled={rowDisabled}
-              label={t("categories.pickIcon")}
-            />
-            <Input
-              className="min-w-0 flex-1"
-              placeholder={t("categories.categoryName")}
-              value={newName}
-              onChange={(event) => setNewName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void handleAdd();
-                }
-              }}
-              disabled={rowDisabled}
-            />
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              className="pressable focus-ring gap-1"
-              onClick={() => void handleAdd()}
-              disabled={rowDisabled || !newName.trim()}
-            >
-              {addLoading ? <Spinner className="size-4" /> : <Icon name="add" size="xs" />}
-              {t("categories.add")}
-            </Button>
+      <div className="wa-stack wa-gap-l">
+        <wa-card>
+          <div className="wa-stack wa-gap-m">
+            <p className="wa-heading-xs">{t("categories.addCategory")}</p>
+            <div className="wa-stack wa-gap-s">
+              <CategoryIconPicker
+                value={newIcon}
+                onChange={setNewIcon}
+                disabled={rowDisabled}
+                label={t("categories.pickIcon")}
+              />
+              <div className="wa-cluster wa-gap-s">
+                <wa-input
+                  style={{ flex: 1, minWidth: 0 }}
+                  placeholder={t("categories.categoryName")}
+                  value={newName}
+                  disabled={rowDisabled || undefined}
+                  onInput={(e) => setNewName(eventValue(e))}
+                  onKeyDown={(event: React.KeyboardEvent) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void handleAdd();
+                    }
+                  }}
+                ></wa-input>
+                <wa-button
+                  type="button"
+                  variant="brand"
+                  disabled={rowDisabled || !newName.trim() || undefined}
+                  onClick={() => void handleAdd()}
+                >
+                  {addLoading ? (
+                    <wa-spinner slot="start" style={{ fontSize: "0.875rem" }}></wa-spinner>
+                  ) : (
+                    <wa-icon slot="start" name="plus"></wa-icon>
+                  )}
+                  {t("categories.add")}
+                </wa-button>
+              </div>
+            </div>
           </div>
-        </div>
+        </wa-card>
 
-        <p className="text-muted-finance text-body text-sm">{t("categories.reorderHint")}</p>
+        <p className="wa-caption-m wa-color-text-quiet">{t("categories.reorderHint")}</p>
 
-        <ul className="space-y-2" aria-label={t("categories.manageTitle")}>
+        <ul
+          className="wa-stack wa-gap-s"
+          style={{ listStyle: "none", margin: 0, padding: 0 }}
+          aria-label={t("categories.manageTitle")}
+        >
           {categories.map((cat, index) => {
             const status = saveStatus[cat.id] ?? "idle";
             const isDragging = dragIndex === index;
@@ -453,48 +454,53 @@ export const CategoryManagerEditor = forwardRef<
             return (
               <li
                 key={cat.id}
-                className={`interactive-row inventory-slot p-2 ${
-                  isDragging ? "category-manager-row-dragging" : ""
-                } ${isDropTarget ? "ring-2 ring-ring" : ""}`}
+                className={`list-row${isDragging ? " category-drag-opacity" : ""}`}
+                style={{
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  outline: isDropTarget
+                    ? "var(--wa-border-width-l) solid var(--wa-color-focus)"
+                    : undefined,
+                }}
                 onDragOver={(event) => handleDragOver(event, index)}
                 onDrop={() => void handleDrop(index)}
               >
-                <div className="flex items-center gap-2">
-                  <button
+                <div className="wa-cluster wa-gap-s wa-align-items-center">
+                  <wa-button
                     type="button"
+                    appearance="plain"
+                    size="s"
                     draggable={!rowDisabled}
-                    className="pressable focus-ring hidden shrink-0 cursor-grab p-1 active:cursor-grabbing sm:block"
+                    className="wa-desktop-only"
                     aria-label={t("categories.dragToReorder")}
-                    disabled={rowDisabled}
+                    disabled={rowDisabled || undefined}
                     onDragStart={() => handleDragStart(index)}
                     onDragEnd={handleDragEnd}
                   >
-                    <Icon name="dragHandle" size="sm" />
-                  </button>
+                    <wa-icon name="grip-vertical"></wa-icon>
+                  </wa-button>
 
-                  <div className="flex shrink-0 items-center gap-1 sm:hidden">
-                    <Button
+                  <div className="wa-cluster wa-gap-2xs wa-mobile-only">
+                    <wa-button
                       type="button"
-                      variant="link"
-                      size="sm"
-                      className="pressable focus-ring h-auto p-1"
+                      appearance="plain"
+                      size="s"
                       onClick={() => void handleMove(index, -1)}
-                      disabled={rowDisabled || index === 0}
+                      disabled={rowDisabled || index === 0 || undefined}
                       aria-label={t("categories.moveUp")}
                     >
-                      <Icon name="arrowUp" size="xs" />
-                    </Button>
-                    <Button
+                      <wa-icon name="arrow-up"></wa-icon>
+                    </wa-button>
+                    <wa-button
                       type="button"
-                      variant="link"
-                      size="sm"
-                      className="pressable focus-ring h-auto p-1"
+                      appearance="plain"
+                      size="s"
                       onClick={() => void handleMove(index, 1)}
-                      disabled={rowDisabled || index === categories.length - 1}
+                      disabled={rowDisabled || index === categories.length - 1 || undefined}
                       aria-label={t("categories.moveDown")}
                     >
-                      <Icon name="arrowDown" size="xs" />
-                    </Button>
+                      <wa-icon name="arrow-down"></wa-icon>
+                    </wa-button>
                   </div>
 
                   <CategoryIconPicker
@@ -504,83 +510,59 @@ export const CategoryManagerEditor = forwardRef<
                     label={`${t("categories.pickIcon")}: ${cat.name}`}
                   />
 
-                  <Input
-                    className="min-w-0 flex-1"
+                  <wa-input
+                    style={{ flex: 1, minWidth: 0 }}
                     value={cat.draftName}
-                    onChange={(event) => updateDraft(cat.id, { draftName: event.target.value })}
-                    disabled={rowDisabled || rowSaving}
+                    disabled={rowDisabled || rowSaving || undefined}
                     aria-label={cat.name}
-                  />
+                    onInput={(e) => updateDraft(cat.id, { draftName: eventValue(e) })}
+                  ></wa-input>
 
-                  <Select
+                  <wa-select
+                    style={{ width: "9.5rem", flexShrink: 0 }}
                     value={toBudgetGroupOption(cat.draftBudgetGroup)}
-                    onValueChange={(value) =>
+                    disabled={rowDisabled || rowSaving || undefined}
+                    aria-label={t("categories.budgetGroup")}
+                    onChange={(e: Event) =>
                       updateDraft(cat.id, {
-                        draftBudgetGroup: fromBudgetGroupOption(value as BudgetGroupOption),
+                        draftBudgetGroup: fromBudgetGroupOption(eventValue(e) as BudgetGroupOption),
                       })
                     }
-                    disabled={rowDisabled || rowSaving}
                   >
-                    <SelectTrigger className="w-[9.5rem] shrink-0" aria-label={t("categories.budgetGroup")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">{t("categories.budgetGroupDefault")}</SelectItem>
-                      <SelectItem value="essential">{t("categories.budgetGroupEssential")}</SelectItem>
-                      <SelectItem value="non_essential">{t("categories.budgetGroupNonEssential")}</SelectItem>
-                      <SelectItem value="investment">{t("categories.budgetGroupInvestment")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <wa-option value="default">{t("categories.budgetGroupDefault")}</wa-option>
+                    <wa-option value="essential">{t("categories.budgetGroupEssential")}</wa-option>
+                    <wa-option value="non_essential">{t("categories.budgetGroupNonEssential")}</wa-option>
+                    <wa-option value="investment">{t("categories.budgetGroupInvestment")}</wa-option>
+                  </wa-select>
 
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="wa-cluster wa-gap-s wa-align-items-center">
                     {status === "saving" && (
-                      <Badge
-                        font="normal"
-                        variant="outline"
-                        className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-planned"
-                      >
-                        <span className="flex items-center gap-1">
-                          <Icon name="repeat" size="xs" />
-                          {t("categories.pendingBadge")}
-                        </span>
-                      </Badge>
+                      <wa-badge appearance="outlined" variant="warning">
+                        {t("categories.pendingBadge")}
+                      </wa-badge>
                     )}
                     {status === "saved" && (
-                      <Badge
-                        font="normal"
-                        variant="outline"
-                        className="bg-income-subtle h-4 px-1.5 text-[0.625rem] text-income"
-                      >
-                        <span className="flex items-center gap-1">
-                          <Icon name="save" size="xs" />
-                          {t("categories.savedBadge")}
-                        </span>
-                      </Badge>
+                      <wa-badge appearance="outlined" variant="success">
+                        {t("categories.savedBadge")}
+                      </wa-badge>
                     )}
                     {status === "error" && (
-                      <Badge
-                        font="normal"
-                        variant="outline"
-                        className="bg-expense-subtle h-4 px-1.5 text-[0.625rem] text-expense"
-                      >
-                        <span className="flex items-center gap-1">
-                          <Icon name="alert" size="xs" colorClass="text-destructive" />
-                          {t("common.somethingWrong")}
-                        </span>
-                      </Badge>
+                      <wa-badge appearance="outlined" variant="danger">
+                        {t("common.somethingWrong")}
+                      </wa-badge>
                     )}
 
-                    <Button
+                    <wa-button
                       type="button"
-                      variant="link"
-                      size="sm"
-                      className="pressable focus-ring h-auto p-1"
+                      appearance="plain"
+                      size="s"
+                      variant="danger"
                       onClick={() => setDeletingCategory(cat)}
-                      disabled={rowDisabled || rowSaving}
+                      disabled={rowDisabled || rowSaving || undefined}
                       aria-label={t("categories.deleteCategory")}
                     >
-                      <Icon name="delete" size="xs" colorClass="text-expense" />
-                    </Button>
+                      <wa-icon name="trash"></wa-icon>
+                    </wa-button>
                   </div>
                 </div>
               </li>

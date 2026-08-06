@@ -79,7 +79,7 @@
     "currentBudget": "Current budget",
     "current": "Current",
     "ending": "Ending",
-    "levelUp": "Level up! Balance improved"
+    "levelUp": "Balance improved"
   },
   "nav": {
     "label": "Main navigation",
@@ -213,7 +213,7 @@
     "updatingSeries": "Updating series…"
   },
   "budget": {
-    "plannedOf": "{spent} of {planned} planned"
+    "plannedOf": "{spent} of {planned}"
   },
   "entries": {
     "addTitle": "Add entry",
@@ -229,6 +229,7 @@
     "editEntryTitle": "Edit entry",
     "editSubmit": "Save",
     "entryActions": "Entry actions",
+    "itemActions": "Item actions",
     "deleteEntry": "Delete",
     "deleteEntryDescription": "Remove this entry from \"{label}\"?",
     "entriesManagedHint": "Use Pay or Add on the item to record amounts.",

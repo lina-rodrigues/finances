@@ -9,7 +9,7 @@ The project is a **pnpm monorepo** with two independently deployable packages:
 | Package | Tech | Port | Role |
 |---------|------|------|------|
 | [`api/`](api/) | Express, Mongoose, TypeScript | 4000 | REST API, MongoDB access, balance recalculation |
-| [`frontend/`](frontend/) | Next.js (App Router), React, Tailwind CSS 4, Pixelact UI | 3000 | SSR UI, calls API over HTTP |
+| [`frontend/`](frontend/) | Next.js (App Router), React, Web Awesome Pro | 3000 | SSR UI, calls API over HTTP |
 
 ```
 ┌─────────────┐     HTTP      ┌─────────────┐     MongoDB    ┌─────────────┐
@@ -32,37 +32,26 @@ Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, and `build`.
 
 ## Design
 
-The frontend uses the **Cotton Candy** design system from the private package [`@lina-rodrigues/cotton-candy`](https://github.com/lina-rodrigues/cotton-candy) (Pixelact UI, shadcn bases, Tailwind CSS 4, Pixelarticons).
-
-See the package [`DESIGN_SYSTEM.md`](https://github.com/lina-rodrigues/cotton-candy/blob/main/DESIGN_SYSTEM.md) for the canonical reference (local pointer: [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md)). UI verification: `pnpm contrast-check`, `pnpm responsive-check`.
+The frontend uses **[Web Awesome Pro](https://webawesome.com/)** (`@web.awesome.me/webawesome-pro`) via npm — Active theme, Shoelace palette, green brand. See [`frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md). Agent skills: [`skills/webawesome`](skills/webawesome/), [`skills/webawesome-design`](skills/webawesome-design/).
 
 ### Private package installs (local + Vercel)
 
-Local: use `frontend/.npmrc` (`@lina-rodrigues:registry=https://npm.pkg.github.com`) plus auth in your user `~/.npmrc`.
+Local: root / `frontend/.npmrc` should include Cloudsmith for `@web.awesome.me` (and any remaining GitHub Packages registries you use) plus auth tokens in your user `~/.npmrc`.
 
-Vercel (**frontend and API** projects): set sensitive env var **`NPM_RC`** (Production + Preview) to a multiline `.npmrc` that includes the public npm registry and GitHub Packages auth, per [Using private dependencies with Vercel](https://vercel.com/kb/guide/using-private-dependencies-with-vercel). The API needs this too because the monorepo `pnpm install` resolves frontend’s private package from the shared lockfile.
-
-```ini
-registry=https://registry.npmjs.org
-@lina-rodrigues:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT_WITH_read:packages
-```
-
-Prefer a dedicated GitHub PAT with `read:packages` (not a short-lived `gh` login token). After rotating the PAT, update `NPM_RC` and redeploy.
+Vercel (**frontend and API** projects): set sensitive env var **`NPM_RC`** (Production + Preview) to a multiline `.npmrc` that includes the public npm registry and Web Awesome Pro (Cloudsmith) auth, per [Using private dependencies with Vercel](https://vercel.com/kb/guide/using-private-dependencies-with-vercel). The API needs this too because the monorepo `pnpm install` resolves frontend packages from the shared lockfile.
 
 ## Features (v1)
 
 - **User accounts** — custom JWT auth (login, signup with invitation code, forgot/reset password)
 - **Per-user data** — categories, months, and line items scoped by `userId`
-- **Settings modal** — name, theme (system/light/dark), currency (full ISO list, BRL/USD pinned), language (EN/PT)
+- **Settings page** (`/settings`) — name, theme (system/light/dark), currency (full ISO list, BRL/USD pinned), language (EN/PT), AI report tone
 - **i18n** — English and Portuguese via `frontend/messages/{en,pt}.json`
-- **Monthly view** with previous/next month navigation
-- **Flat categories** with custom pixel-art icons ([Pixelarticons](https://pixelarticons.com/)) and drag-free reordering (up/down)
-- **Category management** — rename, pick icons, reorder, add, and delete via **Manage** on the Categories header
+- **Monthly view** with previous/next month navigation on Categories and Reports
+- **Flat categories** with Font Awesome icons via `<wa-icon>` and drag reorder on Manage
+- **Category management** — rename, pick icons, reorder, add, and delete via `/categories/manage`
 - **Income and expense line items** with planned and realized amounts
-- **Planned indicator** — unrealized items show the planned amount with a "planned" badge
 - **Last month balance** — automatically carried forward from the previous month's ending balance
-- **Collapsible category sections** with per-category totals
+- **Collapsible category sections** (`wa-details`) with per-category totals
 
 ## Prerequisites
 
@@ -439,7 +428,7 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | `pnpm seed:fresh` | Drop existing data and reseed |
 | `pnpm import:credit-card` | Import a credit-card JSON mapping (pass `-- --json … --env …`; see [Credit card statement import](#credit-card-statement-import-local)) |
 | `pnpm build` | Build both packages |
-| `pnpm contrast-check` | WCAG AA contrast audit of the theme colors |
+| `pnpm contrast-check` | Legacy Cotton Candy theme auditor (not used for Web Awesome UI) |
 | `pnpm responsive-check` | Playwright screenshots (2 themes x 3 months x 8 viewports) into `.responsive-audit/` — requires `pnpm dev` running |
 
 ## Project Structure
@@ -450,7 +439,8 @@ finance/
 ├── docker-compose.yml          # MongoDB
 ├── .env.example
 ├── pnpm-workspace.yaml
-├── scripts/                    # contrast-check, responsive-check
+├── scripts/                    # responsive-check, deploy, db tools
+├── skills/                     # Web Awesome agent skills
 ├── api/
 │   ├── scripts/                # Local ops (e.g. import-credit-card)
 │   └── src/
@@ -462,11 +452,17 @@ finance/
 │       └── seed/               # Default flat categories
 └── frontend/
     ├── DESIGN_SYSTEM.md        # Pointer to @lina-rodrigues/cotton-candy
-    ├── design-system/          # Finance-only CSS (reports, category picker)
+    ├── design-system/          # Report markdown CSS
     ├── app/                    # Next.js App Router (SSR page)
-    ├── components/             # App feature UI (imports @lina-rodrigues/cotton-candy)
-    └── lib/                    # API client, fonts, i18n
+    ├── components/             # App feature UI (wa-* components)
+    └── lib/                    # API client, i18n, toast, category icons
 ```
+
+
+## Next Steps
+
+- **Overview metric sparklines** — each Overview money card (last month / expected / current) should include a small graph showing how much the value increased or decreased versus the previous month.
+- **Aggregation cache** — add a cache layer for month-view aggregations and sums (balances, category totals, budget breakdowns) so repeated reads do not recompute from every line item and entry.
 
 ## Future Extensions
 

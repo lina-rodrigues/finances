@@ -19,41 +19,36 @@ export function BudgetBar({ plannedTotal, realizedTotal }: BudgetBarProps) {
   const overBudget = realizedTotal > plannedTotal;
   const nothingRealized = realizedTotal === 0;
 
+  const label = nothingRealized
+    ? t("budget.plannedOf", {
+        spent: formatMoney(0),
+        planned: formatMoney(plannedTotal),
+      })
+    : `${actualPct}%`;
+
   return (
-    <div className="px-2 pb-2">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-muted-finance text-body text-xs">{t("addItem.planned")}</span>
+    <div className="wa-stack wa-gap-2xs" style={{ paddingInline: "var(--wa-space-s)" }}>
+      <div className="wa-cluster" style={{ justifyContent: "space-between" }}>
+        <span className="wa-caption-m wa-color-text-quiet">{t("addItem.planned")}</span>
         <span
-          className={`text-body text-xs font-semibold ${overBudget ? "text-expense" : "text-muted-finance"}`}
+          className={`wa-caption-m ${overBudget ? "metric-amount--expense" : "wa-color-text-quiet"}`}
+          style={{ fontWeight: 600 }}
         >
-          {nothingRealized
-            ? t("budget.plannedOf", {
-                spent: formatMoney(0),
-                planned: formatMoney(plannedTotal),
-              })
-            : `${actualPct}%`}
+          {label}
         </span>
       </div>
-      <div
-        className="h-3 overflow-hidden border-2 border-foreground bg-muted"
-        role="progressbar"
-        aria-valuenow={fillPct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={
-          nothingRealized
-            ? t("budget.plannedOf", {
-                spent: formatMoney(0),
-                planned: formatMoney(plannedTotal),
-              })
-            : `${actualPct}%`
+      <wa-progress-bar
+        value={fillPct}
+        label={label}
+        style={
+          {
+            "--track-height": "0.75rem",
+            ...(overBudget
+              ? { "--indicator-color": "var(--wa-color-danger-fill-loud)" }
+              : {}),
+          } as React.CSSProperties
         }
-      >
-        <div
-          className={`h-full transition-all duration-300 ${overBudget ? "bg-expense" : "bg-primary"}`}
-          style={{ width: `${fillPct}%` }}
-        />
-      </div>
+      ></wa-progress-bar>
     </div>
   );
 }

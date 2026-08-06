@@ -6,22 +6,16 @@ import { useState } from "react";
 import { register } from "@/lib/auth-api";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation, translateError } from "@/lib/i18n";
+import { showToast } from "@/lib/toast";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  useToast,
-} from "@lina-rodrigues/cotton-candy";
+function eventValue(event: { target: EventTarget | null }): string {
+  return (event.target as HTMLInputElement & { value: string }).value;
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();
   const { t, locale } = useTranslation();
-  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,81 +32,65 @@ export default function SignupPage() {
       router.refresh();
     } catch (err) {
       const code = err instanceof Error ? err.message : "REQUEST_FAILED";
-      showToast(translateError(code, locale), "error");
+      void showToast(translateError(code, locale), { variant: "danger" });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-display text-xs normal-case">{t("auth.signup.title")}</CardTitle>
-        <p className="text-muted-finance text-body text-sm">{t("auth.signup.subtitle")}</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="finance-dialog-form space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="name">{t("auth.signup.name")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="name"
-                autoComplete="name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="email">{t("auth.signup.email")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="password">{t("auth.signup.password")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="invitationCode">{t("auth.signup.invitationCode")}</Label>
-            <div className="finance-dialog-field">
-              <Input
-                id="invitationCode"
-                required
-                value={invitationCode}
-                onChange={(e) => setInvitationCode(e.target.value)}
-              />
-            </div>
-          </div>
-          <Button type="submit" className="pressable focus-ring w-full gap-1" disabled={loading}>
+    <wa-card>
+      <div className="wa-stack wa-gap-l">
+        <div className="wa-stack wa-gap-2xs">
+          <h1 className="wa-heading-m">{t("auth.signup.title")}</h1>
+          <p className="wa-caption-m wa-color-text-quiet">{t("auth.signup.subtitle")}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="wa-stack wa-gap-m settings-form">
+          <wa-input
+            id="name"
+            label={t("auth.signup.name")}
+            autocomplete="name"
+            required
+            value={name}
+            onInput={(e) => setName(eventValue(e))}
+          ></wa-input>
+          <wa-input
+            id="email"
+            type="email"
+            label={t("auth.signup.email")}
+            autocomplete="email"
+            required
+            value={email}
+            onInput={(e) => setEmail(eventValue(e))}
+          ></wa-input>
+          <wa-input
+            id="password"
+            type="password"
+            label={t("auth.signup.password")}
+            autocomplete="new-password"
+            required
+            minlength={8}
+            value={password}
+            onInput={(e) => setPassword(eventValue(e))}
+          ></wa-input>
+          <wa-input
+            id="invitationCode"
+            label={t("auth.signup.invitationCode")}
+            required
+            value={invitationCode}
+            onInput={(e) => setInvitationCode(eventValue(e))}
+          ></wa-input>
+          <wa-button type="submit" variant="brand" disabled={loading || undefined} style={{ width: "100%" }}>
             {loading ? t("common.loading") : t("auth.signup.submit")}
-          </Button>
+          </wa-button>
         </form>
-        <p className="text-body mt-4 text-center text-sm">
+
+        <p className="wa-caption-m wa-color-text-quiet" style={{ textAlign: "center" }}>
           {t("auth.signup.hasAccount")}{" "}
-          <Link href="/login" className="text-primary underline-offset-2 hover:underline">
-            {t("auth.signup.signIn")}
-          </Link>
+          <Link href="/login">{t("auth.signup.signIn")}</Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </wa-card>
   );
 }

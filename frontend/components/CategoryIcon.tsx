@@ -1,29 +1,19 @@
 "use client";
 
-import {
-  Icon,
-  categoryIconColorClass,
-  resolveCategoryIcon,
-  type IconName,
-  type IconSize,
-} from "@lina-rodrigues/cotton-candy";
+import { resolveCategoryFaIcon } from "@/lib/categoryIcons";
+
 interface CategoryIconProps {
-  icon: string | IconName | undefined;
-  size?: IconSize;
-  className?: string;
+  icon: string;
   label?: string;
+  className?: string;
 }
 
-export function CategoryIcon({ icon, size = "sm", className = "", label }: CategoryIconProps) {
-  const name = typeof icon === "string" ? resolveCategoryIcon(icon) : resolveCategoryIcon(icon);
-
+export function CategoryIcon({ icon, label, className }: CategoryIconProps) {
   return (
-    <Icon
-      name={name}
-      size={size}
-      className={className}
+    <wa-icon
+      name={resolveCategoryFaIcon(icon)}
       label={label}
-      colorClass={categoryIconColorClass}
-    />
+      className={className}
+    ></wa-icon>
   );
 }

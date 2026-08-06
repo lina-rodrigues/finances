@@ -1,18 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useTranslation } from "@/lib/i18n";
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Spinner,
-  Icon,
-} from "@lina-rodrigues/cotton-candy";
 interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,47 +23,51 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const openRef = useRef(open);
+  openRef.current = open;
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const onAfterHide = () => {
+      if (openRef.current) onOpenChange(false);
+    };
+    el.addEventListener("wa-after-hide", onAfterHide);
+    return () => el.removeEventListener("wa-after-hide", onAfterHide);
+  }, [onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription className="text-body text-muted-finance pt-2">
-              {description}
-            </DialogDescription>
+    <wa-dialog
+      ref={dialogRef}
+      open={open || undefined}
+      label={title}
+      light-dismiss
+    >
+      {description ? <p className="wa-caption-m wa-color-text-quiet">{description}</p> : null}
+      <div slot="footer" className="wa-cluster wa-gap-s">
+        <wa-button
+          type="button"
+          appearance="outlined"
+          disabled={loading || undefined}
+          onClick={() => onOpenChange(false)}
+        >
+          {t("common.cancel")}
+        </wa-button>
+        <wa-button
+          type="button"
+          variant="danger"
+          disabled={loading || undefined}
+          onClick={onConfirm}
+        >
+          {loading ? (
+            <wa-spinner slot="start" style={{ fontSize: "0.875rem" }}></wa-spinner>
+          ) : (
+            <wa-icon slot="start" name="trash"></wa-icon>
           )}
-        </DialogHeader>
-        <DialogFooter className="gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="pressable focus-ring gap-1"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
-            <Icon name="cancel" size="xs" />
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="pressable focus-ring gap-1"
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? (
-              <Spinner className="size-4" />
-            ) : (
-              <Icon name="delete" size="xs" colorClass="text-destructive-foreground" />
-            )}
-            {confirmLabel ?? t("common.delete")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {confirmLabel ?? t("common.delete")}
+        </wa-button>
+      </div>
+    </wa-dialog>
   );
 }

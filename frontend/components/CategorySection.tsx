@@ -11,17 +11,6 @@ import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useRowPending } from "@/lib/MonthViewProvider";
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Icon,
-  resolveCategoryIcon,
-} from "@lina-rodrigues/cotton-candy";
 /** Toggle line-item badges (income/expense, repeat, planned, pending) in category rows. */
 const SHOW_LINE_ITEM_TAGS = false;
 
@@ -34,15 +23,13 @@ function TypeBadge({ item }: { item: LineItem }) {
   const { t } = useTranslation();
   const isIncome = item.type === "income";
   return (
-    <Badge
-      font="normal"
-      className={`h-4 px-1.5 text-[0.625rem] ${isIncome ? "bg-income-subtle text-income" : "bg-expense-subtle text-expense"}`}
-    >
-      <span className="flex items-center gap-1">
-        <Icon name={isIncome ? "income" : "expense"} size="xs" />
-        {isIncome ? t("categories.income") : t("categories.expense")}
-      </span>
-    </Badge>
+    <wa-badge appearance="outlined" variant={isIncome ? "success" : "danger"}>
+      <wa-icon
+        slot="start"
+        name={isIncome ? "arrow-trend-up" : "arrow-trend-down"}
+      ></wa-icon>
+      {isIncome ? t("categories.income") : t("categories.expense")}
+    </wa-badge>
   );
 }
 
@@ -54,16 +41,10 @@ function RepeatBadge({ item }: { item: LineItem }) {
   }
 
   return (
-    <Badge
-      font="normal"
-      variant="outline"
-      className="bg-muted h-4 px-1.5 text-[0.625rem] text-foreground"
-    >
-      <span className="flex items-center gap-1">
-        <Icon name="repeat" size="xs" />
-        {t("repeat.badge")}
-      </span>
-    </Badge>
+    <wa-badge appearance="outlined" variant="neutral">
+      <wa-icon slot="start" name="repeat"></wa-icon>
+      {t("repeat.badge")}
+    </wa-badge>
   );
 }
 
@@ -73,18 +54,21 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
   const isPending = useRowPending(item.id);
   const isIncome = item.type === "income";
   const spent = getLineItemRealizedAmount(item);
+  const amountClass = isIncome ? "metric-amount--income" : "metric-amount--expense";
 
   return (
     <button
       type="button"
-      className={`interactive-row flex w-full items-start justify-between gap-2 px-2 py-2 text-left${isPending ? " row-pending" : ""}`}
+      className={`list-row${isPending ? " row-pending" : ""}`}
       onClick={() => handlers.openDetail(item)}
       aria-label={`${t("entries.detailTitle")}: ${item.label}`}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body min-w-0 break-words font-semibold">{item.label}</span>
+      <div className="wa-stack wa-gap-2xs" style={{ minWidth: 0, flex: 1 }}>
+        <span className="wa-caption-m" style={{ fontWeight: "var(--wa-font-weight-semibold)" }}>
+          {item.label}
+        </span>
         {spent !== null && (
-          <span className="text-body text-muted-finance text-xs">
+          <span className="wa-caption-s wa-color-text-quiet">
             {t("budget.plannedOf", {
               spent: formatMoney(spent),
               planned: formatMoney(item.plannedAmount),
@@ -92,26 +76,20 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
           </span>
         )}
         {SHOW_LINE_ITEM_TAGS && (
-          <span className="flex flex-wrap items-center gap-1">
+          <span className="wa-cluster wa-gap-2xs">
             <TypeBadge item={item} />
             <RepeatBadge item={item} />
             {isPending && <PendingBadge />}
             {!hasLineItemEntries(item) && (
-              <Badge
-                font="normal"
-                variant="outline"
-                className="bg-planned-subtle h-4 px-1.5 text-[0.625rem] text-planned"
-              >
-                <span className="flex items-center gap-1">
-                  <Icon name="planned" size="xs" />
-                  {t("categories.plannedBadge")}
-                </span>
-              </Badge>
+              <wa-badge appearance="outlined" variant="warning">
+                <wa-icon slot="start" name="clock"></wa-icon>
+                {t("categories.plannedBadge")}
+              </wa-badge>
             )}
           </span>
         )}
       </div>
-      <span className={`text-amount shrink-0 ${isIncome ? "text-income" : "text-expense"}`}>
+      <span className={`metric-amount--inline ${amountClass}`} style={{ flexShrink: 0 }}>
         {isIncome ? "+" : "-"}
         {formatMoney(item.displayAmount)}
       </span>
@@ -134,62 +112,57 @@ export function CategorySection({
 }: CategorySectionProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
-  const iconName = resolveCategoryIcon(category.icon);
   const hasContent = category.lineItems.length > 0;
   const categoryTotal = sumCategoryAmounts(category.lineItems);
   const { plannedTotal, realizedTotal } = computeBudgetTotals(category.lineItems);
 
   const totalClass =
-    categoryTotal > 0 ? "text-income" : categoryTotal < 0 ? "text-expense" : "text-muted-finance";
+    categoryTotal > 0
+      ? "metric-amount--income"
+      : categoryTotal < 0
+        ? "metric-amount--expense"
+        : "metric-amount--muted";
   const totalLabel = `${categoryTotal > 0 ? "+" : categoryTotal < 0 ? "-" : ""}${formatMoney(
     Math.abs(categoryTotal),
   )}`;
 
   return (
-    <Collapsible defaultOpen>
-      <Card>
-        <CollapsibleTrigger className="interactive-surface group w-full cursor-pointer px-4 py-3 text-left">
-          <div className="flex w-full items-center justify-between gap-2">
-            <span className="flex min-w-0 items-center gap-2">
-              <CategoryIcon icon={iconName} size="sm" className="shrink-0" />
-              <h3 className="text-display min-w-0 text-xs normal-case leading-snug break-words">
-                {category.name}
-              </h3>
-            </span>
-            <span className="flex shrink-0 items-center gap-2">
-              <span className={`text-amount text-sm ${totalClass}`}>{totalLabel}</span>
-              <Icon
-                name="chevronDown"
-                size="sm"
-                className="transition-transform duration-200 group-data-[state=open]:rotate-180"
-              />
-            </span>
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <CardContent className="space-y-1 pt-0">
-            {hasContent ? (
-              <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />
-            ) : (
-              <p className="text-body text-muted-finance px-2 text-sm">{t("categories.nothingPlanned")}</p>
-            )}
-            {category.lineItems.map((item) => (
-              <LineItemRow key={item.id} item={item} handlers={handlers} />
-            ))}
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="btn-add-item focus-ring mt-1 gap-1"
-              data-testid={addItemTestId}
-              onClick={onAddItem}
-            >
-              <Icon name="add" size="xs" />
-              {t("categories.addItem")}
-            </Button>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+    <wa-details className="category-details" appearance="outlined" open>
+      <span slot="summary" className="category-card-heading">
+        <CategoryIcon
+          icon={category.icon}
+          className="category-card-heading__icon"
+        />
+        <span className="wa-heading-m category-card-heading__name">{category.name}</span>
+        <span className={`metric-amount--inline category-card-heading__total ${totalClass}`}>
+          {totalLabel}
+        </span>
+      </span>
+
+      <div className="wa-stack wa-gap-m">
+        {hasContent ? (
+          <BudgetBar plannedTotal={plannedTotal} realizedTotal={realizedTotal} />
+        ) : (
+          <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
+            {t("categories.nothingPlanned")}
+          </p>
+        )}
+        <div className="wa-stack wa-gap-s">
+          {category.lineItems.map((item) => (
+            <LineItemRow key={item.id} item={item} handlers={handlers} />
+          ))}
+        </div>
+        <wa-button
+          type="button"
+          appearance="plain"
+          size="s"
+          data-testid={addItemTestId}
+          onClick={onAddItem}
+        >
+          <wa-icon slot="start" name="plus"></wa-icon>
+          {t("categories.addItem")}
+        </wa-button>
+      </div>
+    </wa-details>
   );
 }
