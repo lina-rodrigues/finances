@@ -5,7 +5,7 @@ import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { PendingBadge } from "@/components/PendingBadge";
 import { type Category, type LineItem } from "@/lib/api";
-import { getLineItemRealizedAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
+import { hasLineItemEntries } from "@/lib/lineItemAmounts";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
@@ -53,7 +53,6 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
   const formatMoney = useFormatCurrency();
   const isPending = useRowPending(item.id);
   const isIncome = item.type === "income";
-  const spent = getLineItemRealizedAmount(item);
   const amountClass = isIncome ? "metric-amount--income" : "metric-amount--expense";
 
   return (
@@ -64,17 +63,9 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
       aria-label={`${t("entries.detailTitle")}: ${item.label}`}
     >
       <div className="wa-stack wa-gap-2xs" style={{ minWidth: 0, flex: 1 }}>
-        <span className="wa-caption-m" style={{ fontWeight: "var(--wa-font-weight-semibold)" }}>
+        <span className="wa-caption-m wa-text-truncate" style={{ fontWeight: "var(--wa-font-weight-semibold)" }}>
           {item.label}
         </span>
-        {spent !== null && (
-          <span className="wa-caption-s wa-color-text-quiet">
-            {t("budget.plannedOf", {
-              spent: formatMoney(spent),
-              planned: formatMoney(item.plannedAmount),
-            })}
-          </span>
-        )}
         {SHOW_LINE_ITEM_TAGS && (
           <span className="wa-cluster wa-gap-2xs">
             <TypeBadge item={item} />

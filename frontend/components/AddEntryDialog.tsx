@@ -183,31 +183,27 @@ export function AddEntryDialog({
       ) : null}
 
       <form id={formId} onSubmit={handleSubmit} className="wa-stack wa-gap-m">
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={amountFieldId}>{t("entries.addAmount")}</label>
-          <wa-input
-            ref={amountInputRef}
-            id={amountFieldId}
-            type="number"
-            step="0.01"
-            placeholder={t("entries.addAmount")}
-            value={amount}
-            onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
-            required
-            disabled={loading || undefined}
-          ></wa-input>
-        </div>
+        <wa-input
+          ref={amountInputRef}
+          id={amountFieldId}
+          label={t("entries.addAmount")}
+          type="number"
+          step="0.01"
+          placeholder={t("entries.addAmount")}
+          value={amount}
+          onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
+          required
+          disabled={loading || undefined}
+        ></wa-input>
 
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={`${amountFieldId}-note`}>{t("entries.addNote")}</label>
-          <wa-input
-            id={`${amountFieldId}-note`}
-            placeholder={t("entries.addNote")}
-            value={note}
-            onInput={(event) => setNote((event.target as HTMLInputElement).value)}
-            disabled={loading || undefined}
-          ></wa-input>
-        </div>
+        <wa-input
+          id={`${amountFieldId}-note`}
+          label={t("entries.addNote")}
+          placeholder={t("entries.addNote")}
+          value={note}
+          onInput={(event) => setNote((event.target as HTMLInputElement).value)}
+          disabled={loading || undefined}
+        ></wa-input>
       </form>
 
       <div slot="footer" className="wa-cluster wa-gap-s">

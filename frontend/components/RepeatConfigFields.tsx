@@ -36,64 +36,56 @@ export function RepeatConfigFields({
 
   return (
     <div className="wa-stack wa-gap-m">
-      <div className="wa-stack wa-gap-2xs">
-        <label htmlFor={`${idPrefix}-repeat-mode`}>{t("repeat.mode")}</label>
-        <wa-select
-          id={`${idPrefix}-repeat-mode`}
-          value={mode}
-          disabled={disabled || undefined}
-          onChange={(event) => onModeChange((event.target as HTMLSelectElement).value as RepeatMode)}
-        >
-          {!hideNoneOption ? <wa-option value="none">{t("repeat.none")}</wa-option> : null}
-          <wa-option value="never">{t("repeat.forever")}</wa-option>
-          <wa-option value="count">{t("repeat.count")}</wa-option>
-          <wa-option value="until">{t("repeat.until")}</wa-option>
-        </wa-select>
-      </div>
+      <wa-select
+        id={`${idPrefix}-repeat-mode`}
+        label={t("repeat.mode")}
+        value={mode}
+        disabled={disabled || undefined}
+        onChange={(event) => onModeChange((event.target as HTMLSelectElement).value as RepeatMode)}
+      >
+        {!hideNoneOption ? <wa-option value="none">{t("repeat.none")}</wa-option> : null}
+        <wa-option value="never">{t("repeat.forever")}</wa-option>
+        <wa-option value="count">{t("repeat.count")}</wa-option>
+        <wa-option value="until">{t("repeat.until")}</wa-option>
+      </wa-select>
 
       {mode !== "none" ? (
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={`${idPrefix}-start-month`}>{t("repeat.startMonth")}</label>
-          <wa-input
-            id={`${idPrefix}-start-month`}
-            type="month"
-            value={startYearMonth}
-            onInput={(event) => onStartYearMonthChange((event.target as HTMLInputElement).value)}
-            disabled={disabled || lockStartMonth || undefined}
-            required
-          ></wa-input>
-        </div>
+        <wa-input
+          id={`${idPrefix}-start-month`}
+          label={t("repeat.startMonth")}
+          type="month"
+          value={startYearMonth}
+          onInput={(event) => onStartYearMonthChange((event.target as HTMLInputElement).value)}
+          disabled={disabled || lockStartMonth || undefined}
+          required
+        ></wa-input>
       ) : null}
 
       {mode === "count" ? (
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={`${idPrefix}-count`}>{t("repeat.occurrenceCount")}</label>
-          <wa-input
-            id={`${idPrefix}-count`}
-            type="number"
-            min={1}
-            step={1}
-            value={occurrenceCount}
-            onInput={(event) => onOccurrenceCountChange((event.target as HTMLInputElement).value)}
-            disabled={disabled || undefined}
-            required
-          ></wa-input>
-        </div>
+        <wa-input
+          id={`${idPrefix}-count`}
+          label={t("repeat.occurrenceCount")}
+          type="number"
+          min={1}
+          step={1}
+          value={occurrenceCount}
+          onInput={(event) => onOccurrenceCountChange((event.target as HTMLInputElement).value)}
+          disabled={disabled || undefined}
+          required
+        ></wa-input>
       ) : null}
 
       {mode === "until" ? (
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={`${idPrefix}-end-month`}>{t("repeat.endMonth")}</label>
-          <wa-input
-            id={`${idPrefix}-end-month`}
-            type="month"
-            value={endYearMonth}
-            min={startYearMonth}
-            onInput={(event) => onEndYearMonthChange((event.target as HTMLInputElement).value)}
-            disabled={disabled || undefined}
-            required
-          ></wa-input>
-        </div>
+        <wa-input
+          id={`${idPrefix}-end-month`}
+          label={t("repeat.endMonth")}
+          type="month"
+          value={endYearMonth}
+          min={startYearMonth}
+          onInput={(event) => onEndYearMonthChange((event.target as HTMLInputElement).value)}
+          disabled={disabled || undefined}
+          required
+        ></wa-input>
       ) : null}
     </div>
   );

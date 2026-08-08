@@ -80,7 +80,7 @@ export function CategoriesSection() {
         ) : (
           <div
             className="wa-grid wa-gap-m"
-            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))" }}
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))" }}
           >
             {categories.map((category, index) => (
               <CategorySection

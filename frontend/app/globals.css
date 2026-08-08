@@ -200,7 +200,7 @@ wa-details.category-details::part(summary) {
   align-items: center;
   gap: var(--wa-space-m);
   width: 100%;
-  padding: var(--wa-space-s) var(--wa-space-m);
+  padding: var(--wa-space-m) var(--wa-space-l);
   border: var(--wa-border-width-s) solid var(--wa-color-surface-border);
   border-radius: var(--wa-border-radius-m);
   background: var(--wa-color-surface-raised);

@@ -131,24 +131,22 @@ export function PayEntryDialog({ item, open, onOpenChange }: PayEntryDialogProps
       ) : null}
 
       <form id={formId} onSubmit={handleSubmit} className="wa-stack wa-gap-m">
-        <div className="wa-stack wa-gap-2xs">
-          <label htmlFor={amountFieldId}>{t("entries.addAmount")}</label>
-          <wa-input
-            ref={amountInputRef}
-            id={amountFieldId}
-            type="number"
-            step="0.01"
-            placeholder={t("entries.addAmount")}
-            value={amount}
-            onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
-            onFocus={(event) => {
-              const target = event.target as HTMLInputElement & { select?: () => void };
-              target.select?.();
-            }}
-            required
-            disabled={loading || undefined}
-          ></wa-input>
-        </div>
+        <wa-input
+          ref={amountInputRef}
+          id={amountFieldId}
+          label={t("entries.addAmount")}
+          type="number"
+          step="0.01"
+          placeholder={t("entries.addAmount")}
+          value={amount}
+          onInput={(event) => setAmount((event.target as HTMLInputElement).value)}
+          onFocus={(event) => {
+            const target = event.target as HTMLInputElement & { select?: () => void };
+            target.select?.();
+          }}
+          required
+          disabled={loading || undefined}
+        ></wa-input>
       </form>
 
       <div slot="footer" className="wa-cluster wa-gap-s">

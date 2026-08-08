@@ -99,83 +99,81 @@ export function CategoryCombobox({
   }
 
   return (
-    <div ref={containerRef} className="wa-stack wa-gap-2xs">
-      <label htmlFor={id}>{t("addItem.category")}</label>
-      <div style={{ position: "relative" }}>
-        <wa-input
-          id={id}
-          data-testid="category-combobox-input"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listboxId}
-          aria-autocomplete="list"
-          value={value}
-          onInput={(event) => {
-            onChange((event.target as HTMLInputElement).value);
-            setOpen(true);
+    <div ref={containerRef} style={{ position: "relative" }}>
+      <wa-input
+        id={id}
+        label={t("addItem.category")}
+        data-testid="category-combobox-input"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+        value={value}
+        onInput={(event) => {
+          onChange((event.target as HTMLInputElement).value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        disabled={disabled || undefined}
+        placeholder={t("categories.categoryName")}
+        autocomplete="off"
+      ></wa-input>
+      {open && suggestions.length > 0 ? (
+        <ul
+          id={listboxId}
+          data-testid="category-combobox-listbox"
+          role="listbox"
+          className="wa-stack wa-gap-3xs"
+          style={{
+            position: "absolute",
+            top: "100%",
+            zIndex: 60,
+            marginTop: "var(--wa-space-2xs)",
+            maxHeight: "12rem",
+            width: "100%",
+            overflowY: "auto",
+            listStyle: "none",
+            padding: "var(--wa-space-2xs)",
+            margin: "var(--wa-space-2xs) 0 0",
+            background: "var(--wa-color-surface-raised)",
+            border: "1px solid var(--wa-color-surface-border)",
+            boxShadow: "var(--wa-shadow-m)",
           }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-          disabled={disabled || undefined}
-          placeholder={t("categories.categoryName")}
-          autocomplete="off"
-        ></wa-input>
-        {open && suggestions.length > 0 ? (
-          <ul
-            id={listboxId}
-            data-testid="category-combobox-listbox"
-            role="listbox"
-            className="wa-stack wa-gap-3xs"
-            style={{
-              position: "absolute",
-              top: "100%",
-              zIndex: 60,
-              marginTop: "var(--wa-space-2xs)",
-              maxHeight: "12rem",
-              width: "100%",
-              overflowY: "auto",
-              listStyle: "none",
-              padding: "var(--wa-space-2xs)",
-              margin: "var(--wa-space-2xs) 0 0",
-              background: "var(--wa-color-surface-raised)",
-              border: "1px solid var(--wa-color-surface-border)",
-              boxShadow: "var(--wa-shadow-m)",
-            }}
-          >
-            {suggestions.map((suggestion, index) => {
-              const highlighted = index === highlightIndex;
+        >
+          {suggestions.map((suggestion, index) => {
+            const highlighted = index === highlightIndex;
 
-              return (
-                <li key={suggestion.label} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={highlighted}
-                    className="wa-cluster wa-gap-s"
-                    style={{
-                      width: "100%",
-                      justifyContent: "flex-start",
-                      padding: "var(--wa-space-s)",
-                      border: 0,
-                      background: highlighted
-                        ? "var(--wa-color-neutral-fill-quiet)"
-                        : "transparent",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => selectSuggestion(suggestion)}
-                    onMouseEnter={() => setHighlightIndex(index)}
-                  >
-                    <CategoryIcon icon={suggestion.icon} />
-                    <span>{suggestion.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
+            return (
+              <li key={suggestion.label} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={highlighted}
+                  className="wa-cluster wa-gap-s"
+                  style={{
+                    width: "100%",
+                    justifyContent: "flex-start",
+                    padding: "var(--wa-space-s)",
+                    border: 0,
+                    background: highlighted
+                      ? "var(--wa-color-neutral-fill-quiet)"
+                      : "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectSuggestion(suggestion)}
+                  onMouseEnter={() => setHighlightIndex(index)}
+                >
+                  <CategoryIcon icon={suggestion.icon} />
+                  <span>{suggestion.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }

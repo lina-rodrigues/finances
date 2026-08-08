@@ -428,58 +428,50 @@ export function LineItemDialog({
                 disabled={loading}
               />
 
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={`${categoryFieldId}-type`}>{t("addItem.type")}</label>
-                <wa-select
-                  id={`${categoryFieldId}-type`}
-                  value={type}
-                  disabled={loading || undefined}
-                  onChange={(event) => setType((event.target as HTMLSelectElement).value as LineItemType)}
-                >
-                  <wa-option value="expense">{t("categories.expense")}</wa-option>
-                  <wa-option value="income">{t("categories.income")}</wa-option>
-                </wa-select>
-              </div>
+              <wa-select
+                id={`${categoryFieldId}-type`}
+                label={t("addItem.type")}
+                value={type}
+                disabled={loading || undefined}
+                onChange={(event) => setType((event.target as HTMLSelectElement).value as LineItemType)}
+              >
+                <wa-option value="expense">{t("categories.expense")}</wa-option>
+                <wa-option value="income">{t("categories.income")}</wa-option>
+              </wa-select>
 
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={labelFieldId}>{t("addItem.label")}</label>
-                <wa-input
-                  ref={labelInputRef}
-                  id={labelFieldId}
-                  placeholder={t("addItem.label")}
-                  value={label}
-                  onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
-                  required
-                  disabled={loading || undefined}
-                ></wa-input>
-              </div>
+              <wa-input
+                ref={labelInputRef}
+                id={labelFieldId}
+                label={t("addItem.label")}
+                placeholder={t("addItem.label")}
+                value={label}
+                onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
+                required
+                disabled={loading || undefined}
+              ></wa-input>
 
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={`${labelFieldId}-planned`}>{t("addItem.planned")}</label>
-                <wa-input
-                  id={`${labelFieldId}-planned`}
-                  type="number"
-                  step="0.01"
-                  placeholder={t("addItem.planned")}
-                  value={plannedAmount}
-                  onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
-                  required
-                  disabled={loading || undefined}
-                ></wa-input>
-              </div>
+              <wa-input
+                id={`${labelFieldId}-planned`}
+                label={t("addItem.planned")}
+                type="number"
+                step="0.01"
+                placeholder={t("addItem.planned")}
+                value={plannedAmount}
+                onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
+                required
+                disabled={loading || undefined}
+              ></wa-input>
 
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={`${labelFieldId}-realized`}>{t("addItem.realized")}</label>
-                <wa-input
-                  id={`${labelFieldId}-realized`}
-                  type="number"
-                  step="0.01"
-                  placeholder={t("categories.realized")}
-                  value={realizedAmount}
-                  onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
-                  disabled={loading || undefined}
-                ></wa-input>
-              </div>
+              <wa-input
+                id={`${labelFieldId}-realized`}
+                label={t("addItem.realized")}
+                type="number"
+                step="0.01"
+                placeholder={t("categories.realized")}
+                value={realizedAmount}
+                onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
+                disabled={loading || undefined}
+              ></wa-input>
 
               <RepeatConfigFields
                 idPrefix={labelFieldId}
@@ -498,59 +490,54 @@ export function LineItemDialog({
 
           {mode === "edit" && editSubFlow === "edit" ? (
             <>
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={labelFieldId}>{t("addItem.label")}</label>
-                <wa-input
-                  id={labelFieldId}
-                  placeholder={t("addItem.label")}
-                  value={label}
-                  onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
-                  required
-                  disabled={loading || undefined}
-                ></wa-input>
-              </div>
+              <wa-input
+                id={labelFieldId}
+                label={t("addItem.label")}
+                placeholder={t("addItem.label")}
+                value={label}
+                onInput={(event) => setLabel((event.target as HTMLInputElement).value)}
+                required
+                disabled={loading || undefined}
+              ></wa-input>
 
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={`${labelFieldId}-planned`}>{t("addItem.planned")}</label>
+              <wa-input
+                id={`${labelFieldId}-planned`}
+                label={t("addItem.planned")}
+                type="number"
+                step="0.01"
+                placeholder={t("addItem.planned")}
+                value={plannedAmount}
+                onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
+                required
+                disabled={loading || undefined}
+              ></wa-input>
+
+              {item && item.entryCount > 0 ? (
+                <div className="wa-stack wa-gap-2xs">
+                  <span className="wa-caption-m wa-color-text-quiet">{t("addItem.realized")}</span>
+                  <p
+                    className={`metric-amount--inline ${item.type === "income" ? "metric-amount--income" : "metric-amount--expense"}`}
+                    style={{ margin: 0 }}
+                  >
+                    {item.type === "income" ? "+" : "-"}
+                    {formatMoney(item.realizedAmount ?? 0)}
+                  </p>
+                  <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
+                    {t("entries.entriesManagedHint")}
+                  </p>
+                </div>
+              ) : (
                 <wa-input
-                  id={`${labelFieldId}-planned`}
+                  id={`${labelFieldId}-realized`}
+                  label={t("addItem.realized")}
                   type="number"
                   step="0.01"
-                  placeholder={t("addItem.planned")}
-                  value={plannedAmount}
-                  onInput={(event) => setPlannedAmount((event.target as HTMLInputElement).value)}
-                  required
+                  placeholder={t("categories.realized")}
+                  value={realizedAmount}
+                  onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
                   disabled={loading || undefined}
                 ></wa-input>
-              </div>
-
-              <div className="wa-stack wa-gap-2xs">
-                <label htmlFor={`${labelFieldId}-realized`}>{t("addItem.realized")}</label>
-                {item && item.entryCount > 0 ? (
-                  <div className="wa-stack wa-gap-2xs">
-                    <p
-                      className={`metric-amount--inline ${item.type === "income" ? "metric-amount--income" : "metric-amount--expense"}`}
-                      style={{ margin: 0 }}
-                    >
-                      {item.type === "income" ? "+" : "-"}
-                      {formatMoney(item.realizedAmount ?? 0)}
-                    </p>
-                    <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
-                      {t("entries.entriesManagedHint")}
-                    </p>
-                  </div>
-                ) : (
-                  <wa-input
-                    id={`${labelFieldId}-realized`}
-                    type="number"
-                    step="0.01"
-                    placeholder={t("categories.realized")}
-                    value={realizedAmount}
-                    onInput={(event) => setRealizedAmount((event.target as HTMLInputElement).value)}
-                    disabled={loading || undefined}
-                  ></wa-input>
-                )}
-              </div>
+              )}
 
               {item && !item.seriesId ? (
                 <wa-button
