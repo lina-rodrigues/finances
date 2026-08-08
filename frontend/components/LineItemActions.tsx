@@ -37,7 +37,7 @@ export function LineItemActions({
   if (iconOnly) {
     return (
       <div
-        className="wa-cluster wa-gap-s"
+        className="wa-cluster wa-gap-2xs"
         style={{ flexShrink: 0, justifyContent: "flex-end" }}
         onClick={(event) => event.stopPropagation()}
       >

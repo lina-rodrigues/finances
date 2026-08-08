@@ -97,12 +97,15 @@ export function UpcomingPaymentsList({
                   onClick={() => handlers.openDetail(item)}
                   aria-label={`${t("entries.detailTitle")}: ${item.label}`}
                 >
-                  <span className="wa-caption-m" style={{ minWidth: 0, flex: 1 }}>
+                  <span
+                    className="wa-caption-m wa-text-truncate"
+                    style={{ minWidth: 0, flex: 1 }}
+                  >
                     {item.label}
                   </span>
                   <span
                     className="metric-amount--inline metric-amount--expense"
-                    style={{ whiteSpace: "nowrap" }}
+                    style={{ flexShrink: 0, whiteSpace: "nowrap" }}
                   >
                     -{formatMoney(item.plannedAmount)}
                   </span>
