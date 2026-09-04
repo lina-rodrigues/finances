@@ -480,6 +480,8 @@ export interface ImportBatchSummary {
   fileName: string;
   status: ImportBatchStatus;
   error: string | null;
+  cursorAgentId?: string | null;
+  cursorRunId?: string | null;
   sourceCount: number;
   duplicateCount: number;
   proposedCount: number;

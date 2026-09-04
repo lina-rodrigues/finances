@@ -72,6 +72,8 @@ export interface IImportBatch extends Document {
   appliedActions: IImportAppliedAction[];
   promptUsed: string | null;
   aiRawResponse: string | null;
+  cursorAgentId: string | null;
+  cursorRunId: string | null;
   error: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -168,6 +170,8 @@ const importBatchSchema = new Schema<IImportBatch>(
     appliedActions: { type: [appliedActionSchema], default: [] },
     promptUsed: { type: String, default: null },
     aiRawResponse: { type: String, default: null },
+    cursorAgentId: { type: String, default: null },
+    cursorRunId: { type: String, default: null },
     error: { type: String, default: null },
   },
   { timestamps: true },
@@ -183,6 +187,8 @@ export interface ImportBatchSummaryResponse {
   fileName: string;
   status: ImportBatchStatus;
   error: string | null;
+  cursorAgentId: string | null;
+  cursorRunId: string | null;
   sourceCount: number;
   duplicateCount: number;
   proposedCount: number;
@@ -216,6 +222,8 @@ export function toImportBatchSummary(batch: IImportBatch): ImportBatchSummaryRes
     fileName: batch.fileName,
     status: batch.status,
     error: batch.error,
+    cursorAgentId: batch.cursorAgentId,
+    cursorRunId: batch.cursorRunId,
     ...countsFromBatch(batch),
     createdAt: batch.createdAt.toISOString(),
     updatedAt: batch.updatedAt.toISOString(),

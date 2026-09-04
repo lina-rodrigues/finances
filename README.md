@@ -133,8 +133,9 @@ For bulk-importing mapped JSON (CLI), see below. **Preferred:** use the in-app *
 
 1. Open **Imports** in the sidebar.
 2. Choose the target `yearMonth` and upload an `.ofx` file.
-3. Status goes **Pending** (AI mapping) → **Waiting confirmation** (editable review) → **Done**.
-4. Soft-delete rows you want ignored forever after confirm (FITID tombstone). Undo hard-deletes all finance writes from that import and returns to review. Delete import is only for non-Done batches.
+3. Upload starts a Cursor cloud agent and stores its run id; the API returns immediately with status **Pending**.
+4. Reloading the Imports list (or opening the import) polls that run. When it finishes, status becomes **Waiting confirmation** (editable review), then **Done** after you confirm.
+5. Soft-delete rows you want ignored forever after confirm (FITID tombstone). Undo hard-deletes all finance writes from that import and returns to review. Delete import is only for non-Done batches.
 
 ### CLI JSON import (escape hatch)
 

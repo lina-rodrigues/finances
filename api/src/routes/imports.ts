@@ -14,7 +14,7 @@ import { isValidYearMonth } from "../utils/yearMonth.js";
 import { MAX_OFX_BYTES } from "../services/ofxParseService.js";
 import {
   createPendingImportBatch,
-  scheduleImportGeneration,
+  reconcilePendingImport,
 } from "../services/importGenerationService.js";
 import {
   confirmImportBatch,
@@ -44,6 +44,13 @@ router.get(
     const batches = await ImportBatch.find({ userId: req.userId })
       .sort({ createdAt: -1 })
       .limit(100);
+
+    for (const batch of batches) {
+      if (batch.status === "pending") {
+        await reconcilePendingImport(batch);
+      }
+    }
+
     res.json(batches.map(toImportBatchSummary));
   }),
 );
@@ -56,6 +63,11 @@ router.get(
       res.status(404).json({ error: IMPORT_ERROR_CODES.NOT_FOUND });
       return;
     }
+
+    if (batch.status === "pending") {
+      await reconcilePendingImport(batch);
+    }
+
     res.json(toImportBatchDetail(batch));
   }),
 );
@@ -84,7 +96,6 @@ router.post(
         fileName: file.originalname || "statement.ofx",
         rawOfx,
       });
-      scheduleImportGeneration(batch._id.toString(), req.userId!);
       res.status(202).json(toImportBatchSummary(batch));
     } catch (error) {
       if (sendImportError(res, error)) {
