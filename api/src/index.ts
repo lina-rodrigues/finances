@@ -10,6 +10,7 @@ import monthsRouter from "./routes/months.js";
 import lineItemsRouter from "./routes/lineItems.js";
 import recurrenceSeriesRouter from "./routes/recurrenceSeries.js";
 import reportsRouter from "./routes/reports.js";
+import importsRouter from "./routes/imports.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const PORT = parseInt(process.env.PORT ?? "4000", 10);
@@ -32,6 +33,7 @@ app.use("/months", monthsRouter);
 app.use("/line-items", lineItemsRouter);
 app.use("/recurrence-series", recurrenceSeriesRouter);
 app.use("/reports", reportsRouter);
+app.use("/imports", importsRouter);
 
 app.use(errorHandler);
 

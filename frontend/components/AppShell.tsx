@@ -21,6 +21,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   const financeActive = pathname === "/";
   const categoriesActive = pathname.startsWith("/categories");
+  const importsActive = pathname.startsWith("/imports");
   const reportsActive = pathname.startsWith("/reports");
   const settingsActive = pathname.startsWith("/settings");
   const showMonthNav = categoriesActive || reportsActive;
@@ -71,6 +72,15 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         >
           <wa-icon name="list"></wa-icon>
           <span>{t("nav.categories")}</span>
+        </Link>
+        <Link
+          href="/imports"
+          data-drawer="close"
+          className="nav-link"
+          aria-current={importsActive ? "page" : undefined}
+        >
+          <wa-icon name="upload"></wa-icon>
+          <span>{t("nav.imports")}</span>
         </Link>
         <Link
           href={`/reports${monthQuery}`}

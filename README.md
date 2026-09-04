@@ -127,7 +127,18 @@ Realized amounts are stored as embedded **entries** on each line item. The API s
 
 ## Credit card statement import (local)
 
-For bulk-importing a Nubank (or similar) credit card bill into a month, use the local script [`api/scripts/import-credit-card.ts`](api/scripts/import-credit-card.ts). It writes via Mongoose (same models as the API) — there is no bulk HTTP endpoint.
+For bulk-importing mapped JSON (CLI), see below. **Preferred:** use the in-app **Imports** tab to upload an **OFX** statement, review AI-mapped rows, then confirm (with undo).
+
+### In-app OFX imports
+
+1. Open **Imports** in the sidebar.
+2. Choose the target `yearMonth` and upload an `.ofx` file.
+3. Status goes **Pending** (AI mapping) → **Waiting confirmation** (editable review) → **Done**.
+4. Soft-delete rows you want ignored forever after confirm (FITID tombstone). Undo hard-deletes all finance writes from that import and returns to review. Delete import is only for non-Done batches.
+
+### CLI JSON import (escape hatch)
+
+For bulk-importing a Nubank (or similar) credit card bill into a month via JSON, use the local script [`api/scripts/import-credit-card.ts`](api/scripts/import-credit-card.ts). It writes via Mongoose (same models as the API) — there is no bulk HTTP endpoint for JSON.
 
 Typical flow: pay the card in month **M**, map every purchase on that invoice into month **M** (not the CSV transaction dates), put the mapping in a JSON file, then run the importer against the target DB (usually `.env.prod`).
 

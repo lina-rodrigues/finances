@@ -15,7 +15,7 @@ When approved, use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## What this app is
 
-A personal finance tracker: monthly income/expense line items with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward between months. App shell with Finance / Categories / Reports / Settings, professional Web Awesome Pro UI (Active theme, Shoelace palette, green brand).
+A personal finance tracker: monthly income/expense line items with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward between months. App shell with Finance / Categories / Imports / Reports / Settings, professional Web Awesome Pro UI (Active theme, Shoelace palette, green brand).
 
 ## Architecture
 

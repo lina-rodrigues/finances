@@ -449,3 +449,119 @@ export async function generateReport(yearMonth: string): Promise<FinancialReport
 export async function deleteReport(id: string): Promise<void> {
   await apiFetch(`/reports/${id}`, "delete report", { method: "DELETE" });
 }
+
+export type ImportBatchStatus = "pending" | "waiting" | "done" | "failed";
+
+export interface ImportProposedRecurrence {
+  endType: RecurrenceEndType;
+  occurrenceCount?: number | null;
+  startYearMonth?: string | null;
+  endYearMonth?: string | null;
+}
+
+export interface ImportProposedItem {
+  id: string;
+  type: "LineItem" | "LineItemEntry";
+  label: string | null;
+  category: string;
+  parent: string | null;
+  planned: number | null;
+  realized: number | null;
+  recurrent: boolean;
+  recurrence: ImportProposedRecurrence | null;
+  deleted: boolean;
+  sourceFitId: string | null;
+  notes: string | null;
+}
+
+export interface ImportBatchSummary {
+  id: string;
+  yearMonth: string;
+  fileName: string;
+  status: ImportBatchStatus;
+  error: string | null;
+  sourceCount: number;
+  duplicateCount: number;
+  proposedCount: number;
+  deletedCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImportBatchDetail extends ImportBatchSummary {
+  sourceLines: Array<{
+    fitId: string;
+    date: string;
+    amount: number;
+    name: string;
+    memo: string | null;
+    skippedDuplicate: boolean;
+  }>;
+  proposedItems: ImportProposedItem[];
+  reviewCategories: Array<{ id: string; name: string }>;
+  reviewLineItems: Array<{ id: string; label: string; categoryName: string | null }>;
+  appliedActions: unknown[];
+  promptUsed: string | null;
+  aiRawResponse: string | null;
+}
+
+export async function fetchImports(): Promise<ImportBatchSummary[]> {
+  const res = await apiFetch("/imports", "fetch imports");
+  return res.json();
+}
+
+export async function fetchImport(id: string): Promise<ImportBatchDetail> {
+  const res = await apiFetch(`/imports/${id}`, "fetch import");
+  return res.json();
+}
+
+export async function uploadImport(file: File, yearMonth: string): Promise<ImportBatchSummary> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("yearMonth", yearMonth);
+
+  const res = await fetch(`${getApiUrl()}/imports`, {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+
+  if (res.status === 401 && typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message =
+      typeof body.error === "string" ? body.error : `Failed to upload import: ${res.statusText}`;
+    throw new Error(message);
+  }
+
+  return body as ImportBatchSummary;
+}
+
+export async function patchImportProposedItems(
+  id: string,
+  proposedItems: ImportProposedItem[],
+): Promise<ImportBatchDetail> {
+  const res = await apiFetch(`/imports/${id}`, "update import draft", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ proposedItems }),
+  });
+  return res.json();
+}
+
+export async function confirmImport(id: string): Promise<ImportBatchDetail> {
+  const res = await apiFetch(`/imports/${id}/confirm`, "confirm import", { method: "POST" });
+  return res.json();
+}
+
+export async function undoImport(id: string): Promise<ImportBatchDetail> {
+  const res = await apiFetch(`/imports/${id}/undo`, "undo import", { method: "POST" });
+  return res.json();
+}
+
+export async function deleteImport(id: string): Promise<void> {
+  await apiFetch(`/imports/${id}`, "delete import", { method: "DELETE" });
+}
