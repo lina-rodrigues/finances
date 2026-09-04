@@ -16,6 +16,7 @@ import { PageTitle } from "@/components/PageTitle";
 import {
   confirmImport,
   fetchImport,
+  getLocaleTag,
   patchImportProposedItems,
   undoImport,
   type ImportBatchDetail,
@@ -25,14 +26,27 @@ import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 const DRAFT_DEBOUNCE_MS = 800;
-const ROW_ESTIMATE = 220;
+const ROW_ESTIMATE = 300;
+
+function formatPostedAt(iso: string, locale: string): string {
+  const value = iso.length === 10 ? `${iso}T00:00:00.000Z` : iso;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
 
 export function ImportReviewPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { loading: mutating, run } = useMutationFeedback();
+  const localeTag = getLocaleTag(locale);
 
   const [batch, setBatch] = useState<ImportBatchDetail | null>(null);
   const [items, setItems] = useState<ImportProposedItem[]>([]);
@@ -251,15 +265,33 @@ export function ImportReviewPage() {
                   }}
                 >
                   <div className="wa-stack wa-gap-s">
-                    <div className="wa-cluster wa-gap-s wa-align-items-center">
-                      <span className="wa-caption-m wa-color-text-quiet">
-                        {t("imports.fitId")}: {item.sourceFitId ?? "—"}
-                      </span>
-                      {item.deleted ? (
-                        <wa-badge variant="neutral" appearance="outlined">
-                          {t("imports.rowDeleted")}
-                        </wa-badge>
-                      ) : null}
+                    <div
+                      className="wa-cluster wa-gap-s wa-align-items-center"
+                      style={{ justifyContent: "space-between", width: "100%" }}
+                    >
+                      <div className="wa-cluster wa-gap-s wa-align-items-center">
+                        <div className="wa-stack wa-gap-2xs">
+                          <span className="wa-caption-m wa-color-text-quiet">
+                            {t("imports.fitId")}: {item.sourceFitId ?? "—"}
+                          </span>
+                          {(() => {
+                            const sourceDate = batch?.sourceLines.find(
+                              (line) => line.fitId === item.sourceFitId,
+                            )?.date;
+                            if (!sourceDate) return null;
+                            return (
+                              <span className="wa-caption-m wa-color-text-quiet">
+                                {t("imports.postedAt")}: {formatPostedAt(sourceDate, localeTag)}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {item.deleted ? (
+                          <wa-badge variant="neutral" appearance="outlined">
+                            {t("imports.rowDeleted")}
+                          </wa-badge>
+                        ) : null}
+                      </div>
                       {editable ? (
                         item.deleted ? (
                           <wa-button
@@ -278,6 +310,7 @@ export function ImportReviewPage() {
                             appearance="outlined"
                             onClick={() => updateItem(item.id, { deleted: true })}
                           >
+                            <wa-icon slot="start" name="trash"></wa-icon>
                             {t("imports.deleteRow")}
                           </wa-button>
                         )
@@ -414,6 +447,24 @@ export function ImportReviewPage() {
                         <span className="wa-caption-m">{t("imports.recurrent")}</span>
                       </label>
                     ) : null}
+
+                    <div className="wa-stack wa-gap-2xs">
+                      <span className="wa-caption-m">{t("imports.notes")}</span>
+                      <span className="wa-caption-m wa-color-text-quiet">
+                        {item.type === "LineItemEntry"
+                          ? t("imports.notesHintEntry")
+                          : t("imports.notesHintLineItem")}
+                      </span>
+                      <wa-textarea
+                        rows={2}
+                        value={item.notes ?? ""}
+                        disabled={readOnly || undefined}
+                        onInput={(event) => {
+                          const value = (event.target as HTMLTextAreaElement).value;
+                          updateItem(item.id, { notes: value || null });
+                        }}
+                      ></wa-textarea>
+                    </div>
                   </div>
                 </div>
               );

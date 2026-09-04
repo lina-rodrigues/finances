@@ -75,6 +75,10 @@ wa-page::part(main-content) {
   margin-inline: auto;
 }
 
+.app-main[data-size="wide"] {
+  width: 100%;
+}
+
 .auth-shell {
   min-height: 100dvh;
   display: flex;

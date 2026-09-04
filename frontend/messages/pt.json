@@ -133,7 +133,10 @@
     "realized": "Realizado",
     "recurrent": "Recorrente",
     "notes": "Notas",
+    "notesHintEntry": "Salva na entrada realizada do item-pai.",
+    "notesHintLineItem": "Salva na entrada realizada criada com este item (se houver valor realizado).",
     "fitId": "ID da transação",
+    "postedAt": "Data",
     "pendingHint": "A IA está mapeando seu extrato…",
     "failedHint": "O mapeamento falhou. Exclua esta importação e tente de novo.",
     "doneHint": "Esta importação está aplicada. Desfaça para voltar à revisão."

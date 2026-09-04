@@ -188,6 +188,8 @@ export async function createRecurringSeries(
     plannedAmount: number;
     realizedAmount: number | null;
     recurrence: RecurrenceInput;
+    createdAt?: Date;
+    note?: string | null;
   },
 ): Promise<{ series: IRecurringSeries; firstItem: ILineItem; cascadeFrom: string }> {
   const { recurrence } = data;
@@ -228,8 +230,20 @@ export async function createRecurringSeries(
     throw new Error("SERIES_GENERATION_FAILED");
   }
 
+  if (data.createdAt) {
+    firstItem.set("createdAt", data.createdAt);
+  }
+
   if (data.realizedAmount !== null) {
-    pushRealizedEntry(firstItem, data.realizedAmount);
+    pushRealizedEntry(
+      firstItem,
+      data.realizedAmount,
+      data.note ?? null,
+      data.createdAt ?? new Date(),
+    );
+  }
+
+  if (data.createdAt || data.realizedAmount !== null) {
     await firstItem.save();
   }
 

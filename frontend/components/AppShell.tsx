@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { MonthNavHeader } from "@/components/MonthNavHeader";
 import { useTranslation } from "@/lib/i18n";
+import { resolveAppPageSize } from "@/lib/pageSize";
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,6 +19,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   const month = searchParams.get("month");
   const monthQuery = month && /^\d{4}-\d{2}$/.test(month) ? `?month=${month}` : "";
+  const pageSize = resolveAppPageSize(pathname);
 
   const financeActive = pathname === "/";
   const categoriesActive = pathname.startsWith("/categories");
@@ -28,7 +30,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="app-main" style={{ padding: "var(--wa-space-xl)" }}>
+      <div className="app-main" data-size={pageSize} style={{ padding: "var(--wa-space-xl)" }}>
         <div className="wa-stack wa-gap-l">{children}</div>
       </div>
     );
@@ -102,7 +104,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         </Link>
       </nav>
 
-      <div className="app-main">
+      <div className="app-main" data-size={pageSize}>
         <div className="wa-stack wa-gap-l">{children}</div>
       </div>
     </wa-page>

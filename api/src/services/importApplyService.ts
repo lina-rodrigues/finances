@@ -4,6 +4,7 @@ import {
   type IImportAppliedAction,
   type IImportBatch,
   type IImportProposedItem,
+  type IImportSourceLine,
 } from "../models/ImportBatch.js";
 import { ImportTransactionId } from "../models/ImportTransactionId.js";
 import { LineItem, applyRealizedAmountWrite, pushRealizedEntry } from "../models/LineItem.js";
@@ -50,6 +51,31 @@ function buildRecurrenceInput(item: IImportProposedItem, yearMonth: string): Rec
   return { startYearMonth, endType: "never" };
 }
 
+/** Use OFX posted datetime; for date-only values, offset by source order so list order matches the statement. */
+function resolvePostedAt(
+  sourceLines: IImportSourceLine[],
+  fitId: string | null,
+): Date | undefined {
+  if (!fitId) {
+    return undefined;
+  }
+  const index = sourceLines.findIndex((line) => line.fitId === fitId);
+  if (index < 0) {
+    return undefined;
+  }
+  const raw = sourceLines[index].date;
+  const postedAt = new Date(raw.length === 10 ? `${raw}T00:00:00.000Z` : raw);
+  if (Number.isNaN(postedAt.getTime())) {
+    return undefined;
+  }
+  // Date-only (legacy or midnight-only) — preserve statement order within the day
+  const isDateOnly = raw.length === 10 || /T00:00:00(\.000)?(Z|[+-]00:00)?$/.test(raw);
+  if (isDateOnly) {
+    postedAt.setUTCSeconds(postedAt.getUTCSeconds() + index);
+  }
+  return postedAt;
+}
+
 async function upsertFitId(params: {
   userId: string;
   fitId: string;
@@ -74,8 +100,10 @@ async function applyProposedItem(
   yearMonth: string,
   item: IImportProposedItem,
   batchId: string,
+  sourceLines: IImportSourceLine[],
 ): Promise<IImportAppliedAction[]> {
   const actions: IImportAppliedAction[] = [];
+  const postedAt = resolvePostedAt(sourceLines, item.sourceFitId);
 
   if (item.deleted) {
     if (item.sourceFitId) {
@@ -112,7 +140,12 @@ async function applyProposedItem(
     if (!parent) {
       throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
     }
-    const entry = pushRealizedEntry(parent, item.realized, item.notes ?? null);
+    const entry = pushRealizedEntry(
+      parent,
+      item.realized,
+      item.notes ?? null,
+      postedAt ?? new Date(),
+    );
     await parent.save();
     if (item.sourceFitId) {
       await upsertFitId({
@@ -146,6 +179,8 @@ async function applyProposedItem(
       plannedAmount: item.planned,
       realizedAmount: item.realized,
       recurrence,
+      createdAt: postedAt,
+      note: item.notes,
     });
     if (item.sourceFitId) {
       await upsertFitId({
@@ -173,10 +208,11 @@ async function applyProposedItem(
     label: item.label,
     plannedAmount: item.planned,
     entries: [],
+    ...(postedAt ? { createdAt: postedAt } : {}),
   });
 
   if (item.realized != null) {
-    applyRealizedAmountWrite(lineItem, item.realized);
+    applyRealizedAmountWrite(lineItem, item.realized, postedAt, item.notes ?? null);
     await lineItem.save();
   }
 
@@ -213,7 +249,13 @@ export async function confirmImportBatch(userId: string, batchId: string): Promi
 
   try {
     for (const item of batch.proposedItems) {
-      const actions = await applyProposedItem(userId, batch.yearMonth, item, batchId);
+      const actions = await applyProposedItem(
+        userId,
+        batch.yearMonth,
+        item,
+        batchId,
+        batch.sourceLines,
+      );
       appliedActions.push(...actions);
     }
 

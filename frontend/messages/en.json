@@ -133,7 +133,10 @@
     "realized": "Realized",
     "recurrent": "Recurring",
     "notes": "Notes",
+    "notesHintEntry": "Saved on the realized entry under the parent line item.",
+    "notesHintLineItem": "Saved on the realized entry created with this line item (if realized is set).",
     "fitId": "Transaction ID",
+    "postedAt": "Date",
     "pendingHint": "AI is mapping your statement…",
     "failedHint": "Mapping failed. Delete this import and try again.",
     "doneHint": "This import is applied. Undo to return to review."

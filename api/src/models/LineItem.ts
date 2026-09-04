@@ -85,13 +85,14 @@ export function pushRealizedEntry(
   item: Pick<ILineItem, "entries">,
   amount: number,
   note: string | null = null,
+  createdAt: Date = new Date(),
 ): ILineItemEntry {
   const entries = ensureEntriesArray(item);
   const entry = {
     _id: new mongoose.Types.ObjectId(),
     amount,
     note,
-    createdAt: new Date(),
+    createdAt,
   } as ILineItemEntry;
   entries.push(entry);
   return entry;
@@ -124,6 +125,8 @@ export function clearEntries(item: Pick<ILineItem, "entries">): void {
 export function applyRealizedAmountWrite(
   item: Pick<ILineItem, "entries">,
   realizedAmount: number | null,
+  createdAt?: Date,
+  note: string | null = null,
 ): void {
   if (realizedAmount === null) {
     return;
@@ -133,5 +136,5 @@ export function applyRealizedAmountWrite(
     throw new Error("ENTRIES_MANAGED");
   }
 
-  pushRealizedEntry(item, realizedAmount);
+  pushRealizedEntry(item, realizedAmount, note, createdAt ?? new Date());
 }

@@ -26,16 +26,27 @@ function extractTag(block: string, tag: string): string | null {
   return null;
 }
 
-/** OFX DTPOSTED is often YYYYMMDDHHMMSS[.XXX][±tz] */
+/** OFX DTPOSTED is often YYYYMMDDHHMMSS[.XXX][±tz] e.g. 20260805143022[-03:GMT] */
 function parseOfxDate(raw: string): string {
-  const digits = raw.replace(/[^\d]/g, "").slice(0, 8);
-  if (digits.length !== 8) {
+  const digits = raw.replace(/[^\d]/g, "");
+  if (digits.length < 8) {
     throw new ImportServiceError(IMPORT_ERROR_CODES.INVALID_OFX);
   }
   const year = digits.slice(0, 4);
   const month = digits.slice(4, 6);
   const day = digits.slice(6, 8);
-  return `${year}-${month}-${day}`;
+  const hour = digits.length >= 10 ? digits.slice(8, 10) : "00";
+  const minute = digits.length >= 12 ? digits.slice(10, 12) : "00";
+  const second = digits.length >= 14 ? digits.slice(12, 14) : "00";
+
+  const tzMatch = raw.match(/\[([+-])(\d{1,2})(?::[^\]]*)?\]/);
+  let offset = "Z";
+  if (tzMatch) {
+    const hours = tzMatch[2].padStart(2, "0");
+    offset = `${tzMatch[1]}${hours}:00`;
+  }
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
 }
 
 function parseOfxAmount(raw: string): number {
