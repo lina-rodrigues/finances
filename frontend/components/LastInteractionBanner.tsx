@@ -15,6 +15,12 @@ function formatLastInteractionDate(iso: string, locale: string): string {
   }).format(new Date(iso));
 }
 
+function formatMonthName(yearMonth: string, locale: string): string {
+  const [year, month] = yearMonth.split("-");
+  const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+  return date.toLocaleDateString(locale, { month: "long" });
+}
+
 function maxEntryCreatedAt(categories: Category[], uncategorized: LineItem[]): string | null {
   let max: string | null = null;
   for (const item of collectAllLineItems(categories, uncategorized)) {
@@ -30,23 +36,22 @@ function maxEntryCreatedAt(categories: Category[], uncategorized: LineItem[]): s
 export function LastInteractionBanner() {
   const pathname = usePathname();
   const { t, locale } = useTranslation();
-  const { categories, uncategorized } = useMonthView();
+  const { month, categories, uncategorized } = useMonthView();
 
   if (pathname !== "/" && pathname !== "/categories") {
     return null;
   }
 
+  const localeTag = getLocaleTag(locale);
   const lastAt = maxEntryCreatedAt(categories, uncategorized);
-  if (!lastAt) {
-    return null;
-  }
-
-  const formatted = formatLastInteractionDate(lastAt, getLocaleTag(locale));
+  const message = lastAt
+    ? t("common.lastInteraction", { date: formatLastInteractionDate(lastAt, localeTag) })
+    : t("common.noLastInteraction", { month: formatMonthName(month.yearMonth, localeTag) });
 
   return (
     <wa-callout variant="neutral" appearance="plain">
       <wa-icon slot="icon" name="clock"></wa-icon>
-      {t("common.lastInteraction", { date: formatted })}
+      {message}
     </wa-callout>
   );
 }
