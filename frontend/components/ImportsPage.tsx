@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ImportNameEditor } from "@/components/ImportNameEditor";
 import { PageTitle } from "@/components/PageTitle";
 import {
   deleteImport,
   fetchImports,
+  importDisplayName,
   uploadImport,
   type ImportBatchStatus,
   type ImportBatchSummary,
@@ -37,7 +39,9 @@ export function ImportsPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const localeTag = locale === "pt" ? "pt-BR" : "en-US";
-  const hasPending = batches.some((batch) => batch.status === "pending");
+  const hasPending = batches.some(
+    (batch) => batch.status === "pending" || batch.knowledgeStatus === "pending",
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -130,6 +134,12 @@ export function ImportsPage() {
           <wa-icon slot="start" name="upload"></wa-icon>
           {t("imports.upload")}
         </wa-button>
+        <Link href="/imports/knowledge">
+          <wa-button type="button" appearance="outlined" disabled={mutating || undefined}>
+            <wa-icon slot="start" name="book"></wa-icon>
+            {t("imports.knowledge")}
+          </wa-button>
+        </Link>
       </div>
 
       {loading ? (
@@ -149,7 +159,17 @@ export function ImportsPage() {
               <div key={batch.id} className="list-row">
                 <div className="wa-stack wa-gap-2xs" style={{ flex: 1, minWidth: 0 }}>
                   <div className="wa-cluster wa-gap-s wa-align-items-center">
-                    <strong>{batch.fileName}</strong>
+                    <ImportNameEditor
+                      importId={batch.id}
+                      displayName={importDisplayName(batch)}
+                      onRenamed={({ name, displayName }) => {
+                        setBatches((prev) =>
+                          prev.map((row) =>
+                            row.id === batch.id ? { ...row, name, displayName } : row,
+                          ),
+                        );
+                      }}
+                    />
                     <span className={statusTone(batch.status)}>
                       {t(`imports.status.${batch.status}`)}
                     </span>
@@ -175,6 +195,11 @@ export function ImportsPage() {
                   <Link href={`/imports/${batch.id}`}>
                     <wa-button type="button" appearance="outlined" size="small">
                       {t("imports.open")}
+                    </wa-button>
+                  </Link>
+                  <Link href={`/imports/${batch.id}/knowledge`}>
+                    <wa-button type="button" appearance="outlined" size="small">
+                      {t("imports.knowledge")}
                     </wa-button>
                   </Link>
                   {canDelete ? (

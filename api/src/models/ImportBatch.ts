@@ -2,6 +2,7 @@ import mongoose, { Schema, type Document, type Types } from "mongoose";
 import type { ImportApplyErrorDetails } from "../constants/importErrors.js";
 
 export type ImportBatchStatus = "pending" | "waiting" | "done" | "failed";
+export type ImportKnowledgeStatus = "idle" | "pending" | "ready" | "failed";
 
 export interface IImportSourceLine {
   fitId: string;
@@ -64,10 +65,14 @@ export interface IImportBatch extends Document {
   userId: Types.ObjectId;
   yearMonth: string;
   fileName: string;
+  /** Optional display name; when null/empty, UI falls back to fileName. */
+  name: string | null;
   status: ImportBatchStatus;
   rawOfx: string;
   sourceLines: IImportSourceLine[];
   proposedItems: IImportProposedItem[];
+  /** Snapshot of proposed items after AI (+ knowledge override) when mapping finished. */
+  aiProposedItems: IImportProposedItem[];
   reviewCategories: IImportReviewCategory[];
   reviewLineItems: IImportReviewLineItem[];
   appliedActions: IImportAppliedAction[];
@@ -75,6 +80,11 @@ export interface IImportBatch extends Document {
   aiRawResponse: string | null;
   cursorAgentId: string | null;
   cursorRunId: string | null;
+  knowledgeStatus: ImportKnowledgeStatus;
+  knowledgeCursorAgentId: string | null;
+  knowledgeCursorRunId: string | null;
+  knowledgeError: string | null;
+  knowledgeAiRawResponse: string | null;
   error: string | null;
   applyError: ImportApplyErrorDetails | null;
   createdAt: Date;
@@ -176,6 +186,7 @@ const importBatchSchema = new Schema<IImportBatch>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     yearMonth: { type: String, required: true },
     fileName: { type: String, required: true },
+    name: { type: String, default: null },
     status: {
       type: String,
       enum: ["pending", "waiting", "done", "failed"],
@@ -184,6 +195,7 @@ const importBatchSchema = new Schema<IImportBatch>(
     rawOfx: { type: String, required: true },
     sourceLines: { type: [sourceLineSchema], default: [] },
     proposedItems: { type: [proposedItemSchema], default: [] },
+    aiProposedItems: { type: [proposedItemSchema], default: [] },
     reviewCategories: { type: [reviewCategorySchema], default: [] },
     reviewLineItems: { type: [reviewLineItemSchema], default: [] },
     appliedActions: { type: [appliedActionSchema], default: [] },
@@ -191,6 +203,15 @@ const importBatchSchema = new Schema<IImportBatch>(
     aiRawResponse: { type: String, default: null },
     cursorAgentId: { type: String, default: null },
     cursorRunId: { type: String, default: null },
+    knowledgeStatus: {
+      type: String,
+      enum: ["idle", "pending", "ready", "failed"],
+      default: "idle",
+    },
+    knowledgeCursorAgentId: { type: String, default: null },
+    knowledgeCursorRunId: { type: String, default: null },
+    knowledgeError: { type: String, default: null },
+    knowledgeAiRawResponse: { type: String, default: null },
     error: { type: String, default: null },
     applyError: { type: applyErrorSchema, default: null },
   },
@@ -198,18 +219,27 @@ const importBatchSchema = new Schema<IImportBatch>(
 );
 
 importBatchSchema.index({ userId: 1, createdAt: -1 });
+importBatchSchema.index({ userId: 1, knowledgeStatus: 1 });
 
 export const ImportBatch = mongoose.model<IImportBatch>("ImportBatch", importBatchSchema);
+
+export function importDisplayName(batch: Pick<IImportBatch, "name" | "fileName">): string {
+  const trimmed = batch.name?.trim();
+  return trimmed || batch.fileName;
+}
 
 export interface ImportBatchSummaryResponse {
   id: string;
   yearMonth: string;
   fileName: string;
+  name: string | null;
+  displayName: string;
   status: ImportBatchStatus;
   error: string | null;
   applyError: ImportApplyErrorDetails | null;
   cursorAgentId: string | null;
   cursorRunId: string | null;
+  knowledgeStatus: ImportKnowledgeStatus;
   sourceCount: number;
   duplicateCount: number;
   proposedCount: number;
@@ -241,11 +271,14 @@ export function toImportBatchSummary(batch: IImportBatch): ImportBatchSummaryRes
     id: batch._id.toString(),
     yearMonth: batch.yearMonth,
     fileName: batch.fileName,
+    name: batch.name ?? null,
+    displayName: importDisplayName(batch),
     status: batch.status,
     error: batch.error,
     applyError: batch.applyError ?? null,
     cursorAgentId: batch.cursorAgentId,
     cursorRunId: batch.cursorRunId,
+    knowledgeStatus: batch.knowledgeStatus ?? "idle",
     ...countsFromBatch(batch),
     createdAt: batch.createdAt.toISOString(),
     updatedAt: batch.updatedAt.toISOString(),

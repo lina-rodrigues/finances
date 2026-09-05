@@ -17,11 +17,13 @@ import {
   confirmImport,
   fetchImport,
   getLocaleTag,
+  importDisplayName,
   patchImportProposedItems,
   undoImport,
   type ImportBatchDetail,
   type ImportProposedItem,
 } from "@/lib/api";
+import { ImportNameEditor } from "@/components/ImportNameEditor";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
@@ -225,9 +227,23 @@ export function ImportReviewPage() {
       </div>
 
       <PageTitle>{t("imports.reviewTitle")}</PageTitle>
-      <p className="wa-caption-m wa-color-text-quiet">
-        {batch.fileName} · {batch.yearMonth} · {t(`imports.status.${batch.status}`)}
-      </p>
+      <div className="wa-cluster wa-gap-s wa-align-items-center">
+        <ImportNameEditor
+          importId={batch.id}
+          displayName={importDisplayName(batch)}
+          onRenamed={({ name, displayName }) => {
+            setBatch((prev) => (prev ? { ...prev, name, displayName } : prev));
+          }}
+        />
+        <span className="wa-caption-m wa-color-text-quiet">
+          · {batch.yearMonth} · {t(`imports.status.${batch.status}`)}
+        </span>
+        <Link href={`/imports/${batch.id}/knowledge`}>
+          <wa-button type="button" appearance="outlined" size="small">
+            {t("imports.knowledge")}
+          </wa-button>
+        </Link>
+      </div>
 
       {batch.status === "pending" ? (
         <wa-callout variant="neutral">

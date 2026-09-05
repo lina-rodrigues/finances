@@ -12,6 +12,19 @@ function getCursorApiKey(): string {
 export async function startCursorImportMapping(
   fullPrompt: string,
 ): Promise<{ agentId: string; runId: string }> {
+  return startCursorImportAgent(fullPrompt, "Statement import mapping");
+}
+
+export async function startCursorImportKnowledgeLearn(
+  fullPrompt: string,
+): Promise<{ agentId: string; runId: string }> {
+  return startCursorImportAgent(fullPrompt, "Import knowledge learn");
+}
+
+async function startCursorImportAgent(
+  fullPrompt: string,
+  name: string,
+): Promise<{ agentId: string; runId: string }> {
   const apiKey = getCursorApiKey();
   let agent: Awaited<ReturnType<typeof Agent.create>> | null = null;
 
@@ -19,7 +32,7 @@ export async function startCursorImportMapping(
     agent = await Agent.create({
       apiKey,
       model: { id: "composer-2.5" },
-      name: "Statement import mapping",
+      name,
       cloud: {},
     });
 
@@ -29,7 +42,7 @@ export async function startCursorImportMapping(
     if (error instanceof ImportServiceError) {
       throw error;
     }
-    console.error("Cursor import start failed:", error);
+    console.error(`Cursor import start failed (${name}):`, error);
     throw new ImportServiceError(IMPORT_ERROR_CODES.GENERATION_FAILED, 502);
   } finally {
     try {

@@ -16,6 +16,7 @@ import {
   type ImportApplyErrorDetails,
 } from "../constants/importErrors.js";
 import { cascadeBalanceFrom, ensureMonth } from "./balanceService.js";
+import { startImportKnowledgeLearn } from "./importKnowledgeService.js";
 import { createRecurringSeries } from "./recurrenceService.js";
 import type { RecurrenceInput } from "../schemas/recurrence.js";
 
@@ -309,6 +310,12 @@ export async function confirmImportBatch(userId: string, batchId: string): Promi
     batch.applyError = null;
     await batch.save();
     await cascadeBalanceFrom(userId, batch.yearMonth);
+    // Best-effort: learn mapping knowledge from review edits (serverless poll later).
+    try {
+      await startImportKnowledgeLearn(batch);
+    } catch (error) {
+      console.error("Import knowledge learn after confirm failed:", error);
+    }
     return batch;
   } catch (error) {
     const details: ImportApplyErrorDetails | null =

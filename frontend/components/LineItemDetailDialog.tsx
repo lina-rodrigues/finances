@@ -26,7 +26,11 @@ import {
   useMonthView,
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
-import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
+import {
+  entryAmountTone,
+  formatLineItemEntryDisplay,
+  getLineItemRealizedAmount,
+} from "@/lib/lineItemAmounts";
 import { getSeriesBadgeLabel } from "@/lib/recurrence";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
@@ -203,7 +207,7 @@ export function LineItemDetailDialog({
                   >
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <p
-                        className={amountClass}
+                        className={entryAmountTone(liveItem.type, entry.amount)}
                         style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}
                       >
                         {formatLineItemEntryDisplay(liveItem.type, entry.amount, formatMoney)}

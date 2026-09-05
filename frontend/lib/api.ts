@@ -451,6 +451,7 @@ export async function deleteReport(id: string): Promise<void> {
 }
 
 export type ImportBatchStatus = "pending" | "waiting" | "done" | "failed";
+export type ImportKnowledgeStatus = "idle" | "pending" | "ready" | "failed";
 
 export interface ImportProposedRecurrence {
   endType: RecurrenceEndType;
@@ -478,11 +479,14 @@ export interface ImportBatchSummary {
   id: string;
   yearMonth: string;
   fileName: string;
+  name: string | null;
+  displayName: string;
   status: ImportBatchStatus;
   error: string | null;
   applyError?: ImportApplyErrorDetails | null;
   cursorAgentId?: string | null;
   cursorRunId?: string | null;
+  knowledgeStatus?: ImportKnowledgeStatus;
   sourceCount: number;
   duplicateCount: number;
   proposedCount: number;
@@ -522,6 +526,30 @@ export interface ImportBatchDetail extends ImportBatchSummary {
   aiRawResponse: string | null;
 }
 
+export interface ImportKnowledgeRule {
+  id: string;
+  ofxName: string;
+  type: "LineItem" | "LineItemEntry";
+  category: string;
+  parent: string | null;
+  label: string | null;
+  sourceBatchId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImportBatchKnowledgeResponse {
+  knowledgeStatus: ImportKnowledgeStatus;
+  error: string | null;
+  rules: ImportKnowledgeRule[];
+}
+
+export function importDisplayName(batch: Pick<ImportBatchSummary, "name" | "fileName" | "displayName">): string {
+  if (batch.displayName) return batch.displayName;
+  const trimmed = batch.name?.trim();
+  return trimmed || batch.fileName;
+}
+
 export async function fetchImports(): Promise<ImportBatchSummary[]> {
   const res = await apiFetch("/imports", "fetch imports");
   return res.json();
@@ -557,16 +585,27 @@ export async function uploadImport(file: File, yearMonth: string): Promise<Impor
   return body as ImportBatchSummary;
 }
 
+export async function patchImport(
+  id: string,
+  body: { name?: string | null; proposedItems?: ImportProposedItem[] },
+): Promise<ImportBatchDetail> {
+  const res = await apiFetch(`/imports/${id}`, "update import", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
 export async function patchImportProposedItems(
   id: string,
   proposedItems: ImportProposedItem[],
 ): Promise<ImportBatchDetail> {
-  const res = await apiFetch(`/imports/${id}`, "update import draft", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ proposedItems }),
-  });
-  return res.json();
+  return patchImport(id, { proposedItems });
+}
+
+export async function patchImportName(id: string, name: string | null): Promise<ImportBatchDetail> {
+  return patchImport(id, { name });
 }
 
 export async function confirmImport(id: string): Promise<ImportBatchDetail> {
@@ -581,4 +620,34 @@ export async function undoImport(id: string): Promise<ImportBatchDetail> {
 
 export async function deleteImport(id: string): Promise<void> {
   await apiFetch(`/imports/${id}`, "delete import", { method: "DELETE" });
+}
+
+export async function fetchImportKnowledge(): Promise<ImportKnowledgeRule[]> {
+  const res = await apiFetch("/imports/knowledge", "fetch import knowledge");
+  return res.json();
+}
+
+export async function fetchImportBatchKnowledge(id: string): Promise<ImportBatchKnowledgeResponse> {
+  const res = await apiFetch(`/imports/${id}/knowledge`, "fetch import batch knowledge");
+  return res.json();
+}
+
+export async function patchImportKnowledgeRule(
+  ruleId: string,
+  patch: Partial<
+    Pick<ImportKnowledgeRule, "ofxName" | "type" | "category" | "parent" | "label">
+  >,
+): Promise<ImportKnowledgeRule> {
+  const res = await apiFetch(`/imports/knowledge/${ruleId}`, "update import knowledge rule", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  return res.json();
+}
+
+export async function deleteImportKnowledgeRule(ruleId: string): Promise<void> {
+  await apiFetch(`/imports/knowledge/${ruleId}`, "delete import knowledge rule", {
+    method: "DELETE",
+  });
 }

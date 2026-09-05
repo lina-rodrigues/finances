@@ -17,6 +17,10 @@ import {
   startCursorImportMapping,
 } from "./cursorImportService.js";
 import { loadStatementImportPrompt } from "./importPromptService.js";
+import {
+  applyKnowledgeOverridesToItems,
+  loadKnownMappingsForUser,
+} from "./importKnowledgeService.js";
 import { parseOfxTransactions } from "./ofxParseService.js";
 import { ensureMonth } from "./balanceService.js";
 
@@ -30,6 +34,13 @@ function extractJsonArray(raw: string): unknown {
     throw new ImportServiceError(IMPORT_ERROR_CODES.GENERATION_FAILED, 502);
   }
   return JSON.parse(candidate.slice(start, end + 1)) as unknown;
+}
+
+function cloneProposedItems(items: IImportProposedItem[]): IImportProposedItem[] {
+  return items.map((item) => ({
+    ...item,
+    recurrence: item.recurrence ? { ...item.recurrence } : null,
+  }));
 }
 
 async function buildReviewContext(userId: string, yearMonth: string) {
@@ -70,6 +81,7 @@ async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<str
   batch.reviewCategories = reviewCategories;
   batch.reviewLineItems = reviewLineItems;
 
+  const knownMappings = await loadKnownMappingsForUser(userId);
   const activeLines = batch.sourceLines.filter((line) => !line.skippedDuplicate);
   const prompt = batch.promptUsed ?? (await loadStatementImportPrompt());
   const payload = {
@@ -77,6 +89,7 @@ async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<str
     language: user.preferences.language,
     categories: reviewCategories.map((c) => c.name),
     existingLineItems: reviewLineItems,
+    knownMappings,
     transactions: activeLines.map((line) => ({
       fitId: line.fitId,
       date: line.date,
@@ -90,7 +103,7 @@ async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<str
   return `${prompt}\n${JSON.stringify(payload, null, 2)}`;
 }
 
-function applyParsedItems(batch: IImportBatch, raw: string): void {
+async function applyParsedItems(batch: IImportBatch, raw: string): Promise<void> {
   const parsed = extractJsonArray(raw);
   const items = importProposedItemsSchema.parse(parsed).map((item) => ({
     ...item,
@@ -99,7 +112,11 @@ function applyParsedItems(batch: IImportBatch, raw: string): void {
     deleted: item.deleted ?? false,
   })) as IImportProposedItem[];
 
-  batch.proposedItems = items;
+  const knownMappings = await loadKnownMappingsForUser(batch.userId.toString());
+  const overridden = applyKnowledgeOverridesToItems(items, batch.sourceLines, knownMappings);
+
+  batch.proposedItems = overridden;
+  batch.aiProposedItems = cloneProposedItems(overridden);
   batch.aiRawResponse = raw;
   batch.status = "waiting";
   batch.error = null;
@@ -138,10 +155,12 @@ export async function createPendingImportBatch(params: {
     userId: params.userId,
     yearMonth: params.yearMonth,
     fileName: params.fileName,
+    name: null,
     status: "pending",
     rawOfx: params.rawOfx,
     sourceLines,
     proposedItems: [],
+    aiProposedItems: [],
     reviewCategories,
     reviewLineItems,
     appliedActions: [],
@@ -149,6 +168,11 @@ export async function createPendingImportBatch(params: {
     aiRawResponse: null,
     cursorAgentId: null,
     cursorRunId: null,
+    knowledgeStatus: "idle",
+    knowledgeCursorAgentId: null,
+    knowledgeCursorRunId: null,
+    knowledgeError: null,
+    knowledgeAiRawResponse: null,
     error: null,
   });
 
@@ -209,7 +233,7 @@ export async function reconcilePendingImport(batch: IImportBatch): Promise<IImpo
 
   try {
     const raw = await extractTextFromFinishedRun(run, batch.cursorAgentId);
-    applyParsedItems(batch, raw);
+    await applyParsedItems(batch, raw);
     await batch.save();
     return batch;
   } catch (error) {

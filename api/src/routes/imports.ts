@@ -8,6 +8,7 @@ import {
   toImportBatchDetail,
   toImportBatchSummary,
 } from "../models/ImportBatch.js";
+import { toImportKnowledgeRule } from "../models/ImportKnowledgeRule.js";
 import { importProposedItemsSchema } from "../schemas/importBatch.js";
 import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
 import type { ImportApplyErrorDetails } from "../constants/importErrors.js";
@@ -23,6 +24,14 @@ import {
   deleteImportBatch,
   undoImportBatch,
 } from "../services/importApplyService.js";
+import {
+  deleteKnowledgeRule,
+  listKnowledgeRulesForBatch,
+  listKnowledgeRulesForUser,
+  reconcileImportKnowledge,
+  reconcilePendingKnowledgeBatches,
+  updateKnowledgeRule,
+} from "../services/importKnowledgeService.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -44,6 +53,23 @@ function sendImportError(res: import("express").Response, error: unknown): boole
   return false;
 }
 
+const patchImportBodySchema = z
+  .object({
+    name: z.string().nullable().optional(),
+    proposedItems: importProposedItemsSchema.optional(),
+  })
+  .refine((body) => body.name !== undefined || body.proposedItems !== undefined, {
+    message: "EMPTY_PATCH",
+  });
+
+const patchKnowledgeRuleSchema = z.object({
+  ofxName: z.string().min(1).optional(),
+  type: z.enum(["LineItem", "LineItemEntry"]).optional(),
+  category: z.string().min(1).optional(),
+  parent: z.string().nullable().optional(),
+  label: z.string().nullable().optional(),
+});
+
 router.get(
   "/",
   asyncHandler(async (req, res) => {
@@ -55,9 +81,74 @@ router.get(
       if (batch.status === "pending") {
         await reconcilePendingImport(batch);
       }
+      if (batch.knowledgeStatus === "pending") {
+        await reconcileImportKnowledge(batch);
+      }
     }
 
     res.json(batches.map(toImportBatchSummary));
+  }),
+);
+
+router.get(
+  "/knowledge",
+  asyncHandler(async (req, res) => {
+    await reconcilePendingKnowledgeBatches(req.userId!);
+    const rules = await listKnowledgeRulesForUser(req.userId!);
+    res.json(rules);
+  }),
+);
+
+router.patch(
+  "/knowledge/:ruleId",
+  asyncHandler(async (req, res) => {
+    try {
+      const body = patchKnowledgeRuleSchema.parse(req.body);
+      const rule = await updateKnowledgeRule(req.userId!, req.params.ruleId, body);
+      res.json(toImportKnowledgeRule(rule));
+    } catch (error) {
+      if (sendImportError(res, error)) {
+        return;
+      }
+      throw error;
+    }
+  }),
+);
+
+router.delete(
+  "/knowledge/:ruleId",
+  asyncHandler(async (req, res) => {
+    try {
+      await deleteKnowledgeRule(req.userId!, req.params.ruleId);
+      res.status(204).end();
+    } catch (error) {
+      if (sendImportError(res, error)) {
+        return;
+      }
+      throw error;
+    }
+  }),
+);
+
+router.get(
+  "/:id/knowledge",
+  asyncHandler(async (req, res) => {
+    const batch = await ImportBatch.findOne({ _id: req.params.id, userId: req.userId });
+    if (!batch) {
+      res.status(404).json({ error: IMPORT_ERROR_CODES.NOT_FOUND });
+      return;
+    }
+
+    if (batch.knowledgeStatus === "pending") {
+      await reconcileImportKnowledge(batch);
+    }
+
+    const rules = await listKnowledgeRulesForBatch(req.userId!, batch._id.toString());
+    res.json({
+      knowledgeStatus: batch.knowledgeStatus ?? "idle",
+      error: batch.knowledgeError,
+      rules,
+    });
   }),
 );
 
@@ -72,6 +163,10 @@ router.get(
 
     if (batch.status === "pending") {
       await reconcilePendingImport(batch);
+    }
+
+    if (batch.knowledgeStatus === "pending") {
+      await reconcileImportKnowledge(batch);
     }
 
     // Keep parent/category picklists current while reviewing or fixing a failed apply.
@@ -125,17 +220,26 @@ router.patch(
       res.status(404).json({ error: IMPORT_ERROR_CODES.NOT_FOUND });
       return;
     }
-    if (batch.status !== "waiting") {
-      res.status(409).json({ error: IMPORT_ERROR_CODES.INVALID_STATUS });
-      return;
+
+    const body = patchImportBodySchema.parse(req.body);
+
+    if (body.proposedItems !== undefined) {
+      if (batch.status !== "waiting") {
+        res.status(409).json({ error: IMPORT_ERROR_CODES.INVALID_STATUS });
+        return;
+      }
+      batch.proposedItems = body.proposedItems.map((item) => ({
+        ...item,
+        notes: item.notes ?? null,
+        deleted: item.deleted ?? false,
+      }));
     }
 
-    const body = z.object({ proposedItems: importProposedItemsSchema }).parse(req.body);
-    batch.proposedItems = body.proposedItems.map((item) => ({
-      ...item,
-      notes: item.notes ?? null,
-      deleted: item.deleted ?? false,
-    }));
+    if (body.name !== undefined) {
+      const trimmed = body.name?.trim() ?? "";
+      batch.name = trimmed.length > 0 ? trimmed : null;
+    }
+
     await batch.save();
     res.json(toImportBatchDetail(batch));
   }),

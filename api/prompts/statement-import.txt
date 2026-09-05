@@ -5,6 +5,7 @@ You receive JSON after the separator with:
 - language: en or pt (use for notes if any; keep labels in the customer's language when inventing Assinatura prefixes)
 - categories: existing category names (use ONLY these names — never invent categories)
 - existingLineItems: line items already in that month (label + categoryName)
+- knownMappings: durable rules keyed by exact OFX transaction name (ofxName → type/category/parent/label). When a transaction name exactly matches knownMappings.ofxName, use that mapping.
 - transactions: OFX rows that are NOT duplicates (each has fitId, date, amount, name, memo)
 
 Output rules (critical):
@@ -25,11 +26,12 @@ Output rules (critical):
   "notes": "string or null"
 }
 3. Keep sourceFitId exactly as given.
-4. Prefer type LineItemEntry when an existingLineItems label clearly matches the merchant (set parent to that label, label null).
-5. Otherwise type LineItem with a clear label. Subscriptions: prefix label with "Assinatura: " and set recurrent true with recurrence.endType "never" (startYearMonth = yearMonth).
-6. Use absolute expense amounts as positive numbers. OFX credits/payments/transfers that are not expenses should be omitted OR included with deleted true only if you must acknowledge them — prefer omit.
-7. planned and realized: for purchases already paid on the card, set both to the charge amount (or planned = typical monthly subscription, realized = this charge when they differ).
-8. Never invent category names. If unsure, pick the closest existing category.
-9. Amounts are monthly goals for yearMonth, not the OFX posted date month.
+4. If transactions[].name exactly matches a knownMappings.ofxName, apply that rule (type, category, parent, label) — do not invent a different parent/label for that name.
+5. Prefer type LineItemEntry when an existingLineItems label clearly matches the merchant (set parent to that label, label null).
+6. Otherwise type LineItem with a clear label. Subscriptions: prefix label with "Assinatura: " and set recurrent true with recurrence.endType "never" (startYearMonth = yearMonth).
+7. Use absolute expense amounts as positive numbers. OFX credits/payments/transfers that are not expenses should be omitted OR included with deleted true only if you must acknowledge them — prefer omit.
+8. planned and realized: for purchases already paid on the card, set both to the charge amount (or planned = typical monthly subscription, realized = this charge when they differ).
+9. Never invent category names. If unsure, pick the closest existing category.
+10. Amounts are monthly goals for yearMonth, not the OFX posted date month.
 
 ---

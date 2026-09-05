@@ -47,6 +47,17 @@ export function signedEntryAmount(type: LineItemType, amount: number): number {
   return type === "income" ? amount : -amount;
 }
 
+/** Color by signed cash-flow effect: positive = green, negative = red. */
+export function entryAmountTone(
+  type: LineItemType,
+  amount: number,
+): "metric-amount--income" | "metric-amount--expense" | "metric-amount--muted" {
+  const signed = signedEntryAmount(type, amount);
+  if (signed > 0) return "metric-amount--income";
+  if (signed < 0) return "metric-amount--expense";
+  return "metric-amount--muted";
+}
+
 export function formatLineItemEntryDisplay(
   type: LineItemType,
   amount: number,
