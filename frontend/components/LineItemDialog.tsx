@@ -37,6 +37,7 @@ import { canOptimisticallyCreate, canOptimisticallyEdit } from "@/lib/optimistic
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 type LineItemDialogMode = "create" | "edit";
 type EditSubFlow = "edit" | "makeRecurring";
@@ -92,8 +93,7 @@ export function LineItemDialog({
   const labelFieldId = useId();
   const labelInputRef = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
 
   const [editSubFlow, setEditSubFlow] = useState<EditSubFlow>("edit");
   const [scopeDialogOpen, setScopeDialogOpen] = useState(false);
@@ -141,16 +141,6 @@ export function LineItemDialog({
     setScopeDialogOpen(form.scopeDialogOpen);
     onOpenChange(true);
   }
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) {

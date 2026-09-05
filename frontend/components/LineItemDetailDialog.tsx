@@ -30,6 +30,7 @@ import { formatLineItemEntryDisplay, getLineItemRealizedAmount } from "@/lib/lin
 import { getSeriesBadgeLabel } from "@/lib/recurrence";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 interface LineItemDetailDialogProps {
   item: LineItem | null;
@@ -63,8 +64,7 @@ export function LineItemDetailDialog({
   const { runOptimistic } = useMutationFeedback();
   const localeTag = getLocaleTag(locale);
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
   const [editingEntry, setEditingEntry] = useState<LineItemEntry | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<LineItemEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -75,16 +75,6 @@ export function LineItemDetailDialog({
       : collectAllLineItems(monthView.categories, monthView.uncategorized).find(
           (candidate) => candidate.id === item.id,
         ) ?? item;
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) {

@@ -23,6 +23,7 @@ import {
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 interface AddEntryDialogProps {
   item: LineItem | null;
@@ -46,24 +47,13 @@ export function AddEntryDialog({
   const amountFieldId = useId();
   const amountInputRef = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isEdit = entry !== null;
   const title = t(isEdit ? "entries.editEntryTitle" : "entries.addTitle");
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open) {

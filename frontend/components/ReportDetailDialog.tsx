@@ -6,6 +6,7 @@ import { fetchReport, type FinancialReport } from "@/lib/api";
 import { downloadReportDocx, reportDownloadFilename } from "@/lib/downloadReport";
 import { useTranslation, translateReportError } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 interface ReportDetailDialogProps {
   reportId: string | null;
@@ -16,21 +17,10 @@ interface ReportDetailDialogProps {
 export function ReportDetailDialog({ reportId, open, onOpenChange }: ReportDetailDialogProps) {
   const { t, locale } = useTranslation();
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
   const [report, setReport] = useState<FinancialReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open || !reportId) {

@@ -18,6 +18,7 @@ import {
 } from "@/lib/MonthViewProvider";
 import { payDefaultAmount } from "@/lib/payLineItem";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 interface PayEntryDialogProps {
   item: LineItem | null;
@@ -35,22 +36,11 @@ export function PayEntryDialog({ item, open, onOpenChange }: PayEntryDialogProps
   const amountFieldId = useId();
   const amountInputRef = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
   const title = t("entries.payTitle");
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
 
   useEffect(() => {
     if (!open || !item) {

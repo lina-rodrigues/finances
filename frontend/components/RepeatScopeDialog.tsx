@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { type RecurrenceScope } from "@/lib/recurrence";
 import { useTranslation } from "@/lib/i18n";
+import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
 interface RepeatScopeDialogProps {
   open: boolean;
@@ -27,18 +28,7 @@ export function RepeatScopeDialog({
 }: RepeatScopeDialogProps) {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLElement | null>(null);
-  const openRef = useRef(open);
-  openRef.current = open;
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const onAfterHide = () => {
-      if (openRef.current) onOpenChange(false);
-    };
-    el.addEventListener("wa-after-hide", onAfterHide);
-    return () => el.removeEventListener("wa-after-hide", onAfterHide);
-  }, [onOpenChange]);
+  useWaDialogAfterHide(dialogRef, open, onOpenChange);
 
   const title = mode === "edit" ? t("repeat.editScopeTitle") : t("repeat.deleteScopeTitle");
 
