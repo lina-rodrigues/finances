@@ -6,7 +6,9 @@ import {
   toFinancialReportSummary,
 } from "../models/FinancialReport.js";
 import { computeBudget503020 } from "../services/budget503020Service.js";
+import { User } from "../models/User.js";
 import { buildMonthView } from "../services/monthViewService.js";
+import { buildMonthWorkbook, monthWorkbookFilename } from "../services/monthWorkbookService.js";
 import {
   createPendingReport,
   scheduleReportGeneration,
@@ -38,6 +40,22 @@ router.get(
         uncategorized: monthView.uncategorized,
       }),
     );
+  }),
+);
+
+router.get(
+  "/export/xlsx",
+  asyncHandler(async (req, res) => {
+    const { yearMonth } = yearMonthQuerySchema.parse(req.query);
+    const user = await User.findById(req.userId!).select("preferences.language preferences.currency");
+    const language = user?.preferences.language ?? "en";
+    const currency = user?.preferences.currency ?? "USD";
+    const monthView = await buildMonthView(req.userId!, yearMonth);
+    const buffer = await buildMonthWorkbook({ monthView, language, currency });
+    const filename = monthWorkbookFilename(yearMonth, language);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", contentDispositionHeader(filename));
+    res.send(buffer);
   }),
 );
 

@@ -199,6 +199,11 @@
     "reportDeleted": "Relatório excluído",
     "downloadDocx": "Baixar DOCX",
     "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
+    "accountantExportTitle": "Exportação para o contador",
+    "accountantExportDescription": "Baixe uma planilha deste mês para o seu contador. Uma aba com totais, categorias e movimentações realizadas.",
+    "accountantExportDownload": "Baixar XLSX",
+    "accountantExportSuccess": "Planilha baixada",
+    "accountantExportFailed": "Não foi possível baixar a planilha. Tente novamente.",
     "status": {
       "pending": "Pendente",
       "completed": "Concluído",

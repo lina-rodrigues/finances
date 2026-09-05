@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountantExportSection } from "@/components/AccountantExportSection";
 import { Budget503020Section } from "@/components/Budget503020Section";
 import { AiAssistantSection } from "@/components/AiAssistantSection";
 import { PageTitle } from "@/components/PageTitle";
@@ -14,6 +15,7 @@ export function ReportsPage() {
     <div className="wa-stack wa-gap-xl">
       <PageTitle>{t("nav.reports")}</PageTitle>
       <Budget503020Section yearMonth={month.yearMonth} />
+      <AccountantExportSection yearMonth={month.yearMonth} />
       <AiAssistantSection yearMonth={month.yearMonth} />
     </div>
   );

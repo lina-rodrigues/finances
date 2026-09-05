@@ -199,6 +199,11 @@
     "reportDeleted": "Report deleted",
     "downloadDocx": "Download DOCX",
     "downloadFailed": "Could not download the report. Please try again.",
+    "accountantExportTitle": "Accountant export",
+    "accountantExportDescription": "Download a spreadsheet of this month for your accountant. One sheet with totals, category rollups, and realized movements.",
+    "accountantExportDownload": "Download XLSX",
+    "accountantExportSuccess": "Spreadsheet downloaded",
+    "accountantExportFailed": "Could not download the spreadsheet. Please try again.",
     "status": {
       "pending": "Pending",
       "completed": "Completed",

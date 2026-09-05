@@ -390,6 +390,7 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | DELETE | `/line-items/:id` | Delete line item (optional `scope` for recurring items) |
 | POST | `/line-items/:id/recurrence` | Convert one-off item to a recurring series |
 | POST | `/recurrence-series/:id/cancel` | Cancel series (delete future unrealized instances) |
+| GET | `/reports/export/xlsx?yearMonth=` | Download accountant XLSX for a month |
 
 ### Monthly view response
 
