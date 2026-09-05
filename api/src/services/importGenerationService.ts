@@ -12,6 +12,7 @@ import { User } from "../models/User.js";
 import { importProposedItemsSchema } from "../schemas/importBatch.js";
 import { IMPORT_ERROR_CODES, ImportServiceError, toImportErrorCode } from "../constants/importErrors.js";
 import {
+  cursorRunPhase,
   extractTextFromFinishedRun,
   fetchCursorImportRun,
   startCursorImportMapping,
@@ -220,11 +221,13 @@ export async function reconcilePendingImport(batch: IImportBatch): Promise<IImpo
     return batch;
   }
 
-  if (run.status === "running") {
+  const phase = cursorRunPhase(run.status);
+  if (phase === "running") {
     return batch;
   }
 
-  if (run.status === "error" || run.status === "cancelled") {
+  if (phase === "failed") {
+    console.error("Import reconcile run failed:", run.status, run.error);
     batch.status = "failed";
     batch.error = IMPORT_ERROR_CODES.GENERATION_FAILED;
     await batch.save();

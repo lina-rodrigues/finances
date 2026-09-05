@@ -1,6 +1,26 @@
 import { Agent, type Run } from "@cursor/sdk";
 import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
 
+/** Coarse phase for serverless poll loops. */
+export type CursorRunPhase = "running" | "finished" | "failed";
+
+/**
+ * Map SDK/API run statuses to a poll phase.
+ * Cursor may report `queued` (and similar) before `running`; treating those as
+ * finished causes IMPORT_GENERATION_FAILED within seconds of upload.
+ */
+export function cursorRunPhase(status: string | null | undefined): CursorRunPhase {
+  const normalized = (status ?? "").toLowerCase();
+  if (normalized === "finished") {
+    return "finished";
+  }
+  if (normalized === "error" || normalized === "cancelled" || normalized === "expired") {
+    return "failed";
+  }
+  // running | queued | creating | unknown → keep waiting
+  return "running";
+}
+
 function getCursorApiKey(): string {
   const apiKey = process.env.CURSOR_API_KEY?.trim();
   if (!apiKey) {
@@ -102,8 +122,13 @@ function messageText(message: unknown): string | null {
 }
 
 export async function extractTextFromFinishedRun(run: Run, agentId: string): Promise<string> {
-  if (run.status === "error" || run.status === "cancelled") {
-    console.error("Cursor import run failed:", run.error);
+  const phase = cursorRunPhase(run.status);
+  if (phase === "failed") {
+    console.error("Cursor import run failed:", run.status, run.error);
+    throw new ImportServiceError(IMPORT_ERROR_CODES.GENERATION_FAILED, 502);
+  }
+  if (phase !== "finished") {
+    console.error("Cursor import extract called before finished:", run.status);
     throw new ImportServiceError(IMPORT_ERROR_CODES.GENERATION_FAILED, 502);
   }
 

@@ -12,6 +12,7 @@ import {
 } from "../models/ImportKnowledgeRule.js";
 import { IMPORT_ERROR_CODES, ImportServiceError, toImportErrorCode } from "../constants/importErrors.js";
 import {
+  cursorRunPhase,
   extractTextFromFinishedRun,
   fetchCursorImportRun,
   startCursorImportKnowledgeLearn,
@@ -173,11 +174,13 @@ export async function reconcileImportKnowledge(batch: IImportBatch): Promise<IIm
     return batch;
   }
 
-  if (run.status === "running") {
+  const phase = cursorRunPhase(run.status);
+  if (phase === "running") {
     return batch;
   }
 
-  if (run.status === "error" || run.status === "cancelled") {
+  if (phase === "failed") {
+    console.error("Import knowledge reconcile run failed:", run.status, run.error);
     batch.knowledgeStatus = "failed";
     batch.knowledgeError = IMPORT_ERROR_CODES.GENERATION_FAILED;
     await batch.save();
