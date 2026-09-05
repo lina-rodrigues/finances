@@ -133,6 +133,24 @@ export async function startImportKnowledgeLearn(batch: IImportBatch): Promise<II
   }
 }
 
+/** Manually run knowledge learning for a confirmed import (e.g. past batches). */
+export async function executeImportKnowledgeLearn(
+  userId: string,
+  batchId: string,
+): Promise<IImportBatch> {
+  const batch = await ImportBatch.findOne({ _id: batchId, userId });
+  if (!batch) {
+    throw new ImportServiceError(IMPORT_ERROR_CODES.NOT_FOUND, 404);
+  }
+  if (batch.status !== "done") {
+    throw new ImportServiceError(IMPORT_ERROR_CODES.INVALID_STATUS, 409);
+  }
+  if (batch.knowledgeStatus === "pending") {
+    throw new ImportServiceError(IMPORT_ERROR_CODES.INVALID_STATUS, 409);
+  }
+  return startImportKnowledgeLearn(batch);
+}
+
 export async function reconcileImportKnowledge(batch: IImportBatch): Promise<IImportBatch> {
   if (batch.knowledgeStatus !== "pending") {
     return batch;

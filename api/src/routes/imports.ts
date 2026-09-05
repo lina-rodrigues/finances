@@ -26,6 +26,7 @@ import {
 } from "../services/importApplyService.js";
 import {
   deleteKnowledgeRule,
+  executeImportKnowledgeLearn,
   listKnowledgeRulesForBatch,
   listKnowledgeRulesForUser,
   reconcileImportKnowledge,
@@ -149,6 +150,26 @@ router.get(
       error: batch.knowledgeError,
       rules,
     });
+  }),
+);
+
+router.post(
+  "/:id/knowledge/execute",
+  asyncHandler(async (req, res) => {
+    try {
+      const batch = await executeImportKnowledgeLearn(req.userId!, req.params.id);
+      const rules = await listKnowledgeRulesForBatch(req.userId!, batch._id.toString());
+      res.status(202).json({
+        knowledgeStatus: batch.knowledgeStatus ?? "idle",
+        error: batch.knowledgeError,
+        rules,
+      });
+    } catch (error) {
+      if (sendImportError(res, error)) {
+        return;
+      }
+      throw error;
+    }
   }),
 );
 

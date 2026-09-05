@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ImportKnowledgeList } from "@/components/ImportKnowledgeList";
 import { PageTitle } from "@/components/PageTitle";
 import {
+  executeImportBatchKnowledge,
   fetchImport,
   fetchImportBatchKnowledge,
   importDisplayName,
@@ -13,11 +14,13 @@ import {
   type ImportBatchSummary,
 } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
+import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 export function ImportBatchKnowledgePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { t } = useTranslation();
+  const { loading: mutating, run } = useMutationFeedback();
   const [batch, setBatch] = useState<ImportBatchSummary | null>(null);
   const [knowledge, setKnowledge] = useState<ImportBatchKnowledgeResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,17 @@ export function ImportBatchKnowledgePage() {
     return () => window.clearInterval(timer);
   }, [pending, load]);
 
+  async function handleExecute() {
+    await run(
+      async () => {
+        const next = await executeImportBatchKnowledge(id);
+        setKnowledge(next);
+        await load();
+      },
+      { successMessage: t("imports.knowledgeExecuteSuccess") },
+    );
+  }
+
   if (loading && !knowledge && !batch) {
     return (
       <p className="wa-caption-m wa-color-text-quiet">
@@ -69,7 +83,10 @@ export function ImportBatchKnowledgePage() {
   }
 
   const status = knowledge?.knowledgeStatus ?? "idle";
+  const rules = knowledge?.rules ?? [];
   const notConfirmed = batch.status !== "done" && status === "idle";
+  const canExecute =
+    batch.status === "done" && status !== "pending" && rules.length === 0;
 
   return (
     <div className="wa-stack wa-gap-xl">
@@ -109,9 +126,29 @@ export function ImportBatchKnowledgePage() {
         </wa-callout>
       ) : null}
 
-      {knowledge ? (
+      {canExecute ? (
+        <div className="wa-stack wa-gap-m">
+          <wa-callout variant="neutral">
+            <wa-icon slot="icon" name="info-circle"></wa-icon>
+            {t("imports.knowledgeExecuteHint")}
+          </wa-callout>
+          <wa-button
+            type="button"
+            variant="brand"
+            disabled={mutating || undefined}
+            onClick={() => {
+              void handleExecute();
+            }}
+          >
+            <wa-icon slot="start" name="play"></wa-icon>
+            {t("imports.knowledgeExecute")}
+          </wa-button>
+        </div>
+      ) : null}
+
+      {knowledge && !canExecute ? (
         <ImportKnowledgeList
-          rules={knowledge.rules}
+          rules={rules}
           onChanged={load}
           emptyMessage={
             status === "pending"

@@ -22,7 +22,7 @@ export function ImportNameEditor({
   const { loading, run } = useMutationFeedback();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(displayName);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!editing) {
@@ -31,10 +31,34 @@ export function ImportNameEditor({
   }, [displayName, editing]);
 
   useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
+    if (!editing) return;
+    let cancelled = false;
+
+    async function focusWhenReady() {
+      const input = inputRef.current as
+        | (HTMLElement & {
+            select?: () => void;
+            updateComplete?: Promise<unknown>;
+          })
+        | null;
+      if (!input) return;
+      try {
+        await input.updateComplete;
+        if (cancelled) return;
+        input.focus();
+        input.select?.();
+      } catch {
+        // Ignore — shadow input may not be ready; user can still type after click.
+      }
     }
+
+    const timer = window.setTimeout(() => {
+      void focusWhenReady();
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [editing]);
 
   async function save() {
@@ -76,9 +100,7 @@ export function ImportNameEditor({
   return (
     <div className="wa-cluster wa-gap-s wa-align-items-center" style={{ flex: 1, minWidth: 0 }}>
       <wa-input
-        ref={(el) => {
-          inputRef.current = el as HTMLInputElement | null;
-        }}
+        ref={inputRef}
         value={draft}
         disabled={loading || undefined}
         style={{ flex: 1, minWidth: "12rem" }}

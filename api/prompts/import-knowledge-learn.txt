@@ -20,8 +20,9 @@ Output rules (critical):
 }
 3. ofxName must be copied exactly from the change (case-sensitive). Never invent or normalize names.
 4. Prefer rules when the user corrected type/category/parent/label, or when a confirmed mapping clearly looks reusable for that merchant name.
-5. Skip one-offs, deleted rows, ambiguous cases, and rows without a stable ofxName.
-6. For LineItemEntry: parent must be set, label null. For LineItem: label must be set, parent null.
-7. If nothing is durable, return [].
+5. When before is null (older imports), treat after as the confirmed mapping and still extract durable exact-ofxName rules.
+6. Skip one-offs, deleted rows, ambiguous cases, and rows without a stable ofxName.
+7. For LineItemEntry: parent must be set, label null. For LineItem: label must be set, parent null.
+8. If nothing is durable, return [].
 
 ---

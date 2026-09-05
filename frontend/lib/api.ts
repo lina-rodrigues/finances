@@ -632,6 +632,15 @@ export async function fetchImportBatchKnowledge(id: string): Promise<ImportBatch
   return res.json();
 }
 
+export async function executeImportBatchKnowledge(
+  id: string,
+): Promise<ImportBatchKnowledgeResponse> {
+  const res = await apiFetch(`/imports/${id}/knowledge/execute`, "execute import knowledge learn", {
+    method: "POST",
+  });
+  return res.json();
+}
+
 export async function patchImportKnowledgeRule(
   ruleId: string,
   patch: Partial<
