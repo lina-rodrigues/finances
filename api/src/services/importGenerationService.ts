@@ -48,6 +48,18 @@ async function buildReviewContext(userId: string, yearMonth: string) {
   };
 }
 
+/** Refresh category/line-item picklists from the live month (e.g. items added after upload). */
+export async function refreshImportReviewContext(batch: IImportBatch): Promise<IImportBatch> {
+  const { reviewCategories, reviewLineItems } = await buildReviewContext(
+    batch.userId.toString(),
+    batch.yearMonth,
+  );
+  batch.reviewCategories = reviewCategories;
+  batch.reviewLineItems = reviewLineItems;
+  await batch.save();
+  return batch;
+}
+
 async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<string> {
   const user = await User.findById(userId).select("preferences.language");
   if (!user) {

@@ -16,6 +16,7 @@ import { MAX_OFX_BYTES } from "../services/ofxParseService.js";
 import {
   createPendingImportBatch,
   reconcilePendingImport,
+  refreshImportReviewContext,
 } from "../services/importGenerationService.js";
 import {
   confirmImportBatch,
@@ -71,6 +72,11 @@ router.get(
 
     if (batch.status === "pending") {
       await reconcilePendingImport(batch);
+    }
+
+    // Keep parent/category picklists current while reviewing or fixing a failed apply.
+    if (batch.status === "waiting" || batch.status === "failed") {
+      await refreshImportReviewContext(batch);
     }
 
     res.json(toImportBatchDetail(batch));

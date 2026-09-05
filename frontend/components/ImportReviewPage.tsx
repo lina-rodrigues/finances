@@ -133,14 +133,27 @@ export function ImportReviewPage() {
 
   const parentsByCategory = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const li of batch?.reviewLineItems ?? []) {
-      const key = li.categoryName ?? "";
+    const add = (categoryName: string, label: string) => {
+      const key = categoryName || "";
       const list = map.get(key) ?? [];
-      list.push(li.label);
-      map.set(key, list);
+      if (!list.includes(label)) {
+        list.push(label);
+        map.set(key, list);
+      }
+    };
+    for (const li of batch?.reviewLineItems ?? []) {
+      if (li.label) add(li.categoryName ?? "", li.label);
+    }
+    // Line items created in this draft can also be parents for other rows.
+    for (const item of items) {
+      if (item.deleted || item.type !== "LineItem" || !item.label) continue;
+      add(item.category, item.label);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.localeCompare(b));
     }
     return map;
-  }, [batch]);
+  }, [batch, items]);
 
   async function handleConfirm() {
     await run(
