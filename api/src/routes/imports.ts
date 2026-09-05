@@ -10,6 +10,7 @@ import {
 } from "../models/ImportBatch.js";
 import { importProposedItemsSchema } from "../schemas/importBatch.js";
 import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
+import type { ImportApplyErrorDetails } from "../constants/importErrors.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
 import { MAX_OFX_BYTES } from "../services/ofxParseService.js";
 import {
@@ -32,7 +33,11 @@ router.use(requireAuth);
 
 function sendImportError(res: import("express").Response, error: unknown): boolean {
   if (error instanceof ImportServiceError) {
-    res.status(error.status).json({ error: error.code });
+    const body: { error: string; details?: ImportApplyErrorDetails } = { error: error.code };
+    if (error.details) {
+      body.details = error.details;
+    }
+    res.status(error.status).json(body);
     return true;
   }
   return false;

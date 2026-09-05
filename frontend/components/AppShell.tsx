@@ -26,7 +26,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const importsActive = pathname.startsWith("/imports");
   const reportsActive = pathname.startsWith("/reports");
   const settingsActive = pathname.startsWith("/settings");
-  const showMonthNav = categoriesActive || reportsActive;
+  const showMonthNav = financeActive || categoriesActive || reportsActive;
 
   if (!ready) {
     return (
@@ -38,27 +38,28 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   return (
     <wa-page>
-      <header slot="header" className="wa-cluster wa-gap-s wa-align-items-center wa-align-items-center">
-        <wa-button data-toggle-nav appearance="plain" className="wa-mobile-only">
-          <wa-icon name="bars" label={t("nav.label")}></wa-icon>
-        </wa-button>
-        {showMonthNav ? (
-          <MonthNavHeader />
-        ) : (
-          <strong className="wa-heading-l">{t("common.appTitle")}</strong>
-        )}
-        <span className="wa-cluster wa-gap-s" style={{ marginInlineStart: "auto" }}>
+      <header slot="header" className="app-header">
+        <div className="app-header__start wa-cluster wa-gap-s wa-align-items-center">
+          <wa-button data-toggle-nav appearance="plain" className="wa-mobile-only">
+            <wa-icon name="bars" label={t("nav.label")}></wa-icon>
+          </wa-button>
+          {showMonthNav ? <MonthNavHeader /> : null}
+        </div>
+
+        <strong className="app-header__title wa-heading-l">{t("common.appTitle")}</strong>
+
+        <div className="app-header__end wa-cluster wa-gap-s wa-align-items-center">
           <Link href="/settings" data-drawer="close" aria-label={t("settings.title")}>
             <wa-button appearance="plain">
               <wa-icon name="gear" label={t("settings.title")}></wa-icon>
             </wa-button>
           </Link>
-        </span>
+        </div>
       </header>
 
       <nav slot="navigation" className="wa-stack wa-gap-s" aria-label={t("nav.label")}>
         <Link
-          href="/"
+          href={monthQuery ? `/${monthQuery}` : "/"}
           data-drawer="close"
           className="nav-link"
           aria-current={financeActive ? "page" : undefined}

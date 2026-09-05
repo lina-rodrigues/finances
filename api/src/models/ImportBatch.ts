@@ -1,4 +1,5 @@
 import mongoose, { Schema, type Document, type Types } from "mongoose";
+import type { ImportApplyErrorDetails } from "../constants/importErrors.js";
 
 export type ImportBatchStatus = "pending" | "waiting" | "done" | "failed";
 
@@ -75,6 +76,7 @@ export interface IImportBatch extends Document {
   cursorAgentId: string | null;
   cursorRunId: string | null;
   error: string | null;
+  applyError: ImportApplyErrorDetails | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -152,6 +154,23 @@ const appliedActionSchema = new Schema<IImportAppliedAction>(
   { _id: false },
 );
 
+const applyErrorSchema = new Schema<ImportApplyErrorDetails>(
+  {
+    reason: { type: String, required: true },
+    itemId: { type: String, default: null },
+    itemIndex: { type: Number, default: null },
+    sourceFitId: { type: String, default: null },
+    type: { type: String, default: null },
+    category: { type: String, default: null },
+    label: { type: String, default: null },
+    parent: { type: String, default: null },
+    planned: { type: Number, default: null },
+    realized: { type: Number, default: null },
+    message: { type: String, default: null },
+  },
+  { _id: false },
+);
+
 const importBatchSchema = new Schema<IImportBatch>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -173,6 +192,7 @@ const importBatchSchema = new Schema<IImportBatch>(
     cursorAgentId: { type: String, default: null },
     cursorRunId: { type: String, default: null },
     error: { type: String, default: null },
+    applyError: { type: applyErrorSchema, default: null },
   },
   { timestamps: true },
 );
@@ -187,6 +207,7 @@ export interface ImportBatchSummaryResponse {
   fileName: string;
   status: ImportBatchStatus;
   error: string | null;
+  applyError: ImportApplyErrorDetails | null;
   cursorAgentId: string | null;
   cursorRunId: string | null;
   sourceCount: number;
@@ -222,6 +243,7 @@ export function toImportBatchSummary(batch: IImportBatch): ImportBatchSummaryRes
     fileName: batch.fileName,
     status: batch.status,
     error: batch.error,
+    applyError: batch.applyError ?? null,
     cursorAgentId: batch.cursorAgentId,
     cursorRunId: batch.cursorRunId,
     ...countsFromBatch(batch),

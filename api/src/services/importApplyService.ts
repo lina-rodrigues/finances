@@ -9,20 +9,33 @@ import {
 import { ImportTransactionId } from "../models/ImportTransactionId.js";
 import { LineItem, applyRealizedAmountWrite, pushRealizedEntry } from "../models/LineItem.js";
 import { RecurringSeries } from "../models/RecurringSeries.js";
-import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
+import {
+  IMPORT_ERROR_CODES,
+  ImportServiceError,
+  applyFailure,
+  type ImportApplyErrorDetails,
+} from "../constants/importErrors.js";
 import { cascadeBalanceFrom, ensureMonth } from "./balanceService.js";
 import { createRecurringSeries } from "./recurrenceService.js";
 import type { RecurrenceInput } from "../schemas/recurrence.js";
 
-async function resolveCategoryId(userId: string, name: string): Promise<string> {
-  const category = await Category.findOne({ userId, name });
+async function resolveCategoryId(
+  userId: string,
+  item: IImportProposedItem,
+  itemIndex: number,
+): Promise<string> {
+  const category = await Category.findOne({ userId, name: item.category });
   if (!category) {
-    throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+    throw applyFailure("CATEGORY_NOT_FOUND", item, itemIndex);
   }
   return category._id.toString();
 }
 
-function buildRecurrenceInput(item: IImportProposedItem, yearMonth: string): RecurrenceInput {
+function buildRecurrenceInput(
+  item: IImportProposedItem,
+  yearMonth: string,
+  itemIndex: number,
+): RecurrenceInput {
   const rec = item.recurrence;
   if (!rec) {
     return { startYearMonth: yearMonth, endType: "never" };
@@ -30,7 +43,7 @@ function buildRecurrenceInput(item: IImportProposedItem, yearMonth: string): Rec
   const startYearMonth = rec.startYearMonth ?? yearMonth;
   if (rec.endType === "count") {
     if (rec.occurrenceCount == null) {
-      throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+      throw applyFailure("RECURRENCE_COUNT_MISSING", item, itemIndex);
     }
     return {
       startYearMonth,
@@ -40,7 +53,7 @@ function buildRecurrenceInput(item: IImportProposedItem, yearMonth: string): Rec
   }
   if (rec.endType === "until") {
     if (!rec.endYearMonth) {
-      throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+      throw applyFailure("RECURRENCE_UNTIL_MISSING", item, itemIndex);
     }
     return {
       startYearMonth,
@@ -101,6 +114,7 @@ async function applyProposedItem(
   item: IImportProposedItem,
   batchId: string,
   sourceLines: IImportSourceLine[],
+  itemIndex: number,
 ): Promise<IImportAppliedAction[]> {
   const actions: IImportAppliedAction[] = [];
   const postedAt = resolvePostedAt(sourceLines, item.sourceFitId);
@@ -125,12 +139,15 @@ async function applyProposedItem(
     return actions;
   }
 
-  const categoryId = await resolveCategoryId(userId, item.category);
+  const categoryId = await resolveCategoryId(userId, item, itemIndex);
   const month = await ensureMonth(userId, yearMonth);
 
   if (item.type === "LineItemEntry") {
-    if (!item.parent || item.realized == null) {
-      throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+    if (!item.parent) {
+      throw applyFailure("MISSING_PARENT", item, itemIndex);
+    }
+    if (item.realized == null) {
+      throw applyFailure("MISSING_REALIZED", item, itemIndex);
     }
     const parent = await LineItem.findOne({
       monthId: month._id,
@@ -138,7 +155,7 @@ async function applyProposedItem(
       categoryId,
     });
     if (!parent) {
-      throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+      throw applyFailure("PARENT_NOT_FOUND", item, itemIndex);
     }
     const entry = pushRealizedEntry(
       parent,
@@ -166,12 +183,15 @@ async function applyProposedItem(
     return actions;
   }
 
-  if (!item.label || item.planned == null) {
-    throw new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 400);
+  if (!item.label) {
+    throw applyFailure("MISSING_LABEL", item, itemIndex);
+  }
+  if (item.planned == null) {
+    throw applyFailure("MISSING_PLANNED", item, itemIndex);
   }
 
   if (item.recurrent) {
-    const recurrence = buildRecurrenceInput(item, yearMonth);
+    const recurrence = buildRecurrenceInput(item, yearMonth, itemIndex);
     const { firstItem, series } = await createRecurringSeries(userId, {
       categoryId,
       type: "expense",
@@ -236,6 +256,28 @@ async function applyProposedItem(
   return actions;
 }
 
+function logImportApplyFailure(
+  batchId: string,
+  yearMonth: string,
+  appliedCount: number,
+  details: ImportApplyErrorDetails | null,
+  error: unknown,
+): void {
+  console.error(
+    "[imports.confirm] apply failed",
+    JSON.stringify({
+      batchId,
+      yearMonth,
+      appliedCount,
+      details,
+      error:
+        error instanceof Error
+          ? { name: error.name, message: error.message, stack: error.stack }
+          : String(error),
+    }),
+  );
+}
+
 export async function confirmImportBatch(userId: string, batchId: string): Promise<IImportBatch> {
   const batch = await ImportBatch.findOne({ _id: batchId, userId });
   if (!batch) {
@@ -248,13 +290,15 @@ export async function confirmImportBatch(userId: string, batchId: string): Promi
   const appliedActions: IImportAppliedAction[] = [];
 
   try {
-    for (const item of batch.proposedItems) {
+    for (let itemIndex = 0; itemIndex < batch.proposedItems.length; itemIndex += 1) {
+      const item = batch.proposedItems[itemIndex];
       const actions = await applyProposedItem(
         userId,
         batch.yearMonth,
         item,
         batchId,
         batch.sourceLines,
+        itemIndex,
       );
       appliedActions.push(...actions);
     }
@@ -262,21 +306,42 @@ export async function confirmImportBatch(userId: string, batchId: string): Promi
     batch.appliedActions = appliedActions;
     batch.status = "done";
     batch.error = null;
+    batch.applyError = null;
     await batch.save();
     await cascadeBalanceFrom(userId, batch.yearMonth);
     return batch;
   } catch (error) {
+    const details: ImportApplyErrorDetails | null =
+      error instanceof ImportServiceError && error.details
+        ? error.details
+        : {
+            reason: "UNEXPECTED",
+            itemId: null,
+            itemIndex: null,
+            sourceFitId: null,
+            type: null,
+            category: null,
+            label: null,
+            parent: null,
+            planned: null,
+            realized: null,
+            message: error instanceof Error ? error.message : String(error),
+          };
+
+    logImportApplyFailure(batchId, batch.yearMonth, appliedActions.length, details, error);
+
     // Best-effort: record what was applied so undo can still clean up
     batch.appliedActions = appliedActions;
     batch.status = "failed";
     batch.error = IMPORT_ERROR_CODES.APPLY_FAILED;
+    batch.applyError = details;
     await batch.save();
     if (appliedActions.length > 0) {
       await cascadeBalanceFrom(userId, batch.yearMonth);
     }
     throw error instanceof ImportServiceError
       ? error
-      : new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 500);
+      : new ImportServiceError(IMPORT_ERROR_CODES.APPLY_FAILED, 500, details);
   }
 }
 
@@ -317,6 +382,7 @@ export async function undoImportBatch(userId: string, batchId: string): Promise<
   batch.appliedActions = [];
   batch.status = "waiting";
   batch.error = null;
+  batch.applyError = null;
   await batch.save();
   await cascadeBalanceFrom(userId, batch.yearMonth);
   return batch;

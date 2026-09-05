@@ -139,6 +139,19 @@
     "postedAt": "Data",
     "pendingHint": "A IA está mapeando seu extrato…",
     "failedHint": "O mapeamento falhou. Exclua esta importação e tente de novo.",
+    "applyFailedHint": "A confirmação parou no meio. Desfaça para voltar à revisão, corrija a linha abaixo e confirme de novo.",
+    "applyErrorDetail": "Linha {index}: {reason} · {type} · {category} · {label}",
+    "applyReasons": {
+      "CATEGORY_NOT_FOUND": "categoria não encontrada",
+      "MISSING_PARENT": "entrada sem item-pai",
+      "MISSING_REALIZED": "entrada sem valor realizado",
+      "PARENT_NOT_FOUND": "item-pai não encontrado neste mês",
+      "MISSING_LABEL": "item sem rótulo",
+      "MISSING_PLANNED": "item sem valor planejado",
+      "RECURRENCE_COUNT_MISSING": "contagem da recorrência ausente",
+      "RECURRENCE_UNTIL_MISSING": "mês final da recorrência ausente",
+      "UNEXPECTED": "erro inesperado"
+    },
     "doneHint": "Esta importação está aplicada. Desfaça para voltar à revisão."
   },
   "reports": {

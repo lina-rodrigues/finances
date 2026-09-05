@@ -8,6 +8,7 @@ import {
   monthPagePath,
   nextYearMonth,
   prevYearMonth,
+  type AppTab,
 } from "@/lib/api";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
@@ -21,8 +22,10 @@ function monthParts(yearMonth: string, localeTag: string) {
   };
 }
 
-function resolveTab(pathname: string): "categories" | "reports" {
-  return pathname.startsWith("/reports") ? "reports" : "categories";
+function resolveTab(pathname: string): AppTab {
+  if (pathname.startsWith("/reports")) return "reports";
+  if (pathname.startsWith("/categories")) return "categories";
+  return "finance";
 }
 
 function resolveYearMonth(searchParams: ReturnType<typeof useSearchParams>): string {

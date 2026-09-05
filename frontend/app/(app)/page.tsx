@@ -2,8 +2,13 @@ import { FinanceOverview } from "@/components/FinanceOverview";
 import { MonthViewSeed } from "@/components/MonthViewShell";
 import { fetchMonthView } from "@/lib/api-server";
 
-export default async function FinancePage() {
-  const data = await fetchMonthView();
+export default async function FinancePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month: monthParam } = await searchParams;
+  const data = await fetchMonthView(monthParam);
   const flatCategories = data.categories.map(({ id, name, order, icon, budgetGroup }) => ({
     id,
     name,

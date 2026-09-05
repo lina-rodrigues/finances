@@ -1,7 +1,6 @@
 "use client";
 
 import { LineItemDialogPanels, useLineItemDialogHost } from "@/components/LineItemDialogHost";
-import { PageTitle } from "@/components/PageTitle";
 import { UpcomingPaymentsList } from "@/components/UpcomingPaymentsList";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
@@ -40,21 +39,17 @@ export function FinanceOverview() {
   return (
     <>
       <div className="wa-stack wa-gap-l">
-        <PageTitle
-          actions={
-            <wa-button
-              type="button"
-              variant="brand"
-              data-testid="add-item-trigger-fab"
-              onClick={() => host.openCreate()}
-            >
-              <wa-icon slot="start" name="plus"></wa-icon>
-              {t("categories.addItem")}
-            </wa-button>
-          }
-        >
-          {t("nav.finance")}
-        </PageTitle>
+        <div className="wa-cluster wa-gap-s" style={{ justifyContent: "flex-end" }}>
+          <wa-button
+            type="button"
+            variant="brand"
+            data-testid="add-item-trigger-fab"
+            onClick={() => host.openCreate()}
+          >
+            <wa-icon slot="start" name="plus"></wa-icon>
+            {t("categories.addItem")}
+          </wa-button>
+        </div>
 
         <div
           className="wa-grid wa-gap-m"

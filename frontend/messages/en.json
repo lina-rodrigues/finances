@@ -139,6 +139,19 @@
     "postedAt": "Date",
     "pendingHint": "AI is mapping your statement…",
     "failedHint": "Mapping failed. Delete this import and try again.",
+    "applyFailedHint": "Confirm stopped mid-apply. Undo to restore review, fix the row below, then confirm again.",
+    "applyErrorDetail": "Row {index}: {reason} · {type} · {category} · {label}",
+    "applyReasons": {
+      "CATEGORY_NOT_FOUND": "category not found",
+      "MISSING_PARENT": "entry is missing a parent line item",
+      "MISSING_REALIZED": "entry is missing a realized amount",
+      "PARENT_NOT_FOUND": "parent line item not found in this month",
+      "MISSING_LABEL": "line item is missing a label",
+      "MISSING_PLANNED": "line item is missing a planned amount",
+      "RECURRENCE_COUNT_MISSING": "recurring count is missing",
+      "RECURRENCE_UNTIL_MISSING": "recurring end month is missing",
+      "UNEXPECTED": "unexpected error"
+    },
     "doneHint": "This import is applied. Undo to return to review."
   },
   "reports": {

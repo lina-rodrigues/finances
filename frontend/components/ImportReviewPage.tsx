@@ -149,10 +149,22 @@ export function ImportReviewPage() {
           window.clearTimeout(saveTimer.current);
           await patchImportProposedItems(id, itemsRef.current);
         }
-        const detail = await confirmImport(id);
-        setBatch(detail);
-        setItems(detail.proposedItems);
-        router.refresh();
+        try {
+          const detail = await confirmImport(id);
+          setBatch(detail);
+          setItems(detail.proposedItems);
+          router.refresh();
+        } catch (error) {
+          // Persist failure details on the batch; refresh so the callout can show them.
+          try {
+            const detail = await fetchImport(id);
+            setBatch(detail);
+            setItems(detail.proposedItems);
+          } catch {
+            // ignore secondary fetch errors
+          }
+          throw error;
+        }
       },
       { successMessage: t("imports.confirmSuccess") },
     );
@@ -213,8 +225,28 @@ export function ImportReviewPage() {
       {batch.status === "failed" ? (
         <wa-callout variant="danger">
           <wa-icon slot="icon" name="exclamation-triangle"></wa-icon>
-          {t("imports.failedHint")}
-          {batch.error ? ` (${batch.error})` : ""}
+          <div className="wa-stack wa-gap-2xs">
+            <span>
+              {batch.applyError
+                ? t("imports.applyFailedHint")
+                : t("imports.failedHint")}
+              {batch.error ? ` (${batch.error})` : ""}
+            </span>
+            {batch.applyError ? (
+              <span className="wa-caption-m">
+                {t("imports.applyErrorDetail", {
+                  reason: t(`imports.applyReasons.${batch.applyError.reason}`),
+                  type: batch.applyError.type ?? "—",
+                  category: batch.applyError.category ?? "—",
+                  label: batch.applyError.label ?? batch.applyError.parent ?? "—",
+                  index:
+                    batch.applyError.itemIndex != null
+                      ? String(batch.applyError.itemIndex + 1)
+                      : "—",
+                })}
+              </span>
+            ) : null}
+          </div>
         </wa-callout>
       ) : null}
       {batch.status === "done" ? (

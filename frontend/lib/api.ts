@@ -343,7 +343,7 @@ export function nextYearMonth(yearMonth: string): string {
 
 export function monthPagePath(
   yearMonth: string,
-  tab: "categories" | "reports" = "categories",
+  tab: AppTab = "categories",
 ): string {
   return navPath(tab, yearMonth);
 }
@@ -356,7 +356,7 @@ export function navPath(tab: AppTab, yearMonth?: string): string {
 
   switch (tab) {
     case "finance":
-      return "/";
+      return month === current ? "/" : `/?month=${month}`;
     case "categories":
       return month === current ? "/categories" : `/categories?month=${month}`;
     case "reports":
@@ -480,6 +480,7 @@ export interface ImportBatchSummary {
   fileName: string;
   status: ImportBatchStatus;
   error: string | null;
+  applyError?: ImportApplyErrorDetails | null;
   cursorAgentId?: string | null;
   cursorRunId?: string | null;
   sourceCount: number;
@@ -488,6 +489,20 @@ export interface ImportBatchSummary {
   deletedCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ImportApplyErrorDetails {
+  reason: string;
+  itemId: string | null;
+  itemIndex: number | null;
+  sourceFitId: string | null;
+  type: "LineItem" | "LineItemEntry" | null;
+  category: string | null;
+  label: string | null;
+  parent: string | null;
+  planned: number | null;
+  realized: number | null;
+  message?: string | null;
 }
 
 export interface ImportBatchDetail extends ImportBatchSummary {

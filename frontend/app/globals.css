@@ -79,6 +79,29 @@ wa-page::part(main-content) {
   width: 100%;
 }
 
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--wa-space-s);
+  width: 100%;
+}
+
+.app-header__start {
+  justify-self: start;
+  min-width: 0;
+}
+
+.app-header__title {
+  justify-self: center;
+  text-align: center;
+  margin: 0;
+}
+
+.app-header__end {
+  justify-self: end;
+}
+
 .auth-shell {
   min-height: 100dvh;
   display: flex;
