@@ -36,7 +36,7 @@ The frontend uses **[Web Awesome Pro](https://webawesome.com/)** (`@web.awesome.
 
 ### Private package installs (local + Vercel)
 
-Local: root / `frontend/.npmrc` should include Cloudsmith for `@web.awesome.me` (and any remaining GitHub Packages registries you use) plus auth tokens in your user `~/.npmrc`.
+Local: put the Cloudsmith registry for `@web.awesome.me` (and any remaining GitHub Packages registries) plus auth tokens in your user `~/.npmrc`.
 
 Vercel (**frontend and API** projects): set sensitive env var **`NPM_RC`** (Production + Preview) to a multiline `.npmrc` that includes the public npm registry and Web Awesome Pro (Cloudsmith) auth, per [Using private dependencies with Vercel](https://vercel.com/kb/guide/using-private-dependencies-with-vercel). The API needs this too because the monorepo `pnpm install` resolves frontend packages from the shared lockfile.
 

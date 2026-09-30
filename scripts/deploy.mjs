@@ -8,17 +8,29 @@
  *   pnpm deploy --sha abc1234
  *   pnpm deploy --timeout 900
  *
- * Requires VERCEL_TOKEN (https://vercel.com/account/tokens).
+ * Requires VERCEL_TOKEN (https://vercel.com/account/tokens) plus
+ * VERCEL_TEAM_ID, VERCEL_FRONTEND_PROJECT_ID, VERCEL_FRONTEND_URL,
+ * VERCEL_API_PROJECT_ID, and VERCEL_API_URL. Values are read from the
+ * environment, then from the repo root .env. They are never printed.
  */
 
 import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const configPath = path.join(root, "scripts/deploy.config.json");
 const config = JSON.parse(readFileSync(configPath, "utf8"));
+
+const DEPLOY_ENV_KEYS = [
+  "VERCEL_TOKEN",
+  "VERCEL_TEAM_ID",
+  "VERCEL_FRONTEND_PROJECT_ID",
+  "VERCEL_FRONTEND_URL",
+  "VERCEL_API_PROJECT_ID",
+  "VERCEL_API_URL",
+];
 
 const TERMINAL_STATES = new Set(["READY", "ERROR", "CANCELED"]);
 const SUCCESS_STATES = new Set(["READY", "CANCELED"]);
@@ -67,7 +79,95 @@ Options:
   --timeout <sec>    Max wait time (default: 600)
   -h, --help         Show this help
 
-Requires VERCEL_TOKEN in the environment.`);
+Requires these in the environment or the repo root .env:
+  VERCEL_TOKEN
+  VERCEL_TEAM_ID
+  VERCEL_FRONTEND_PROJECT_ID
+  VERCEL_FRONTEND_URL
+  VERCEL_API_PROJECT_ID
+  VERCEL_API_URL`);
+}
+
+function parseEnvFile(filePath) {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  const values = {};
+  for (const line of readFileSync(filePath, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const separator = trimmed.indexOf("=");
+    if (separator === -1) {
+      continue;
+    }
+    const key = trimmed.slice(0, separator).trim();
+    let value = trimmed.slice(separator + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+function deployEnvValue(key, fileValues) {
+  const fromProcess = process.env[key]?.trim();
+  if (fromProcess) {
+    return fromProcess;
+  }
+  return fileValues[key]?.trim() ?? "";
+}
+
+function trimTrailingSlash(url) {
+  return url.replace(/\/+$/, "");
+}
+
+function applyDeployTargets() {
+  const fileValues = parseEnvFile(path.join(root, ".env"));
+  const values = Object.fromEntries(
+    DEPLOY_ENV_KEYS.map((key) => [key, deployEnvValue(key, fileValues)]),
+  );
+
+  if (values.VERCEL_TOKEN) {
+    process.env.VERCEL_TOKEN = values.VERCEL_TOKEN;
+  }
+
+  const required = [
+    "VERCEL_TEAM_ID",
+    "VERCEL_FRONTEND_PROJECT_ID",
+    "VERCEL_FRONTEND_URL",
+    "VERCEL_API_PROJECT_ID",
+    "VERCEL_API_URL",
+  ];
+  const missing = required.filter((key) => !values[key]);
+  if (missing.length > 0) {
+    console.error("Missing deploy settings. Set these in the environment or .env:");
+    for (const key of missing) {
+      console.error(`  ${key}`);
+    }
+    process.exit(1);
+  }
+
+  const frontendUrl = trimTrailingSlash(values.VERCEL_FRONTEND_URL);
+  const apiUrl = trimTrailingSlash(values.VERCEL_API_URL);
+  config.teamId = values.VERCEL_TEAM_ID;
+
+  for (const project of config.projects) {
+    if (project.name === "frontend") {
+      project.projectId = values.VERCEL_FRONTEND_PROJECT_ID;
+      project.url = frontendUrl;
+    } else if (project.name === "api") {
+      project.projectId = values.VERCEL_API_PROJECT_ID;
+      project.url = apiUrl;
+      project.healthCheck = `${apiUrl}/health`;
+    }
+  }
 }
 
 function git(command) {
@@ -359,6 +459,7 @@ async function reportFailures(results) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  applyDeployTargets();
 
   assertCleanWorkingTree();
   const pushed = pushIfNeeded(options);

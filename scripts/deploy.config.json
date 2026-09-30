@@ -1,5 +1,4 @@
 {
-  "teamId": "",
   "branch": "main",
   "remote": "origin",
   "pollIntervalSeconds": 10,
@@ -7,15 +6,10 @@
   "projects": [
     {
       "name": "frontend",
-      "projectId": "",
-      "url": "",
       "required": true
     },
     {
       "name": "api",
-      "projectId": "",
-      "url": "",
-      "healthCheck": "",
       "optional": true
     }
   ]
