@@ -14,7 +14,9 @@ import {
   scheduleReportGeneration,
 } from "../services/reportGenerationService.js";
 import { buildReportDocxBuffer, contentDispositionHeader, reportDownloadFilename } from "../services/reportExportService.js";
+import { REPORT_ERROR_CODES } from "../constants/reportErrors.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { readCursorApiKey } from "../services/cursorAi.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
 
@@ -121,6 +123,11 @@ router.delete(
 router.post(
   "/generate",
   asyncHandler(async (req, res) => {
+    if (!readCursorApiKey()) {
+      res.status(403).json({ error: REPORT_ERROR_CODES.SERVICE_UNAVAILABLE });
+      return;
+    }
+
     const { yearMonth } = generateReportSchema.parse(req.body);
     const report = await createPendingReport(req.userId!, yearMonth);
     if (!report) {

@@ -24,7 +24,7 @@ import {
   type ImportProposedItem,
 } from "@/lib/api";
 import { ImportNameEditor } from "@/components/ImportNameEditor";
-import { useTranslation } from "@/lib/i18n";
+import { translateError, useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 const DRAFT_DEBOUNCE_MS = 800;
@@ -259,7 +259,7 @@ export function ImportReviewPage() {
               {batch.applyError
                 ? t("imports.applyFailedHint")
                 : t("imports.failedHint")}
-              {batch.error ? ` (${batch.error})` : ""}
+              {batch.error ? ` (${translateError(batch.error, locale)})` : ""}
             </span>
             {batch.applyError ? (
               <span className="wa-caption-m">

@@ -17,6 +17,7 @@ import {
   fetchCursorImportRun,
   startCursorImportKnowledgeLearn,
 } from "./cursorImportService.js";
+import { readCursorApiKey } from "./cursorAi.js";
 import { loadImportKnowledgeLearnPrompt } from "./importPromptService.js";
 
 const knowledgeRuleSchema = z.object({
@@ -101,6 +102,12 @@ async function upsertKnowledgeRules(
 
 /** Start (or skip) knowledge learning after a successful confirm. */
 export async function startImportKnowledgeLearn(batch: IImportBatch): Promise<IImportBatch> {
+  // Confirm still applies the import when AI is off. The execute route returns 403
+  // before calling this, so the button does not succeed silently.
+  if (!readCursorApiKey()) {
+    return batch;
+  }
+
   const changes = buildKnowledgeChanges(batch);
   if (changes.length === 0) {
     batch.knowledgeStatus = "ready";

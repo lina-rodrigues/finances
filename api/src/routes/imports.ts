@@ -13,6 +13,7 @@ import { importProposedItemsSchema } from "../schemas/importBatch.js";
 import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
 import type { ImportApplyErrorDetails } from "../constants/importErrors.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
+import { readCursorApiKey } from "../services/cursorAi.js";
 import { MAX_OFX_BYTES } from "../services/ofxParseService.js";
 import {
   createPendingImportBatch,
@@ -156,6 +157,11 @@ router.get(
 router.post(
   "/:id/knowledge/execute",
   asyncHandler(async (req, res) => {
+    if (!readCursorApiKey()) {
+      res.status(403).json({ error: IMPORT_ERROR_CODES.SERVICE_UNAVAILABLE });
+      return;
+    }
+
     try {
       const batch = await executeImportKnowledgeLearn(req.userId!, req.params.id);
       const rules = await listKnowledgeRulesForBatch(req.userId!, batch._id.toString());

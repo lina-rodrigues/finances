@@ -3,9 +3,10 @@ import {
   REPORT_ERROR_CODES,
   ReportServiceError,
 } from "../constants/reportErrors.js";
+import { readCursorApiKey } from "./cursorAi.js";
 
 function getCursorApiKey(): string {
-  const apiKey = process.env.CURSOR_API_KEY?.trim();
+  const apiKey = readCursorApiKey();
   if (!apiKey) {
     throw new ReportServiceError(REPORT_ERROR_CODES.SERVICE_UNAVAILABLE);
   }

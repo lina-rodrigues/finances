@@ -24,6 +24,7 @@ import {
 } from "./importKnowledgeService.js";
 import { parseOfxTransactions } from "./ofxParseService.js";
 import { ensureMonth } from "./balanceService.js";
+import { readCursorApiKey } from "./cursorAi.js";
 
 function extractJsonArray(raw: string): unknown {
   const trimmed = raw.trim();
@@ -129,6 +130,10 @@ export async function createPendingImportBatch(params: {
   fileName: string;
   rawOfx: string;
 }): Promise<IImportBatch> {
+  if (!readCursorApiKey()) {
+    throw new ImportServiceError(IMPORT_ERROR_CODES.SERVICE_UNAVAILABLE, 403);
+  }
+
   const transactions = parseOfxTransactions(params.rawOfx);
   const existing = await ImportTransactionId.find({
     userId: params.userId,

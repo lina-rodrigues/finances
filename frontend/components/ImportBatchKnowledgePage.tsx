@@ -13,13 +13,13 @@ import {
   type ImportBatchKnowledgeResponse,
   type ImportBatchSummary,
 } from "@/lib/api";
-import { useTranslation } from "@/lib/i18n";
+import { translateError, useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 export function ImportBatchKnowledgePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { loading: mutating, run } = useMutationFeedback();
   const [batch, setBatch] = useState<ImportBatchSummary | null>(null);
   const [knowledge, setKnowledge] = useState<ImportBatchKnowledgeResponse | null>(null);
@@ -122,7 +122,7 @@ export function ImportBatchKnowledgePage() {
         <wa-callout variant="danger">
           <wa-icon slot="icon" name="exclamation-triangle"></wa-icon>
           {t("imports.knowledgeFailedHint")}
-          {knowledge?.error ? ` (${knowledge.error})` : ""}
+          {knowledge?.error ? ` (${translateError(knowledge.error, locale)})` : ""}
         </wa-callout>
       ) : null}
 

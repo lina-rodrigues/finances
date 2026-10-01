@@ -1,5 +1,6 @@
 import { Agent, type Run } from "@cursor/sdk";
 import { IMPORT_ERROR_CODES, ImportServiceError } from "../constants/importErrors.js";
+import { readCursorApiKey } from "./cursorAi.js";
 
 /** Coarse phase for serverless poll loops. */
 export type CursorRunPhase = "running" | "finished" | "failed";
@@ -22,9 +23,9 @@ export function cursorRunPhase(status: string | null | undefined): CursorRunPhas
 }
 
 function getCursorApiKey(): string {
-  const apiKey = process.env.CURSOR_API_KEY?.trim();
+  const apiKey = readCursorApiKey();
   if (!apiKey) {
-    throw new ImportServiceError(IMPORT_ERROR_CODES.SERVICE_UNAVAILABLE, 503);
+    throw new ImportServiceError(IMPORT_ERROR_CODES.SERVICE_UNAVAILABLE, 403);
   }
   return apiKey;
 }

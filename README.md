@@ -268,13 +268,13 @@ Edit the default AI report prompt at [`api/prompts/financial-health-report.txt`]
 
 ### AI reports (operator notes)
 
-End users only see friendly messages in the app (for example, “AI reports aren't available right now”). They never see environment variable names or other setup details.
+End users only see friendly messages in the app (for example, “AI reports are currently disabled.”). They never see environment variable names or other setup details.
 
 If report generation fails in production, check the API logs and configuration:
 
 | What users see | Likely cause | Fix |
 |----------------|--------------|-----|
-| “AI reports aren't available right now” | `CURSOR_API_KEY` missing or empty on the API | Add a valid key to the API environment (local `.env` or Vercel project env vars), then redeploy the API |
+| “AI reports are currently disabled.” / “AI import features are currently disabled.” | `CURSOR_API_KEY` missing or empty on the API. Generate report, OFX upload, and knowledge learning return **403** | Add a valid key to the API environment (local `.env` or Vercel project env vars), then redeploy the API |
 | “We couldn't generate your report…” | Cursor API error, network issue, or prompt file problem | Inspect API logs; confirm the key is valid, the API can reach Cursor, and [`api/prompts/financial-health-report.txt`](api/prompts/financial-health-report.txt) exists in the deployment |
 | API log: `ENOENT … sdk-agent-store` | AI reports used local SDK mode on a read-only serverless filesystem | Fixed in app code: reports use Cursor **cloud** agents (no disk). Redeploy the API if you still see this on an older build |
 
