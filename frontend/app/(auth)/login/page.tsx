@@ -6,7 +6,6 @@ import { useState } from "react";
 import { login } from "@/lib/auth-api";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation, translateError } from "@/lib/i18n";
-import { showToast } from "@/lib/toast";
 
 function eventValue(event: { target: EventTarget | null }): string {
   return (event.target as HTMLInputElement & { value: string }).value;
@@ -19,9 +18,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
     try {
       await login(email, password);
@@ -30,7 +31,7 @@ export default function LoginPage() {
       router.refresh();
     } catch (err) {
       const code = err instanceof Error ? err.message : "REQUEST_FAILED";
-      void showToast(translateError(code, locale), { variant: "danger" });
+      setError(translateError(code, locale));
     } finally {
       setLoading(false);
     }
@@ -43,6 +44,13 @@ export default function LoginPage() {
           <h1 className="wa-heading-m">{t("auth.login.title")}</h1>
           <p className="wa-caption-m wa-color-text-quiet">{t("auth.login.subtitle")}</p>
         </div>
+
+        {error ? (
+          <wa-callout variant="danger">
+            <wa-icon slot="icon" name="circle-exclamation"></wa-icon>
+            {error}
+          </wa-callout>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="wa-stack wa-gap-m settings-form">
           <wa-input
