@@ -2,6 +2,15 @@
 
 A personal finance application for tracking monthly income and expenses with planned vs. realized amounts, flat customizable categories, and automatic balance carry-forward.
 
+## Demo
+
+A public demo is available at [finances-demo.linarodrigues.dev](https://finances-demo.linarodrigues.dev).
+
+Email: `demo@linarodrigues.dev`
+Password: `Demo1234`
+
+The account already has sample income and expenses for October 2026, with salary, rent, and internet repeating into later months. AI reports and AI import features are turned off on this demo.
+
 ## Architecture
 
 The project is a **pnpm monorepo** with two independently deployable packages:
