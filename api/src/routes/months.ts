@@ -15,6 +15,7 @@ import {
   toLineItemMutationResponse,
 } from "../schemas/lineItem.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { loadViewer, requireWritable } from "../middleware/loadViewer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   getCurrentYearMonth,
@@ -23,6 +24,8 @@ import {
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
+router.use(requireWritable);
 
 router.param("yearMonth", (req, res, next, value) => {
   if (!isValidYearMonth(value)) {

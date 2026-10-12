@@ -2,6 +2,7 @@
 
 import type { LineItem } from "@/lib/api";
 import { isPayDisabled } from "@/lib/payLineItem";
+import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 
 interface LineItemActionsProps {
@@ -26,6 +27,7 @@ export function LineItemActions({
   loading = false,
 }: LineItemActionsProps) {
   const { t } = useTranslation();
+  const { readOnly, loading: authLoading } = useAuth();
   const disabledPay = payDisabled ?? isPayDisabled(item);
   const iconOnly = layout === "inline";
   const payLabel = t("entries.pay");
@@ -33,6 +35,10 @@ export function LineItemActions({
   const editLabel = t("entries.edit");
   const deleteLabel = t("common.delete");
   const moreLabel = t("entries.itemActions");
+
+  if (authLoading || readOnly) {
+    return null;
+  }
 
   if (iconOnly) {
     return (

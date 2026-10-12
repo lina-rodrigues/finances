@@ -16,12 +16,14 @@ import {
 import { buildReportDocxBuffer, contentDispositionHeader, reportDownloadFilename } from "../services/reportExportService.js";
 import { REPORT_ERROR_CODES } from "../constants/reportErrors.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { forbidReadOnly, loadViewer } from "../middleware/loadViewer.js";
 import { readCursorApiKey } from "../services/cursorAi.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { isValidYearMonth } from "../utils/yearMonth.js";
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
 
 const yearMonthQuerySchema = z.object({
   yearMonth: z.string().refine(isValidYearMonth, { message: "Invalid yearMonth" }),
@@ -49,7 +51,7 @@ router.get(
   "/export/xlsx",
   asyncHandler(async (req, res) => {
     const { yearMonth } = yearMonthQuerySchema.parse(req.query);
-    const user = await User.findById(req.userId!).select("preferences.language preferences.currency");
+    const user = await User.findById(req.actorId!).select("preferences.language preferences.currency");
     const language = user?.preferences.language ?? "en";
     const currency = user?.preferences.currency ?? "USD";
     const monthView = await buildMonthView(req.userId!, yearMonth);
@@ -63,6 +65,7 @@ router.get(
 
 router.get(
   "/",
+  forbidReadOnly,
   asyncHandler(async (req, res) => {
     const { yearMonth } = yearMonthQuerySchema.parse(req.query);
     const reports = await FinancialReport.find({ userId: req.userId, yearMonth })
@@ -75,6 +78,7 @@ router.get(
 
 router.get(
   "/:id/export/docx",
+  forbidReadOnly,
   asyncHandler(async (req, res) => {
     const report = await FinancialReport.findOne({ _id: req.params.id, userId: req.userId });
     if (!report || report.status !== "completed" || !report.content?.trim()) {
@@ -95,6 +99,7 @@ router.get(
 
 router.get(
   "/:id",
+  forbidReadOnly,
   asyncHandler(async (req, res) => {
     const report = await FinancialReport.findOne({ _id: req.params.id, userId: req.userId });
     if (!report) {
@@ -107,6 +112,7 @@ router.get(
 
 router.delete(
   "/:id",
+  forbidReadOnly,
   asyncHandler(async (req, res) => {
     const report = await FinancialReport.findOneAndDelete({
       _id: req.params.id,
@@ -122,6 +128,7 @@ router.delete(
 
 router.post(
   "/generate",
+  forbidReadOnly,
   asyncHandler(async (req, res) => {
     if (!readCursorApiKey()) {
       res.status(403).json({ error: REPORT_ERROR_CODES.SERVICE_UNAVAILABLE });

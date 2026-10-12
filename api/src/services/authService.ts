@@ -51,6 +51,7 @@ export function toPublicUser(user: IUser) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    readOnly: Boolean(user.readOnly),
     preferences: {
       ...user.preferences,
       aiReportTone: normalizeAiReportTone(user.preferences.aiReportTone),

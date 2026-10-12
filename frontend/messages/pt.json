@@ -95,6 +95,7 @@
   },
   "imports": {
     "title": "Importações",
+    "readOnlyUnavailable": "Esta página não está disponível para uma conta somente leitura.",
     "upload": "Enviar OFX",
     "yearMonth": "Mês de destino",
     "empty": "Nenhuma importação ainda. Envie um extrato OFX para começar.",
@@ -339,6 +340,7 @@
   },
   "errors": {
     "UNAUTHORIZED": "Faça login novamente.",
+    "READ_ONLY": "Esta conta só pode visualizar as finanças.",
     "INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
     "INVALID_INVITATION_CODE": "Código de convite inválido.",
     "EMAIL_ALREADY_EXISTS": "Já existe uma conta com este e-mail.",

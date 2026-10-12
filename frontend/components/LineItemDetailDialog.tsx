@@ -14,6 +14,7 @@ import {
 } from "@/lib/api";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { backgroundReconcile } from "@/lib/backgroundReconcile";
+import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 import {
   buildOptimisticRemoveEntry,
@@ -61,6 +62,7 @@ export function LineItemDetailDialog({
   paying = false,
 }: LineItemDetailDialogProps) {
   const router = useRouter();
+  const { readOnly, loading } = useAuth();
   const { t, locale } = useTranslation();
   const formatMoney = useFormatCurrency();
   const monthView = useMonthView();
@@ -229,11 +231,13 @@ export function LineItemDetailDialog({
                         {formatEntryDateTime(entry.createdAt, localeTag)}
                       </p>
                     </div>
-                    <EntryActionsMenu
-                      onEdit={() => setEditingEntry(entry)}
-                      onDelete={() => setDeletingEntry(entry)}
-                      disabled={deleting}
-                    />
+                    {loading || readOnly ? null : (
+                      <EntryActionsMenu
+                        onEdit={() => setEditingEntry(entry)}
+                        onDelete={() => setDeletingEntry(entry)}
+                        disabled={deleting}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

@@ -38,7 +38,7 @@ function eventValue(event: { target: EventTarget | null }): string {
 }
 
 export function SettingsPage() {
-  const { user, updateLocalPreferences, updateLocalName, logout } = useAuth();
+  const { user, readOnly, loading: authLoading, updateLocalPreferences, updateLocalName, logout } = useAuth();
   const { month } = useMonthView();
   const { t, setLocale } = useTranslation();
   const { loading, runOptimistic } = useMutationFeedback();
@@ -320,29 +320,33 @@ export function SettingsPage() {
             <wa-option value="pt">{t("settings.languagePt")}</wa-option>
           </wa-select>
 
-          <wa-select
-            id="settings-ai-report-tone"
-            label={t("settings.aiReportTone")}
-            value={aiReportTone}
-            disabled={loading || undefined}
-            onChange={(e) => void handleAiReportToneChange(eventValue(e) as AiReportTone)}
-          >
-            <wa-option value="normal">{t("settings.aiReportToneNormal")}</wa-option>
-            <wa-option value="formal">{t("settings.aiReportToneFormal")}</wa-option>
-            <wa-option value="technical">{t("settings.aiReportToneTechnical")}</wa-option>
-            <wa-option value="informal">{t("settings.aiReportToneInformal")}</wa-option>
-          </wa-select>
+          {authLoading || readOnly ? null : (
+            <wa-select
+              id="settings-ai-report-tone"
+              label={t("settings.aiReportTone")}
+              value={aiReportTone}
+              disabled={loading || undefined}
+              onChange={(e) => void handleAiReportToneChange(eventValue(e) as AiReportTone)}
+            >
+              <wa-option value="normal">{t("settings.aiReportToneNormal")}</wa-option>
+              <wa-option value="formal">{t("settings.aiReportToneFormal")}</wa-option>
+              <wa-option value="technical">{t("settings.aiReportToneTechnical")}</wa-option>
+              <wa-option value="informal">{t("settings.aiReportToneInformal")}</wa-option>
+            </wa-select>
+          )}
         </div>
       </wa-card>
 
       <wa-card>
         <div className="wa-stack wa-gap-m">
-          <Link href={categoryManagePath(month.yearMonth)}>
-            <wa-button type="button" appearance="outlined" style={{ width: "100%" }}>
-              <wa-icon slot="start" name="pen-to-square"></wa-icon>
-              {t("settings.manageCategories")}
-            </wa-button>
-          </Link>
+          {authLoading || readOnly ? null : (
+            <Link href={categoryManagePath(month.yearMonth)}>
+              <wa-button type="button" appearance="outlined" style={{ width: "100%" }}>
+                <wa-icon slot="start" name="pen-to-square"></wa-icon>
+                {t("settings.manageCategories")}
+              </wa-button>
+            </Link>
+          )}
 
           <wa-button
             type="button"

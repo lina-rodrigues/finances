@@ -95,6 +95,7 @@
   },
   "imports": {
     "title": "Imports",
+    "readOnlyUnavailable": "This page is not available for a read-only account.",
     "upload": "Upload OFX",
     "yearMonth": "Target month",
     "empty": "No imports yet. Upload an OFX statement to get started.",
@@ -339,6 +340,7 @@
   },
   "errors": {
     "UNAUTHORIZED": "Please sign in again.",
+    "READ_ONLY": "This account can only view finances.",
     "INVALID_CREDENTIALS": "Invalid email or password.",
     "INVALID_INVITATION_CODE": "Invalid invitation code.",
     "EMAIL_ALREADY_EXISTS": "An account with this email already exists.",

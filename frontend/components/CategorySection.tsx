@@ -7,6 +7,7 @@ import { PendingBadge } from "@/components/PendingBadge";
 import { type Category, type LineItem } from "@/lib/api";
 import { hasLineItemEntries } from "@/lib/lineItemAmounts";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
+import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useRowPending } from "@/lib/MonthViewProvider";
@@ -102,6 +103,7 @@ export function CategorySection({
   addItemTestId,
 }: CategorySectionProps) {
   const { t } = useTranslation();
+  const { readOnly, loading } = useAuth();
   const formatMoney = useFormatCurrency();
   const hasContent = category.lineItems.length > 0;
   const categoryTotal = sumCategoryAmounts(category.lineItems);
@@ -143,16 +145,18 @@ export function CategorySection({
             <LineItemRow key={item.id} item={item} handlers={handlers} />
           ))}
         </div>
-        <wa-button
-          type="button"
-          appearance="plain"
-          size="s"
-          data-testid={addItemTestId}
-          onClick={onAddItem}
-        >
-          <wa-icon slot="start" name="plus"></wa-icon>
-          {t("categories.addItem")}
-        </wa-button>
+        {loading || readOnly ? null : (
+          <wa-button
+            type="button"
+            appearance="plain"
+            size="s"
+            data-testid={addItemTestId}
+            onClick={onAddItem}
+          >
+            <wa-icon slot="start" name="plus"></wa-icon>
+            {t("categories.addItem")}
+          </wa-button>
+        )}
       </div>
     </wa-details>
   );

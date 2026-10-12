@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { forbidReadOnly, loadViewer } from "../middleware/loadViewer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   ImportBatch,
@@ -42,6 +43,8 @@ const upload = multer({
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
+router.use(forbidReadOnly);
 
 function sendImportError(res: import("express").Response, error: unknown): boolean {
   if (error instanceof ImportServiceError) {

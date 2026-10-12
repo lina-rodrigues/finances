@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { MonthNavHeader } from "@/components/MonthNavHeader";
+import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 import { resolveAppPageSize } from "@/lib/pageSize";
 
@@ -11,6 +12,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
+  const { readOnly, loading } = useAuth();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -76,15 +78,17 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           <wa-icon name="list"></wa-icon>
           <span>{t("nav.categories")}</span>
         </Link>
-        <Link
-          href="/imports"
-          data-drawer="close"
-          className="nav-link"
-          aria-current={importsActive ? "page" : undefined}
-        >
-          <wa-icon name="upload"></wa-icon>
-          <span>{t("nav.imports")}</span>
-        </Link>
+        {loading || readOnly ? null : (
+          <Link
+            href="/imports"
+            data-drawer="close"
+            className="nav-link"
+            aria-current={importsActive ? "page" : undefined}
+          >
+            <wa-icon name="upload"></wa-icon>
+            <span>{t("nav.imports")}</span>
+          </Link>
+        )}
         <Link
           href={`/reports${monthQuery}`}
           data-drawer="close"

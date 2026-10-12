@@ -26,6 +26,7 @@ import {
 interface AuthContextValue {
   user: PublicUser | null;
   loading: boolean;
+  readOnly: boolean;
   preferences: UserPreferences;
   refreshUser: () => Promise<void>;
   updateLocalPreferences: (prefs: Partial<UserPreferences>) => void;
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(detectBrowserLocale());
 
   const preferences = user?.preferences ?? defaultPreferences;
+  const readOnly = Boolean(user?.readOnly);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
@@ -124,13 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      readOnly,
       preferences,
       refreshUser,
       updateLocalPreferences,
       updateLocalName,
       logout,
     }),
-    [user, loading, preferences, refreshUser, updateLocalPreferences, updateLocalName, logout],
+    [user, loading, readOnly, preferences, refreshUser, updateLocalPreferences, updateLocalName, logout],
   );
 
   return (

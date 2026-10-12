@@ -454,9 +454,19 @@ The first month in the system starts with `lastMonthBalance: 0`.
 | `pnpm seed` | Seed default categories |
 | `pnpm seed:fresh` | Drop existing data and reseed |
 | `pnpm import:credit-card` | Import a credit-card JSON mapping (pass `-- --json … --env …`; see [Credit card statement import](#credit-card-statement-import-local)) |
+| `pnpm user:readonly` | Create a read-only login for an existing account (`--parent-email`, `--email`, `--name`, `--password`). Add `--env prod` to load repo-root `.env.prod` instead of `api/.env` |
 | `pnpm build` | Build both packages |
 | `pnpm contrast-check` | Legacy Cotton Candy theme auditor (not used for Web Awesome UI) |
 | `pnpm responsive-check` | Playwright screenshots (2 themes x 3 months x 8 viewports) into `.responsive-audit/` — requires `pnpm dev` running |
+
+Create a read-only login that sees a parent account’s months, categories, and line items. It can change only its own settings, and it cannot use imports or AI reports.
+
+```bash
+pnpm user:readonly -- --parent-email parent@example.com --email reader@example.com --name "Reader" --password "..."
+pnpm user:readonly -- --env prod --parent-email parent@example.com --email reader@example.com --name "Reader" --password "..."
+```
+
+`--env local` (the default) loads `api/.env`. `--env prod` loads repo-root `.env.prod` and exits if that file is missing. The parent email must already exist. The new email must not.
 
 ## Project Structure
 

@@ -4,13 +4,28 @@ import Link from "next/link";
 import { CategoryManagerEditor } from "@/components/CategoryManagerEditor";
 import { PageTitle } from "@/components/PageTitle";
 import { navPath } from "@/lib/api";
+import { useAuth } from "@/lib/AuthProvider";
 import { useMonthView } from "@/lib/MonthViewProvider";
 import { useTranslation } from "@/lib/i18n";
 
 export function CategoryManagePage() {
   const { t } = useTranslation();
+  const { readOnly, loading } = useAuth();
   const { month } = useMonthView();
   const backHref = navPath("categories", month.yearMonth);
+
+  if (loading) {
+    return null;
+  }
+
+  if (readOnly) {
+    return (
+      <div className="wa-stack wa-gap-l">
+        <PageTitle>{t("categories.manageTitle")}</PageTitle>
+        <wa-callout variant="neutral">{t("imports.readOnlyUnavailable")}</wa-callout>
+      </div>
+    );
+  }
 
   return (
     <div className="wa-stack wa-gap-l">

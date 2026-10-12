@@ -14,7 +14,8 @@
     "db:backup": "node scripts/db/backup.mjs",
     "db:restore": "node scripts/db/restore.mjs",
     "db:migrate:realized-to-entries": "node scripts/db/migrate-realized-to-entries.mjs",
-    "import:credit-card": "pnpm --filter api import:credit-card --"
+    "import:credit-card": "pnpm --filter api import:credit-card --",
+    "user:readonly": "pnpm --filter api user:readonly --"
   },
   "engines": {
     "node": ">=20"

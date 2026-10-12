@@ -28,10 +28,13 @@ import {
   updateLineItemSchema,
 } from "../schemas/lineItem.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { loadViewer, requireWritable } from "../middleware/loadViewer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
+router.use(requireWritable);
 
 async function cascadeForMonth(userId: string, monthId: Types.ObjectId): Promise<void> {
   const month = await Month.findOne({ _id: monthId, userId });

@@ -5,11 +5,14 @@ import {
   assertSeriesOwnedByUser,
 } from "../services/recurrenceService.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { loadViewer, requireWritable } from "../middleware/loadViewer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getCurrentYearMonth } from "../utils/yearMonth.js";
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
+router.use(requireWritable);
 
 router.post(
   "/:id/cancel",

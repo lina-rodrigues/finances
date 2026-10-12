@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "seed": "tsx src/seed/index.ts",
     "seed:fresh": "tsx src/seed/index.ts --fresh",
-    "import:credit-card": "tsx scripts/import-credit-card.ts"
+    "import:credit-card": "tsx scripts/import-credit-card.ts",
+    "user:readonly": "tsx scripts/create-readonly-user.ts"
   },
   "dependencies": {
     "@cursor/sdk": "^1.0.23",

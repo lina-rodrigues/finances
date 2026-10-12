@@ -6,10 +6,12 @@ import { CategorySection } from "@/components/CategorySection";
 import { PageTitle } from "@/components/PageTitle";
 import { categoryManagePath, type Category } from "@/lib/api";
 import { useMonthView } from "@/lib/MonthViewProvider";
+import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
 
 export function CategoriesSection() {
   const { t } = useTranslation();
+  const { readOnly, loading } = useAuth();
   const { month, categories, uncategorized, flatCategories } = useMonthView();
   const host = useLineItemDialogHost({ flatCategories, yearMonth: month.yearMonth });
   const manageCategoriesHref = categoryManagePath(month.yearMonth);
@@ -34,7 +36,7 @@ export function CategoriesSection() {
       <div className="wa-stack wa-gap-l">
         <PageTitle
           actions={
-            showCategoryGrid ? (
+            loading || readOnly ? undefined : showCategoryGrid ? (
               <wa-button
                 type="button"
                 variant="brand"
@@ -69,12 +71,14 @@ export function CategoriesSection() {
                 <strong>{t("categories.emptyTitle")}</strong>
                 <div className="wa-caption-m wa-color-text-quiet">{t("categories.emptyDescription")}</div>
               </wa-callout>
-              <Link href={manageCategoriesHref}>
-                <wa-button type="button" variant="brand">
-                  <wa-icon slot="start" name="plus"></wa-icon>
-                  {t("categories.addCategory")}
-                </wa-button>
-              </Link>
+              {loading || readOnly ? null : (
+                <Link href={manageCategoriesHref}>
+                  <wa-button type="button" variant="brand">
+                    <wa-icon slot="start" name="plus"></wa-icon>
+                    {t("categories.addCategory")}
+                  </wa-button>
+                </Link>
+              )}
             </div>
           </wa-card>
         ) : (

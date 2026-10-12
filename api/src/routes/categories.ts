@@ -10,10 +10,13 @@ import {
   toFlatCategoryResponse,
 } from "../services/categoryService.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+import { loadViewer, requireWritable } from "../middleware/loadViewer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 router.use(requireAuth);
+router.use(loadViewer);
+router.use(requireWritable);
 
 const iconSchema = z
   .string()

@@ -1,4 +1,4 @@
-import mongoose, { Schema, type Document } from "mongoose";
+import mongoose, { Schema, type Document, type Types } from "mongoose";
 import type { AiReportTone } from "../constants/aiReportTone.js";
 
 export type ThemePreference = "light" | "dark" | null;
@@ -15,6 +15,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string | null;
+  readOnly: boolean;
+  parentUserId: Types.ObjectId | null;
   preferences: UserPreferences;
   resetTokenHash: string | null;
   resetTokenExpiresAt: Date | null;
@@ -25,6 +27,8 @@ const userSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, default: null },
+    readOnly: { type: Boolean, default: false },
+    parentUserId: { type: Schema.Types.ObjectId, ref: "User", default: null },
     preferences: {
       theme: { type: String, default: null, enum: ["light", "dark", null] },
       currency: { type: String, default: "USD" },
