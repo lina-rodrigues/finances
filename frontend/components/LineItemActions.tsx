@@ -125,7 +125,7 @@ export function LineItemActions({
         <wa-icon slot="start" name="plus"></wa-icon>
         {addLabel}
       </wa-button>
-      <wa-dropdown placement="top-end" onWaSelect={handleMoreSelect}>
+      <wa-dropdown placement="top-end" onwa-select={handleMoreSelect}>
         <wa-button
           slot="trigger"
           type="button"
