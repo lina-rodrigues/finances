@@ -141,6 +141,8 @@
     "deleteDescription": "Isso remove permanentemente a importação. Esta ação não pode ser desfeita.",
     "deleteSuccess": "Importação excluída",
     "reviewTitle": "Revisão da importação",
+    "reviewStatementBank": "Banco · Mês de destino: {date}",
+    "reviewStatementCreditCard": "Cartão de crédito · Data de pagamento: {date}",
     "confirm": "Confirmar importação",
     "confirmSuccess": "Importação aplicada",
     "undo": "Desfazer importação",

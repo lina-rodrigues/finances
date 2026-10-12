@@ -141,6 +141,8 @@
     "deleteDescription": "This permanently removes the import. This cannot be undone.",
     "deleteSuccess": "Import deleted",
     "reviewTitle": "Import review",
+    "reviewStatementBank": "Bank · Target month: {date}",
+    "reviewStatementCreditCard": "Credit card · Payment date: {date}",
     "confirm": "Confirm import",
     "confirmSuccess": "Import applied",
     "undo": "Undo import",

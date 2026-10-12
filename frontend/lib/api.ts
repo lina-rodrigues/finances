@@ -484,6 +484,8 @@ export interface ImportProposedItem {
 export interface ImportBatchSummary {
   id: string;
   yearMonth: string;
+  statementKind: "bank" | "creditCard";
+  paymentDate: string | null;
   fileName: string;
   name: string | null;
   displayName: string;

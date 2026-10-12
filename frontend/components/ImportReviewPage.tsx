@@ -30,6 +30,24 @@ import { useMutationFeedback } from "@/lib/useMutationFeedback";
 const DRAFT_DEBOUNCE_MS = 800;
 const ROW_ESTIMATE = 300;
 
+function formatCalendarDate(isoDate: string, locale: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
+  if (!match) {
+    return isoDate;
+  }
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" }).format(date);
+}
+
+function formatYearMonth(yearMonth: string, locale: string): string {
+  const match = /^(\d{4})-(\d{2})/.exec(yearMonth);
+  if (!match) {
+    return yearMonth;
+  }
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
+  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" }).format(date);
+}
+
 function formatPostedAt(iso: string, locale: string): string {
   const value = iso.length === 10 ? `${iso}T00:00:00.000Z` : iso;
   const date = new Date(value);
@@ -236,7 +254,16 @@ export function ImportReviewPage() {
           }}
         />
         <span className="wa-caption-m wa-color-text-quiet">
-          · {batch.yearMonth} · {t(`imports.status.${batch.status}`)}
+          ·{" "}
+          {batch.statementKind === "creditCard"
+            ? t("imports.reviewStatementCreditCard", {
+                date: formatCalendarDate(batch.paymentDate ?? batch.yearMonth, localeTag),
+              })
+            : t("imports.reviewStatementBank", {
+                date: formatYearMonth(batch.yearMonth, localeTag),
+              })}
+          {" · "}
+          {t(`imports.status.${batch.status}`)}
         </span>
         <Link href={`/imports/${batch.id}/knowledge`}>
           <wa-button type="button" appearance="outlined" size="small">
