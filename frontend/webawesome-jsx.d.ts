@@ -8,6 +8,7 @@ declare module "react" {
     interface IntrinsicElements {
       "wa-page": WaProps;
       "wa-button": WaProps;
+      "wa-button-group": WaProps;
       "wa-icon": WaProps;
       "wa-input": WaProps;
       "wa-textarea": WaProps;
