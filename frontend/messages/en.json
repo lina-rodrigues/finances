@@ -264,6 +264,11 @@
     "category": "Category",
     "type": "Type",
     "label": "Label",
+    "operationMode": "Mode",
+    "operationModeBudget": "Budget",
+    "operationModePrediction": "Prediction",
+    "operationModeBudgetHint": "Expected budget keeps this amount until logged entries go above it.",
+    "operationModePredictionHint": "Expected budget uses this amount until the first entry, then uses what was logged.",
     "planned": "Planned",
     "realized": "Realized (optional)",
     "submit": "Add"

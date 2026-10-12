@@ -1,5 +1,7 @@
 export type LineItemType = "income" | "expense";
 
+export type LineItemOperationMode = "budget" | "prediction";
+
 export type BudgetGroup = "essential" | "non_essential" | "investment";
 
 export type RecurrenceEndType = "never" | "count" | "until";
@@ -18,6 +20,7 @@ export interface LineItemMutationResponse {
   type: LineItemType;
   label: string;
   plannedAmount: number;
+  operationMode: LineItemOperationMode;
   realizedAmount: number | null;
   entries: LineItemEntry[];
   entryCount: number;
@@ -43,6 +46,7 @@ export interface LineItem {
   type: LineItemType;
   label: string;
   plannedAmount: number;
+  operationMode: LineItemOperationMode;
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
@@ -203,6 +207,7 @@ export async function createLineItem(
     type: LineItemType;
     label: string;
     plannedAmount: number;
+    operationMode?: LineItemOperationMode;
     realizedAmount?: number | null;
     recurrence?: RecurrenceInput;
   },
@@ -218,6 +223,7 @@ export async function updateLineItem(
     type: LineItemType;
     label: string;
     plannedAmount: number;
+    operationMode: LineItemOperationMode;
     realizedAmount: number | null;
     scope: RecurrenceScope;
   }>,

@@ -37,6 +37,7 @@ function toLineItemFields(response: LineItemMutationResponse) {
     type: response.type,
     label: response.label,
     plannedAmount: response.plannedAmount,
+    operationMode: response.operationMode ?? "prediction",
     entries,
     entryCount,
     seriesId: response.seriesId,
@@ -75,6 +76,7 @@ export function buildOptimisticLineItem(
   patch: {
     label: string;
     plannedAmount: number;
+    operationMode: LineItem["operationMode"];
     realizedAmount: number | null;
     type?: LineItem["type"];
   },
@@ -86,6 +88,7 @@ export function buildOptimisticLineItem(
     type: patch.type ?? base.type,
     label: patch.label,
     plannedAmount,
+    operationMode: patch.operationMode,
     realizedAmount,
     displayAmount: effectiveAmount({ plannedAmount, realizedAmount, entries: base.entries }),
     isRealized: base.isRealized,
@@ -97,6 +100,7 @@ export function buildOptimisticCreateLineItem(input: {
   type: LineItem["type"];
   label: string;
   plannedAmount: number;
+  operationMode: LineItem["operationMode"];
   realizedAmount: number | null;
 }): LineItem {
   return normalizeLineItem({
@@ -104,6 +108,7 @@ export function buildOptimisticCreateLineItem(input: {
     type: input.type,
     label: input.label,
     plannedAmount: input.plannedAmount,
+    operationMode: input.operationMode,
     realizedAmount: input.realizedAmount,
     displayAmount: effectiveAmount(input),
     isRealized: input.realizedAmount !== null,

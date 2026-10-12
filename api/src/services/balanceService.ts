@@ -1,9 +1,10 @@
 import { Month, type IMonth } from "../models/Month.js";
 import {
   LineItem,
-  effectiveAmount,
+  expectedAmount,
   getRealizedAmount,
   type ILineItemEntry,
+  type LineItemOperationMode,
 } from "../models/LineItem.js";
 import { isDuplicateKeyError } from "../db/migrations.js";
 import { nextYearMonth } from "../utils/yearMonth.js";
@@ -12,6 +13,7 @@ import type { Types } from "mongoose";
 type LineItemBalanceInput = {
   type: string;
   plannedAmount: number;
+  operationMode?: LineItemOperationMode | null;
   entries?: ILineItemEntry[];
 };
 
@@ -21,7 +23,7 @@ export function computeBalance(
 ): number {
   let balance = lastMonthBalance;
   for (const item of lineItems) {
-    const amount = effectiveAmount(item);
+    const amount = expectedAmount(item);
     balance += item.type === "income" ? amount : -amount;
   }
   return balance;

@@ -35,6 +35,7 @@ export function normalizeLineItem(item: LineItem): LineItem {
   const entryCount = item.entryCount ?? item.entries?.length ?? 0;
   return {
     ...item,
+    operationMode: item.operationMode ?? "prediction",
     entryCount,
     realizedAmount,
     isRealized: entryCount > 0,

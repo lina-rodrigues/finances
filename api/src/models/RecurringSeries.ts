@@ -1,5 +1,5 @@
 import mongoose, { Schema, type Document, type Types } from "mongoose";
-import type { LineItemType } from "./LineItem.js";
+import type { LineItemOperationMode, LineItemType } from "./LineItem.js";
 
 export type RecurrenceEndType = "never" | "count" | "until";
 
@@ -9,6 +9,7 @@ export interface IRecurringSeries extends Document {
   type: LineItemType;
   label: string;
   plannedAmount: number;
+  operationMode: LineItemOperationMode;
   startYearMonth: string;
   endType: RecurrenceEndType;
   occurrenceCount: number | null;
@@ -24,6 +25,11 @@ const recurringSeriesSchema = new Schema<IRecurringSeries>(
     type: { type: String, enum: ["income", "expense"], required: true },
     label: { type: String, required: true },
     plannedAmount: { type: Number, required: true },
+    operationMode: {
+      type: String,
+      enum: ["budget", "prediction"],
+      default: "prediction",
+    },
     startYearMonth: { type: String, required: true },
     endType: { type: String, enum: ["never", "count", "until"], required: true },
     occurrenceCount: { type: Number, default: null },

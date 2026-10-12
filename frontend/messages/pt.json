@@ -264,6 +264,11 @@
     "category": "Categoria",
     "type": "Tipo",
     "label": "Rótulo",
+    "operationMode": "Modo",
+    "operationModeBudget": "Orçamento",
+    "operationModePrediction": "Previsto",
+    "operationModeBudgetHint": "O orçamento esperado mantém este valor até os lançamentos passarem dele.",
+    "operationModePredictionHint": "O orçamento esperado usa este valor até o primeiro lançamento e, depois, o total lançado.",
     "planned": "Planejado",
     "realized": "Realizado (opcional)",
     "submit": "Adicionar"

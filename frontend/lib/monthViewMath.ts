@@ -1,4 +1,4 @@
-import type { Category, LineItem } from "@/lib/api";
+import type { Category, LineItem, LineItemOperationMode } from "@/lib/api";
 import { getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
 
 export function effectiveAmount(item: {
@@ -10,13 +10,34 @@ export function effectiveAmount(item: {
   return getLineItemRealizedAmount(item) ?? item.plannedAmount;
 }
 
+/** Contribution to the expected budget. Display amounts stay on effectiveAmount. */
+export function expectedAmount(item: {
+  operationMode?: LineItemOperationMode | null;
+  plannedAmount: number;
+  realizedAmount?: number | null;
+  entries?: { amount: number }[];
+  entryCount?: number;
+}): number {
+  if ((item.operationMode ?? "prediction") === "budget") {
+    return Math.max(item.plannedAmount, getLineItemRealizedAmount(item) ?? 0);
+  }
+  return effectiveAmount(item);
+}
+
 export function computeEndingBalance(
   lastMonthBalance: number,
-  lineItems: { type: string; plannedAmount: number; realizedAmount: number | null }[],
+  lineItems: {
+    type: string;
+    plannedAmount: number;
+    operationMode?: LineItemOperationMode | null;
+    realizedAmount: number | null;
+    entries?: { amount: number }[];
+    entryCount?: number;
+  }[],
 ): number {
   let balance = lastMonthBalance;
   for (const item of lineItems) {
-    const amount = effectiveAmount(item);
+    const amount = expectedAmount(item);
     balance += item.type === "income" ? amount : -amount;
   }
   return balance;

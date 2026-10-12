@@ -184,6 +184,9 @@ router.patch(
     if (patch.plannedAmount !== undefined) {
       updatedItem.plannedAmount = patch.plannedAmount;
     }
+    if (patch.operationMode !== undefined) {
+      updatedItem.operationMode = patch.operationMode;
+    }
     if (patch.realizedAmount !== undefined) {
       try {
         applyRealizedAmountWrite(updatedItem, patch.realizedAmount);

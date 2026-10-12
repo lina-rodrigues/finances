@@ -1,5 +1,12 @@
 import type { Types } from "mongoose";
-import { LineItem, applyRealizedAmountWrite, isRealized, pushRealizedEntry, type ILineItem } from "../models/LineItem.js";
+import {
+  LineItem,
+  applyRealizedAmountWrite,
+  isRealized,
+  pushRealizedEntry,
+  type ILineItem,
+  type LineItemOperationMode,
+} from "../models/LineItem.js";
 import { Month } from "../models/Month.js";
 import {
   RecurringSeries,
@@ -25,6 +32,7 @@ export interface SeriesTemplatePatch {
   type?: "income" | "expense";
   label?: string;
   plannedAmount?: number;
+  operationMode?: LineItemOperationMode;
 }
 
 export interface LineItemPatch {
@@ -32,6 +40,7 @@ export interface LineItemPatch {
   type?: "income" | "expense";
   label?: string;
   plannedAmount?: number;
+  operationMode?: LineItemOperationMode;
   realizedAmount?: number | null;
 }
 
@@ -104,11 +113,13 @@ async function applyTemplateToInstance(
     type: patch?.type ?? series.type,
     label: patch?.label ?? series.label,
     plannedAmount: patch?.plannedAmount ?? series.plannedAmount,
+    operationMode: patch?.operationMode ?? series.operationMode ?? "prediction",
   };
 
   item.categoryId = template.categoryId as typeof item.categoryId;
   item.type = template.type;
   item.label = template.label;
+  item.operationMode = template.operationMode;
 
   if (!isRealized(item)) {
     item.plannedAmount = template.plannedAmount;
@@ -160,6 +171,7 @@ export async function ensureSeriesInstances(
         type: series.type,
         label: series.label,
         plannedAmount: series.plannedAmount,
+        operationMode: series.operationMode ?? "prediction",
         entries: [],
         seriesId: series._id,
         seriesOccurrenceIndex: occurrenceIndex,
@@ -186,6 +198,7 @@ export async function createRecurringSeries(
     type: "income" | "expense";
     label: string;
     plannedAmount: number;
+    operationMode?: LineItemOperationMode;
     realizedAmount: number | null;
     recurrence: RecurrenceInput;
     createdAt?: Date;
@@ -211,6 +224,7 @@ export async function createRecurringSeries(
     type: data.type,
     label: data.label,
     plannedAmount: data.plannedAmount,
+    operationMode: data.operationMode ?? "prediction",
     startYearMonth: recurrence.startYearMonth,
     endType: recurrence.endType,
     occurrenceCount: recurrence.endType === "count" ? recurrence.occurrenceCount ?? null : null,
@@ -286,6 +300,7 @@ export async function convertLineItemToSeries(
     type: lineItem.type,
     label: lineItem.label,
     plannedAmount: lineItem.plannedAmount,
+    operationMode: lineItem.operationMode ?? "prediction",
     startYearMonth: recurrence.startYearMonth,
     endType: recurrence.endType,
     occurrenceCount: recurrence.endType === "count" ? recurrence.occurrenceCount ?? null : null,
@@ -364,6 +379,9 @@ export async function applyRecurringLineItemEdit(
     if (patch.plannedAmount !== undefined) {
       lineItem.plannedAmount = patch.plannedAmount;
     }
+    if (patch.operationMode !== undefined) {
+      lineItem.operationMode = patch.operationMode;
+    }
     if (patch.realizedAmount !== undefined) {
       if (patch.realizedAmount !== null) {
         applyRealizedAmountWrite(lineItem, patch.realizedAmount);
@@ -379,6 +397,7 @@ export async function applyRecurringLineItemEdit(
     type: patch.type,
     label: patch.label,
     plannedAmount: patch.plannedAmount,
+    operationMode: patch.operationMode,
   };
 
   if (patch.categoryId !== undefined) {
@@ -392,6 +411,9 @@ export async function applyRecurringLineItemEdit(
   }
   if (patch.plannedAmount !== undefined) {
     series.plannedAmount = patch.plannedAmount;
+  }
+  if (patch.operationMode !== undefined) {
+    series.operationMode = patch.operationMode;
   }
   await series.save();
 
@@ -424,6 +446,9 @@ export async function applyRecurringLineItemEdit(
       if (patch.plannedAmount !== undefined && !isRealized(instance)) {
         instance.plannedAmount = patch.plannedAmount;
       }
+      if (patch.operationMode !== undefined) {
+        instance.operationMode = patch.operationMode;
+      }
       if (patch.realizedAmount !== null) {
         applyRealizedAmountWrite(instance, patch.realizedAmount);
       }
@@ -443,6 +468,9 @@ export async function applyRecurringLineItemEdit(
     }
     if (patch.plannedAmount !== undefined && !isRealized(instance)) {
       instance.plannedAmount = patch.plannedAmount;
+    }
+    if (patch.operationMode !== undefined) {
+      instance.operationMode = patch.operationMode;
     }
 
     await instance.save();

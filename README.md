@@ -322,6 +322,7 @@ Income or expense belonging to a month and category:
   "type": "expense",
   "label": "Groceries",
   "plannedAmount": 400.00,
+  "operationMode": "prediction",
   "entries": [
     { "amount": 120.50, "note": null, "createdAt": "2026-07-15T10:00:00.000Z" }
   ],
@@ -331,7 +332,7 @@ Income or expense belonging to a month and category:
 }
 ```
 
-When there are no entries, the item is unrealized and the UI displays `plannedAmount` with a "planned" indicator. API responses include computed `realizedAmount` (sum of entry amounts, or `null`).
+When there are no entries, the item is unrealized and the UI displays `plannedAmount` with a "planned" indicator. API responses include computed `realizedAmount` (sum of entry amounts, or `null`). `operationMode` is `prediction` or `budget` and only changes Orçamento esperado (see below). Existing items without the field behave as `prediction`.
 
 ### Recurring series
 
@@ -361,11 +362,14 @@ Edit and delete on recurring instances support Google Calendar-style scopes: `th
 For each month:
 
 ```
-effectiveAmount  = (sum of entries) ?? plannedAmount   // null sum when no entries
-totalIncome      = sum of effective amounts for income items
-totalExpense     = sum of effective amounts for expense items
-endingBalance    = lastMonthBalance + totalIncome - totalExpense
+displayAmount     = (sum of entries) ?? plannedAmount
+expectedAmount    = budget: max(plannedAmount, sum of entries or 0)
+                    prediction: displayAmount
+expectedBalance   = lastMonthBalance + income expected amounts - expense expected amounts
+realizedBalance   = lastMonthBalance + realized entry sums only
 ```
+
+`expectedBalance` is Orçamento esperado and the ending balance carried into the next month. `realizedBalance` is Orçamento atual. Row amounts and category totals use `displayAmount`, which does not change with the mode.
 
 When line items change in month **M**, the API:
 
@@ -423,6 +427,7 @@ The first month in the system starts with `lastMonthBalance: 0`.
           "type": "income",
           "label": "Paycheck",
           "plannedAmount": 5000,
+          "operationMode": "prediction",
           "realizedAmount": null,
           "displayAmount": 5000,
           "isRealized": false,

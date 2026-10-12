@@ -65,6 +65,7 @@ router.post(
         type: body.type,
         label: body.label,
         plannedAmount: body.plannedAmount,
+        operationMode: body.operationMode ?? "prediction",
         realizedAmount: body.realizedAmount ?? null,
         recurrence: body.recurrence,
       });
@@ -84,6 +85,7 @@ router.post(
       type: body.type,
       label: body.label,
       plannedAmount: body.plannedAmount,
+      operationMode: body.operationMode ?? "prediction",
       entries: [],
     });
 

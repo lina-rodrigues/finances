@@ -156,6 +156,11 @@ export function LineItemDetailDialog({
                 </span>
               </wa-badge>
             ) : null}
+            <wa-badge variant="neutral" appearance="outlined">
+              {liveItem.operationMode === "budget"
+                ? t("addItem.operationModeBudget")
+                : t("addItem.operationModePrediction")}
+            </wa-badge>
           </div>
 
           <dl

@@ -11,6 +11,7 @@ export interface LineItemResponse {
   type: LineItemType;
   label: string;
   plannedAmount: number;
+  operationMode: "budget" | "prediction";
   realizedAmount: number | null;
   displayAmount: number;
   isRealized: boolean;
@@ -80,6 +81,7 @@ function toLineItemResponse(
     type: item.type,
     label: item.label,
     plannedAmount: item.plannedAmount,
+    operationMode: item.operationMode ?? "prediction",
     realizedAmount: getRealizedAmount(item),
     displayAmount: effectiveAmount(item),
     isRealized: isRealized(item),

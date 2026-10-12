@@ -2,6 +2,8 @@ import mongoose, { Schema, type Document, type Types } from "mongoose";
 
 export type LineItemType = "income" | "expense";
 
+export type LineItemOperationMode = "budget" | "prediction";
+
 export interface ILineItemEntry {
   _id: Types.ObjectId;
   amount: number;
@@ -15,6 +17,7 @@ export interface ILineItem extends Document {
   type: LineItemType;
   label: string;
   plannedAmount: number;
+  operationMode: LineItemOperationMode;
   entries: ILineItemEntry[];
   seriesId: Types.ObjectId | null;
   seriesOccurrenceIndex: number | null;
@@ -37,6 +40,11 @@ const lineItemSchema = new Schema<ILineItem>(
     type: { type: String, enum: ["income", "expense"], required: true },
     label: { type: String, required: true },
     plannedAmount: { type: Number, required: true },
+    operationMode: {
+      type: String,
+      enum: ["budget", "prediction"],
+      default: "prediction",
+    },
     entries: { type: [lineItemEntrySchema], default: [] },
     seriesId: { type: Schema.Types.ObjectId, ref: "RecurringSeries", default: null },
     seriesOccurrenceIndex: { type: Number, default: null },
@@ -72,6 +80,18 @@ export function effectiveAmount(item: {
   entries?: ILineItemEntry[];
 }): number {
   return getRealizedAmount(item) ?? item.plannedAmount;
+}
+
+/** Contribution to Orçamento esperado. Realized amounts stay on getRealizedAmount. */
+export function expectedAmount(item: {
+  operationMode?: LineItemOperationMode | null;
+  plannedAmount: number;
+  entries?: ILineItemEntry[];
+}): number {
+  if ((item.operationMode ?? "prediction") === "budget") {
+    return Math.max(item.plannedAmount, getRealizedAmount(item) ?? 0);
+  }
+  return effectiveAmount(item);
 }
 
 export function ensureEntriesArray(item: Pick<ILineItem, "entries">): ILineItemEntry[] {

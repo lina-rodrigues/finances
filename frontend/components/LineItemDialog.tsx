@@ -12,6 +12,7 @@ import {
   updateLineItem,
   type FlatCategory,
   type LineItem,
+  type LineItemOperationMode,
   type LineItemType,
 } from "@/lib/api";
 import {
@@ -49,6 +50,7 @@ interface DialogFormSnapshot {
   label: string;
   plannedAmount: string;
   realizedAmount: string;
+  operationMode: LineItemOperationMode;
   repeatMode: RepeatMode;
   startYearMonth: string;
   occurrenceCount: string;
@@ -104,6 +106,7 @@ export function LineItemDialog({
   const [label, setLabel] = useState("");
   const [plannedAmount, setPlannedAmount] = useState("");
   const [realizedAmount, setRealizedAmount] = useState("");
+  const [operationMode, setOperationMode] = useState<LineItemOperationMode>("prediction");
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
   const [startYearMonth, setStartYearMonth] = useState(yearMonth);
   const [occurrenceCount, setOccurrenceCount] = useState("12");
@@ -117,6 +120,7 @@ export function LineItemDialog({
       label,
       plannedAmount,
       realizedAmount,
+      operationMode,
       repeatMode,
       startYearMonth,
       occurrenceCount,
@@ -133,6 +137,7 @@ export function LineItemDialog({
     setLabel(form.label);
     setPlannedAmount(form.plannedAmount);
     setRealizedAmount(form.realizedAmount);
+    setOperationMode(form.operationMode);
     setRepeatMode(form.repeatMode);
     setStartYearMonth(form.startYearMonth);
     setOccurrenceCount(form.occurrenceCount);
@@ -154,6 +159,7 @@ export function LineItemDialog({
       setLabel("");
       setPlannedAmount("");
       setRealizedAmount("");
+      setOperationMode("prediction");
       setRepeatMode("none");
       setStartYearMonth(yearMonth);
       setOccurrenceCount("12");
@@ -167,6 +173,7 @@ export function LineItemDialog({
       setLabel(item.label);
       setPlannedAmount(String(item.plannedAmount));
       setRealizedAmount(item.realizedAmount !== null ? String(item.realizedAmount) : "");
+      setOperationMode(item.operationMode ?? "prediction");
       setRepeatMode("never");
       setStartYearMonth(yearMonth);
       setOccurrenceCount("12");
@@ -198,6 +205,7 @@ export function LineItemDialog({
     const updatePayload = {
       label,
       plannedAmount: planned,
+      operationMode,
       ...(item.entryCount > 0 ? {} : { realizedAmount: realized }),
       ...(item.seriesId && selectedScope ? { scope: selectedScope } : {}),
     };
@@ -219,6 +227,7 @@ export function LineItemDialog({
     const optimisticItem = buildOptimisticLineItem(item, {
       label,
       plannedAmount: planned,
+      operationMode,
       realizedAmount: item.entryCount > 0 ? item.realizedAmount : realized,
     });
 
@@ -278,6 +287,7 @@ export function LineItemDialog({
             type,
             label,
             plannedAmount: parseFloat(plannedAmount),
+            operationMode,
             realizedAmount: realizedAmount === "" ? null : parseFloat(realizedAmount),
             recurrence,
           });
@@ -297,6 +307,7 @@ export function LineItemDialog({
       type,
       label,
       plannedAmount: planned,
+      operationMode,
       realizedAmount: realized,
     });
 
@@ -316,6 +327,7 @@ export function LineItemDialog({
           type,
           label,
           plannedAmount: planned,
+          operationMode,
           realizedAmount: realized,
         });
         replaceLineItem(tempId, toLineItemFromMutation(response));
@@ -429,6 +441,24 @@ export function LineItemDialog({
                 <wa-option value="income">{t("categories.income")}</wa-option>
               </wa-select>
 
+              <wa-select
+                id={`${categoryFieldId}-mode`}
+                label={t("addItem.operationMode")}
+                hint={
+                  operationMode === "budget"
+                    ? t("addItem.operationModeBudgetHint")
+                    : t("addItem.operationModePredictionHint")
+                }
+                value={operationMode}
+                disabled={loading || undefined}
+                onChange={(event) =>
+                  setOperationMode((event.target as HTMLSelectElement).value as LineItemOperationMode)
+                }
+              >
+                <wa-option value="prediction">{t("addItem.operationModePrediction")}</wa-option>
+                <wa-option value="budget">{t("addItem.operationModeBudget")}</wa-option>
+              </wa-select>
+
               <wa-input
                 ref={labelInputRef}
                 id={labelFieldId}
@@ -489,6 +519,24 @@ export function LineItemDialog({
                 required
                 disabled={loading || undefined}
               ></wa-input>
+
+              <wa-select
+                id={`${labelFieldId}-mode`}
+                label={t("addItem.operationMode")}
+                hint={
+                  operationMode === "budget"
+                    ? t("addItem.operationModeBudgetHint")
+                    : t("addItem.operationModePredictionHint")
+                }
+                value={operationMode}
+                disabled={loading || undefined}
+                onChange={(event) =>
+                  setOperationMode((event.target as HTMLSelectElement).value as LineItemOperationMode)
+                }
+              >
+                <wa-option value="prediction">{t("addItem.operationModePrediction")}</wa-option>
+                <wa-option value="budget">{t("addItem.operationModeBudget")}</wa-option>
+              </wa-select>
 
               <wa-input
                 id={`${labelFieldId}-planned`}
