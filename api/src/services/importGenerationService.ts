@@ -102,7 +102,9 @@ async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<str
     })),
   };
 
-  return `${prompt}\n${JSON.stringify(payload, null, 2)}`;
+  return `${prompt}\n${JSON.stringify(payload, null, 2)}
+
+Respond with one compact JSON array and nothing else. No markdown fences, no indentation, no commentary. The first character is [ and the last character is ]. Set notes to null on every row.`;
 }
 
 function sourceTraceLine(line: IImportSourceLine): string {
@@ -115,17 +117,6 @@ function sourceTraceLine(line: IImportSourceLine): string {
   }
   parts.push(date, line.amount.toFixed(2), line.fitId);
   return parts.join(" · ");
-}
-
-function withSourceTrace(notes: string | null, trace: string): string {
-  const existing = notes?.trim() ?? "";
-  if (!existing) {
-    return trace;
-  }
-  if (existing.includes(trace)) {
-    return existing;
-  }
-  return `${existing}\n${trace}`;
 }
 
 function attachSourceNotes(
@@ -141,7 +132,7 @@ function attachSourceNotes(
     if (!source) {
       return item;
     }
-    return { ...item, notes: withSourceTrace(item.notes, sourceTraceLine(source)) };
+    return { ...item, notes: sourceTraceLine(source) };
   });
 }
 
