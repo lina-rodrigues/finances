@@ -25,6 +25,7 @@ import {
 } from "@/lib/api";
 import { ImportNameEditor } from "@/components/ImportNameEditor";
 import { translateError, useTranslation } from "@/lib/i18n";
+import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 
 const DRAFT_DEBOUNCE_MS = 800;
@@ -65,6 +66,7 @@ export function ImportReviewPage() {
   const id = params.id;
   const router = useRouter();
   const { t, locale } = useTranslation();
+  const formatMoney = useFormatCurrency();
   const { loading: mutating, run } = useMutationFeedback();
   const localeTag = getLocaleTag(locale);
 
@@ -560,7 +562,27 @@ export function ImportReviewPage() {
           </div>
         </div>
       ) : batch.status === "waiting" || batch.status === "done" ? (
-        <wa-callout variant="neutral">{t("imports.empty")}</wa-callout>
+        <div className="wa-stack wa-gap-s">
+          <wa-callout variant="neutral">
+            <wa-icon slot="icon" name="info-circle"></wa-icon>
+            {t("imports.noNewExpenses")}
+          </wa-callout>
+          {batch.sourceLines.some((line) => !line.skippedDuplicate) ? (
+            <div className="wa-stack wa-gap-2xs">
+              <span className="wa-caption-m">{t("imports.omittedLines")}</span>
+              {batch.sourceLines
+                .filter((line) => !line.skippedDuplicate)
+                .map((line) => (
+                  <div key={line.fitId} className="wa-stack wa-gap-3xs">
+                    <span>
+                      {formatCalendarDate(line.date, localeTag)} · {formatMoney(line.amount)}
+                    </span>
+                    <span className="wa-caption-m wa-color-text-quiet">{line.name}</span>
+                  </div>
+                ))}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <div

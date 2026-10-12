@@ -103,6 +103,8 @@
     "statementCreditCard": "Credit card",
     "paymentDate": "Payment date",
     "empty": "No imports yet. Upload an OFX statement to get started.",
+    "noNewExpenses": "No new expenses to review. Duplicates were skipped. Credits, transfers, and card-bill payments are not added as lines.",
+    "omittedLines": "Transactions that were not duplicates",
     "uploadSuccess": "Import started",
     "status": {
       "pending": "Pending",

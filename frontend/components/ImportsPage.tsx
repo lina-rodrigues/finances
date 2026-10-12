@@ -232,7 +232,7 @@ export function ImportsPage() {
                     {batch.duplicateCount > 0
                       ? ` · ${t("imports.duplicateCount", { count: String(batch.duplicateCount) })}`
                       : ""}
-                    {batch.proposedCount > 0
+                    {batch.status !== "pending"
                       ? ` · ${t("imports.proposedCount", { count: String(batch.proposedCount) })}`
                       : ""}
                   </span>

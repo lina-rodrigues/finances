@@ -103,6 +103,8 @@
     "statementCreditCard": "Cartão de crédito",
     "paymentDate": "Data de pagamento",
     "empty": "Nenhuma importação ainda. Envie um extrato OFX para começar.",
+    "noNewExpenses": "Nenhuma despesa nova para revisar. Duplicatas foram ignoradas. Créditos, transferências e pagamentos de fatura não entram como linhas.",
+    "omittedLines": "Transações que não eram duplicatas",
     "uploadSuccess": "Importação iniciada",
     "status": {
       "pending": "Pendente",
