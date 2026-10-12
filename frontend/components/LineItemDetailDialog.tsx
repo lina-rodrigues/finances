@@ -30,6 +30,7 @@ import {
 import {
   entryAmountTone,
   formatLineItemEntryDisplay,
+  formatSignedLineItemAmount,
   getLineItemRealizedAmount,
 } from "@/lib/lineItemAmounts";
 import { getSeriesBadgeLabel } from "@/lib/recurrence";
@@ -94,10 +95,15 @@ export function LineItemDetailDialog({
   }
 
   const isIncome = liveItem.type === "income";
-  const amountClass = isIncome ? "metric-amount--income" : "metric-amount--expense";
-  const amountPrefix = isIncome ? "+" : "-";
   const entries = [...(liveItem.entries ?? [])].reverse();
   const spent = getLineItemRealizedAmount(liveItem);
+  const plannedDisplay = formatSignedLineItemAmount(
+    liveItem.type,
+    liveItem.plannedAmount,
+    formatMoney,
+  );
+  const spentDisplay =
+    spent === null ? null : formatSignedLineItemAmount(liveItem.type, spent, formatMoney);
   const seriesBadge = getSeriesBadgeLabel(liveItem, localeTag);
 
   async function handleDeleteEntry() {
@@ -171,21 +177,23 @@ export function LineItemDetailDialog({
           >
             <div>
               <dt className="wa-caption-m wa-color-text-quiet">{t("entries.plannedLabel")}</dt>
-              <dd className={amountClass} style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
-                {amountPrefix}
-                {formatMoney(liveItem.plannedAmount)}
+              <dd
+                className={plannedDisplay.tone}
+                style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}
+              >
+                {plannedDisplay.text}
               </dd>
             </div>
             <div>
               <dt className="wa-caption-m wa-color-text-quiet">{t("entries.spentLabel")}</dt>
-              <dd className={amountClass} style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
-                {spent === null ? (
+              <dd
+                className={spentDisplay?.tone}
+                style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}
+              >
+                {spentDisplay === null ? (
                   <span className="wa-color-text-quiet">—</span>
                 ) : (
-                  <>
-                    {amountPrefix}
-                    {formatMoney(spent)}
-                  </>
+                  spentDisplay.text
                 )}
               </dd>
             </div>

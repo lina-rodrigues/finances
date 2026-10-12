@@ -70,3 +70,24 @@ export function formatLineItemEntryDisplay(
   }
   return formatMoney(signed);
 }
+
+type AmountTone = "metric-amount--income" | "metric-amount--expense" | "metric-amount--muted";
+
+/** Non-negative totals keep the item-type sign. Negative totals are credits and use cash-flow sign. */
+export function formatSignedLineItemAmount(
+  type: LineItemType,
+  amount: number,
+  formatMoney: (amount: number) => string,
+): { text: string; tone: AmountTone } {
+  if (amount < 0) {
+    return {
+      text: formatLineItemEntryDisplay(type, amount, formatMoney),
+      tone: entryAmountTone(type, amount),
+    };
+  }
+
+  return {
+    text: `${type === "income" ? "+" : "-"}${formatMoney(amount)}`,
+    tone: type === "income" ? "metric-amount--income" : "metric-amount--expense",
+  };
+}

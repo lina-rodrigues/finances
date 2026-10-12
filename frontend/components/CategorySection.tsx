@@ -5,7 +5,7 @@ import { computeBudgetTotals, sumCategoryAmounts } from "@/lib/monthViewMath";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { PendingBadge } from "@/components/PendingBadge";
 import { type Category, type LineItem } from "@/lib/api";
-import { hasLineItemEntries } from "@/lib/lineItemAmounts";
+import { formatSignedLineItemAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
 import type { LineItemActionHandlers } from "@/lib/useLineItemDialogHost";
 import { useAuth } from "@/lib/AuthProvider";
 import { useTranslation } from "@/lib/i18n";
@@ -53,8 +53,7 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
   const { t } = useTranslation();
   const formatMoney = useFormatCurrency();
   const isPending = useRowPending(item.id);
-  const isIncome = item.type === "income";
-  const amountClass = isIncome ? "metric-amount--income" : "metric-amount--expense";
+  const amountDisplay = formatSignedLineItemAmount(item.type, item.displayAmount, formatMoney);
 
   return (
     <button
@@ -81,9 +80,8 @@ function LineItemRow({ item, handlers }: LineItemRowProps) {
           </span>
         )}
       </div>
-      <span className={`metric-amount--inline ${amountClass}`} style={{ flexShrink: 0 }}>
-        {isIncome ? "+" : "-"}
-        {formatMoney(item.displayAmount)}
+      <span className={`metric-amount--inline ${amountDisplay.tone}`} style={{ flexShrink: 0 }}>
+        {amountDisplay.text}
       </span>
     </button>
   );

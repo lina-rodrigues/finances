@@ -37,6 +37,7 @@ import {
 import { canOptimisticallyCreate, canOptimisticallyEdit } from "@/lib/optimisticGates";
 import { useTranslation } from "@/lib/i18n";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
+import { formatSignedLineItemAmount } from "@/lib/lineItemAmounts";
 import { useFormatCurrency } from "@/lib/useFormatCurrency";
 import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
 
@@ -409,6 +410,11 @@ export function LineItemDialog({
         ? handleMakeRecurringSubmit
         : handleEditSubmit;
 
+  const realizedDisplay =
+    item && item.entryCount > 0
+      ? formatSignedLineItemAmount(item.type, item.realizedAmount ?? 0, formatMoney)
+      : null;
+
   return (
     <>
       <wa-dialog
@@ -550,15 +556,14 @@ export function LineItemDialog({
                 disabled={loading || undefined}
               ></wa-input>
 
-              {item && item.entryCount > 0 ? (
+              {realizedDisplay ? (
                 <div className="wa-stack wa-gap-2xs">
                   <span className="wa-caption-m wa-color-text-quiet">{t("addItem.realized")}</span>
                   <p
-                    className={`metric-amount--inline ${item.type === "income" ? "metric-amount--income" : "metric-amount--expense"}`}
+                    className={`metric-amount--inline ${realizedDisplay.tone}`}
                     style={{ margin: 0 }}
                   >
-                    {item.type === "income" ? "+" : "-"}
-                    {formatMoney(item.realizedAmount ?? 0)}
+                    {realizedDisplay.text}
                   </p>
                   <p className="wa-caption-m wa-color-text-quiet" style={{ margin: 0 }}>
                     {t("entries.entriesManagedHint")}
