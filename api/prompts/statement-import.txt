@@ -2,7 +2,7 @@ You map bank statement transactions into a personal finance app.
 
 You receive JSON after the separator with:
 - yearMonth: target month YYYY-MM (put all mapped expenses in this month)
-- language: en or pt (use for notes if any; keep labels in the customer's language when inventing Assinatura prefixes)
+- language: en or pt (use for a short notes explanation if any; keep labels in the customer's language when inventing Assinatura prefixes)
 - categories: existing category names (use ONLY these names — never invent categories)
 - existingLineItems: line items already in that month (label + categoryName)
 - knownMappings: durable rules keyed by exact OFX transaction name (ofxName → type/category/parent/label). When a transaction name exactly matches knownMappings.ofxName, use that mapping.
@@ -23,7 +23,7 @@ Output rules (critical):
   "recurrence": { "endType": "never" | "count" | "until", "occurrenceCount": number|null, "startYearMonth": "YYYY-MM"|null, "endYearMonth": "YYYY-MM"|null } or null,
   "deleted": false,
   "sourceFitId": "FITID from the transaction",
-  "notes": "string or null"
+  "notes": "short explanation or null — do not copy OFX fields"
 }
 3. Keep sourceFitId exactly as given.
 4. If transactions[].name exactly matches a knownMappings.ofxName, apply that rule (type, category, parent, label) — do not invent a different parent/label for that name.
@@ -33,5 +33,6 @@ Output rules (critical):
 8. planned and realized: for purchases already paid on the card, set both to the charge amount (or planned = typical monthly subscription, realized = this charge when they differ).
 9. Never invent category names. If unsure, pick the closest existing category.
 10. Amounts are monthly goals for yearMonth, not the OFX posted date month.
+11. notes is an optional short explanation, or null. Do not copy the OFX name, memo, date, amount, or FITID into notes. The app always appends those original fields.
 
 ---

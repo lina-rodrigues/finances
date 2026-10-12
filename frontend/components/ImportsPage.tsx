@@ -35,6 +35,8 @@ export function ImportsPage() {
   const [batches, setBatches] = useState<ImportBatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [yearMonth, setYearMonth] = useState(currentYearMonth);
+  const [statementKind, setStatementKind] = useState<"bank" | "creditCard">("bank");
+  const [paymentDate, setPaymentDate] = useState("");
   const [deleting, setDeleting] = useState<ImportBatchSummary | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -74,7 +76,11 @@ export function ImportsPage() {
     if (!file) return;
     await run(
       async () => {
-        await uploadImport(file, yearMonth);
+        const targetMonth = statementKind === "creditCard" ? paymentDate.slice(0, 7) : yearMonth;
+        await uploadImport(file, targetMonth, {
+          statementKind,
+          paymentDate: statementKind === "creditCard" ? paymentDate : null,
+        });
         await load();
       },
       { successMessage: t("imports.uploadSuccess") },
@@ -101,45 +107,85 @@ export function ImportsPage() {
     <div className="wa-stack wa-gap-xl">
       <PageTitle>{t("imports.title")}</PageTitle>
 
-      <div className="wa-cluster wa-gap-m wa-align-items-end">
-        <div className="wa-stack wa-gap-2xs">
-          <label className="wa-caption-m" htmlFor="import-year-month">
-            {t("imports.yearMonth")}
-          </label>
-          <wa-input
-            id="import-year-month"
-            type="month"
-            value={yearMonth}
-            onInput={(event) => {
-              const target = event.target as HTMLInputElement;
-              setYearMonth(target.value);
-            }}
-          ></wa-input>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".ofx,application/x-ofx,application/xml,text/xml"
-          hidden
-          onChange={(event) => {
-            void handleFileChange(event.target.files);
-          }}
-        />
-        <wa-button
-          type="button"
-          variant="brand"
-          disabled={mutating || undefined}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <wa-icon slot="start" name="upload"></wa-icon>
-          {t("imports.upload")}
-        </wa-button>
-        <Link href="/imports/knowledge">
-          <wa-button type="button" appearance="outlined" disabled={mutating || undefined}>
-            <wa-icon slot="start" name="book"></wa-icon>
-            {t("imports.knowledge")}
+      <div className="wa-stack wa-gap-m">
+        <wa-button-group label={t("imports.statementKindLabel")}>
+          <wa-button
+            type="button"
+            variant={statementKind === "bank" ? "brand" : undefined}
+            appearance={statementKind === "bank" ? undefined : "outlined"}
+            aria-pressed={statementKind === "bank"}
+            onClick={() => setStatementKind("bank")}
+          >
+            {t("imports.statementBank")}
           </wa-button>
-        </Link>
+          <wa-button
+            type="button"
+            variant={statementKind === "creditCard" ? "brand" : undefined}
+            appearance={statementKind === "creditCard" ? undefined : "outlined"}
+            aria-pressed={statementKind === "creditCard"}
+            onClick={() => setStatementKind("creditCard")}
+          >
+            {t("imports.statementCreditCard")}
+          </wa-button>
+        </wa-button-group>
+
+        <div className="wa-cluster wa-gap-m wa-align-items-end">
+          {statementKind === "creditCard" ? (
+            <div className="wa-stack wa-gap-2xs">
+              <label className="wa-caption-m" htmlFor="import-payment-date">
+                {t("imports.paymentDate")}
+              </label>
+              <wa-input
+                id="import-payment-date"
+                type="date"
+                value={paymentDate}
+                onInput={(event) => {
+                  const target = event.target as HTMLInputElement;
+                  setPaymentDate(target.value);
+                }}
+              ></wa-input>
+            </div>
+          ) : (
+            <div className="wa-stack wa-gap-2xs">
+              <label className="wa-caption-m" htmlFor="import-year-month">
+                {t("imports.yearMonth")}
+              </label>
+              <wa-input
+                id="import-year-month"
+                type="month"
+                value={yearMonth}
+                onInput={(event) => {
+                  const target = event.target as HTMLInputElement;
+                  setYearMonth(target.value);
+                }}
+              ></wa-input>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".ofx,application/x-ofx,application/xml,text/xml"
+            hidden
+            onChange={(event) => {
+              void handleFileChange(event.target.files);
+            }}
+          />
+          <wa-button
+            type="button"
+            variant="brand"
+            disabled={mutating || (statementKind === "creditCard" && !paymentDate) || undefined}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <wa-icon slot="start" name="upload"></wa-icon>
+            {t("imports.upload")}
+          </wa-button>
+          <Link href="/imports/knowledge">
+            <wa-button type="button" appearance="outlined" disabled={mutating || undefined}>
+              <wa-icon slot="start" name="book"></wa-icon>
+              {t("imports.knowledge")}
+            </wa-button>
+          </Link>
+        </div>
       </div>
 
       {loading ? (

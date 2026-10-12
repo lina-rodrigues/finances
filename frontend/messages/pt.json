@@ -98,6 +98,10 @@
     "readOnlyUnavailable": "Esta página não está disponível para uma conta somente leitura.",
     "upload": "Enviar OFX",
     "yearMonth": "Mês de destino",
+    "statementKindLabel": "Tipo de extrato",
+    "statementBank": "Banco",
+    "statementCreditCard": "Cartão de crédito",
+    "paymentDate": "Data de pagamento",
     "empty": "Nenhuma importação ainda. Envie um extrato OFX para começar.",
     "uploadSuccess": "Importação iniciada",
     "status": {
@@ -349,6 +353,8 @@
   },
   "errors": {
     "UNAUTHORIZED": "Faça login novamente.",
+    "INVALID_YEAR_MONTH": "Escolha um mês válido.",
+    "INVALID_PAYMENT_DATE": "Escolha a data de pagamento.",
     "READ_ONLY": "Esta conta só pode visualizar as finanças.",
     "INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
     "INVALID_INVITATION_CODE": "Código de convite inválido.",

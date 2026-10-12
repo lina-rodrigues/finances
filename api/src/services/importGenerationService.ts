@@ -105,6 +105,46 @@ async function buildFullPrompt(batch: IImportBatch, userId: string): Promise<str
   return `${prompt}\n${JSON.stringify(payload, null, 2)}`;
 }
 
+function sourceTraceLine(line: IImportSourceLine): string {
+  const dateMatch = /^(\d{4}-\d{2}-\d{2})/.exec(line.date);
+  const date = dateMatch ? dateMatch[1] : line.date;
+  const parts = [line.name.trim()];
+  const memo = line.memo?.trim();
+  if (memo) {
+    parts.push(memo);
+  }
+  parts.push(date, line.amount.toFixed(2), line.fitId);
+  return parts.join(" · ");
+}
+
+function withSourceTrace(notes: string | null, trace: string): string {
+  const existing = notes?.trim() ?? "";
+  if (!existing) {
+    return trace;
+  }
+  if (existing.includes(trace)) {
+    return existing;
+  }
+  return `${existing}\n${trace}`;
+}
+
+function attachSourceNotes(
+  items: IImportProposedItem[],
+  sourceLines: IImportSourceLine[],
+): IImportProposedItem[] {
+  const byFitId = new Map(sourceLines.map((line) => [line.fitId, line]));
+  return items.map((item) => {
+    if (!item.sourceFitId) {
+      return item;
+    }
+    const source = byFitId.get(item.sourceFitId);
+    if (!source) {
+      return item;
+    }
+    return { ...item, notes: withSourceTrace(item.notes, sourceTraceLine(source)) };
+  });
+}
+
 async function applyParsedItems(batch: IImportBatch, raw: string): Promise<void> {
   const parsed = extractJsonArray(raw);
   const items = importProposedItemsSchema.parse(parsed).map((item) => ({
@@ -115,7 +155,10 @@ async function applyParsedItems(batch: IImportBatch, raw: string): Promise<void>
   })) as IImportProposedItem[];
 
   const knownMappings = await loadKnownMappingsForUser(batch.userId.toString());
-  const overridden = applyKnowledgeOverridesToItems(items, batch.sourceLines, knownMappings);
+  const overridden = attachSourceNotes(
+    applyKnowledgeOverridesToItems(items, batch.sourceLines, knownMappings),
+    batch.sourceLines,
+  );
 
   batch.proposedItems = overridden;
   batch.aiProposedItems = cloneProposedItems(overridden);
@@ -129,6 +172,8 @@ export async function createPendingImportBatch(params: {
   yearMonth: string;
   fileName: string;
   rawOfx: string;
+  statementKind: "bank" | "creditCard";
+  paymentDate: string | null;
 }): Promise<IImportBatch> {
   if (!readCursorApiKey()) {
     throw new ImportServiceError(IMPORT_ERROR_CODES.SERVICE_UNAVAILABLE, 403);
@@ -160,6 +205,8 @@ export async function createPendingImportBatch(params: {
   const batch = await ImportBatch.create({
     userId: params.userId,
     yearMonth: params.yearMonth,
+    statementKind: params.statementKind,
+    paymentDate: params.paymentDate,
     fileName: params.fileName,
     name: null,
     status: "pending",

@@ -59,27 +59,34 @@ function parseOfxAmount(raw: string): number {
 }
 
 function extractStmtTrnBlocks(ofx: string): string[] {
-  const blocks: string[] = [];
-  const closed = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/gi;
-  let match: RegExpExecArray | null;
-  while ((match = closed.exec(ofx)) !== null) {
-    blocks.push(match[1]);
-  }
+  const located: { index: number; body: string }[] = [];
 
-  if (blocks.length > 0) {
-    return blocks;
-  }
+  for (const tag of ["STMTTRN", "CCSTMTTRN"] as const) {
+    const closed = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "gi");
+    let match: RegExpExecArray | null;
+    let foundClosed = false;
+    while ((match = closed.exec(ofx)) !== null) {
+      foundClosed = true;
+      located.push({ index: match.index, body: match[1] });
+    }
+    if (foundClosed) {
+      continue;
+    }
 
-  // SGML-style: <STMTTRN> ... next tag or end
-  const openOnly = /<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/BANKTRANLIST>|<LEDGERBAL>|<AVAILBAL>|$)/gi;
-  while ((match = openOnly.exec(ofx)) !== null) {
-    const body = match[1].trim();
-    if (body) {
-      blocks.push(body);
+    const openOnly = new RegExp(
+      `<${tag}>([\\s\\S]*?)(?=<STMTTRN>|<CCSTMTTRN>|</BANKTRANLIST>|<LEDGERBAL>|<AVAILBAL>|$)`,
+      "gi",
+    );
+    while ((match = openOnly.exec(ofx)) !== null) {
+      const body = match[1].trim();
+      if (body) {
+        located.push({ index: match.index, body });
+      }
     }
   }
 
-  return blocks;
+  located.sort((a, b) => a.index - b.index);
+  return located.map((item) => item.body);
 }
 
 export function parseOfxTransactions(rawOfx: string): ParsedOfxTransaction[] {

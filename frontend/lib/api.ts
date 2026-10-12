@@ -566,10 +566,18 @@ export async function fetchImport(id: string): Promise<ImportBatchDetail> {
   return res.json();
 }
 
-export async function uploadImport(file: File, yearMonth: string): Promise<ImportBatchSummary> {
+export async function uploadImport(
+  file: File,
+  yearMonth: string,
+  options: { statementKind: "bank" | "creditCard"; paymentDate: string | null },
+): Promise<ImportBatchSummary> {
   const form = new FormData();
   form.append("file", file);
   form.append("yearMonth", yearMonth);
+  form.append("statementKind", options.statementKind);
+  if (options.paymentDate) {
+    form.append("paymentDate", options.paymentDate);
+  }
 
   const res = await fetch(`${getApiUrl()}/imports`, {
     method: "POST",

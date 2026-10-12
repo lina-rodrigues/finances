@@ -61,9 +61,13 @@ export interface IImportAppliedAction {
   parentLineItemId: string | null;
 }
 
+export type ImportStatementKind = "bank" | "creditCard";
+
 export interface IImportBatch extends Document {
   userId: Types.ObjectId;
   yearMonth: string;
+  statementKind: ImportStatementKind;
+  paymentDate: string | null;
   fileName: string;
   /** Optional display name; when null/empty, UI falls back to fileName. */
   name: string | null;
@@ -185,6 +189,8 @@ const importBatchSchema = new Schema<IImportBatch>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     yearMonth: { type: String, required: true },
+    statementKind: { type: String, enum: ["bank", "creditCard"], default: "bank" },
+    paymentDate: { type: String, default: null },
     fileName: { type: String, required: true },
     name: { type: String, default: null },
     status: {
@@ -231,6 +237,8 @@ export function importDisplayName(batch: Pick<IImportBatch, "name" | "fileName">
 export interface ImportBatchSummaryResponse {
   id: string;
   yearMonth: string;
+  statementKind: ImportStatementKind;
+  paymentDate: string | null;
   fileName: string;
   name: string | null;
   displayName: string;
@@ -270,6 +278,8 @@ export function toImportBatchSummary(batch: IImportBatch): ImportBatchSummaryRes
   return {
     id: batch._id.toString(),
     yearMonth: batch.yearMonth,
+    statementKind: batch.statementKind ?? "bank",
+    paymentDate: batch.paymentDate ?? null,
     fileName: batch.fileName,
     name: batch.name ?? null,
     displayName: importDisplayName(batch),

@@ -90,6 +90,14 @@ function resolvePostedAt(
   return postedAt;
 }
 
+function paymentDatePostedAt(paymentDate: string): Date | undefined {
+  const postedAt = new Date(`${paymentDate}T00:00:00.000Z`);
+  if (Number.isNaN(postedAt.getTime())) {
+    return undefined;
+  }
+  return postedAt;
+}
+
 async function upsertFitId(params: {
   userId: string;
   fitId: string;
@@ -116,9 +124,10 @@ async function applyProposedItem(
   batchId: string,
   sourceLines: IImportSourceLine[],
   itemIndex: number,
+  postedAtOverride?: Date,
 ): Promise<IImportAppliedAction[]> {
   const actions: IImportAppliedAction[] = [];
-  const postedAt = resolvePostedAt(sourceLines, item.sourceFitId);
+  const postedAt = postedAtOverride ?? resolvePostedAt(sourceLines, item.sourceFitId);
 
   if (item.deleted) {
     if (item.sourceFitId) {
@@ -300,6 +309,9 @@ export async function confirmImportBatch(userId: string, batchId: string): Promi
         batchId,
         batch.sourceLines,
         itemIndex,
+        batch.statementKind === "creditCard" && batch.paymentDate
+          ? paymentDatePostedAt(batch.paymentDate)
+          : undefined,
       );
       appliedActions.push(...actions);
     }

@@ -213,7 +213,14 @@ router.post(
   upload.single("file"),
   asyncHandler(async (req, res) => {
     const yearMonth = typeof req.body?.yearMonth === "string" ? req.body.yearMonth : "";
-    if (!isValidYearMonth(yearMonth)) {
+    const statementKind = req.body?.statementKind === "creditCard" ? "creditCard" : "bank";
+    const paymentDate = typeof req.body?.paymentDate === "string" ? req.body.paymentDate : "";
+    if (statementKind === "creditCard") {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDate) || Number.isNaN(Date.parse(`${paymentDate}T00:00:00.000Z`))) {
+        res.status(400).json({ error: "INVALID_PAYMENT_DATE" });
+        return;
+      }
+    } else if (!isValidYearMonth(yearMonth)) {
       res.status(400).json({ error: "INVALID_YEAR_MONTH" });
       return;
     }
@@ -228,9 +235,11 @@ router.post(
       const rawOfx = file.buffer.toString("utf8");
       const batch = await createPendingImportBatch({
         userId: req.userId!,
-        yearMonth,
+        yearMonth: statementKind === "creditCard" ? paymentDate.slice(0, 7) : yearMonth,
         fileName: file.originalname || "statement.ofx",
         rawOfx,
+        statementKind,
+        paymentDate: statementKind === "creditCard" ? paymentDate : null,
       });
       res.status(202).json(toImportBatchSummary(batch));
     } catch (error) {

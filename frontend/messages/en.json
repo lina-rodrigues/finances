@@ -98,6 +98,10 @@
     "readOnlyUnavailable": "This page is not available for a read-only account.",
     "upload": "Upload OFX",
     "yearMonth": "Target month",
+    "statementKindLabel": "Statement type",
+    "statementBank": "Bank",
+    "statementCreditCard": "Credit card",
+    "paymentDate": "Payment date",
     "empty": "No imports yet. Upload an OFX statement to get started.",
     "uploadSuccess": "Import started",
     "status": {
@@ -349,6 +353,8 @@
   },
   "errors": {
     "UNAUTHORIZED": "Please sign in again.",
+    "INVALID_YEAR_MONTH": "Choose a valid month.",
+    "INVALID_PAYMENT_DATE": "Choose the payment date.",
     "READ_ONLY": "This account can only view finances.",
     "INVALID_CREDENTIALS": "Invalid email or password.",
     "INVALID_INVITATION_CODE": "Invalid invitation code.",
