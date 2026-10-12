@@ -22,6 +22,7 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
     try {
@@ -32,7 +33,6 @@ export default function LoginPage() {
     } catch (err) {
       const code = err instanceof Error ? err.message : "REQUEST_FAILED";
       setError(translateError(code, locale));
-    } finally {
       setLoading(false);
     }
   }
@@ -71,8 +71,14 @@ export default function LoginPage() {
             value={password}
             onInput={(e) => setPassword(eventValue(e))}
           ></wa-input>
-          <wa-button type="submit" variant="brand" disabled={loading || undefined} style={{ width: "100%" }}>
-            {loading ? t("common.loading") : t("auth.login.submit")}
+          <wa-button
+            type="submit"
+            variant="brand"
+            loading={loading || undefined}
+            disabled={loading || undefined}
+            style={{ width: "100%" }}
+          >
+            {t("auth.login.submit")}
           </wa-button>
         </form>
 
