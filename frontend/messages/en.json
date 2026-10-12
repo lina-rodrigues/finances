@@ -348,6 +348,7 @@
     "pay": "Pay",
     "payTitle": "Pay",
     "paid": "Marked as paid",
+    "amountRequired": "Enter an amount.",
     "edit": "Edit",
     "detailTitle": "Item details",
     "plannedLabel": "Planned",

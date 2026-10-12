@@ -348,6 +348,7 @@
     "pay": "Pagar",
     "payTitle": "Pagar",
     "paid": "Marcado como pago",
+    "amountRequired": "Informe um valor.",
     "edit": "Editar",
     "detailTitle": "Detalhes do item",
     "plannedLabel": "Planejado",

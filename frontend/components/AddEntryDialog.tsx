@@ -22,8 +22,21 @@ import {
   useMonthView,
   useMonthViewActions,
 } from "@/lib/MonthViewProvider";
+import { showToast } from "@/lib/toast";
 import { useMutationFeedback } from "@/lib/useMutationFeedback";
 import { useWaDialogAfterHide } from "@/lib/useWaDialogAfterHide";
+
+function readAmountInput(host: HTMLElement | null, fallback: string): string {
+  const inner = host?.shadowRoot?.querySelector("input");
+  if (inner && inner.value !== "") {
+    return inner.value;
+  }
+  const hostValue = (host as (HTMLElement & { value?: string | number | null }) | null)?.value;
+  if (hostValue != null && String(hostValue) !== "") {
+    return String(hostValue);
+  }
+  return fallback;
+}
 
 interface AddEntryDialogProps {
   item: LineItem | null;
@@ -80,8 +93,10 @@ export function AddEntryDialog({
       return;
     }
 
-    const parsedAmount = Number.parseFloat(amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount === 0) {
+    const rawAmount = readAmountInput(amountInputRef.current, amount).trim();
+    const parsedAmount = Number(rawAmount);
+    if (rawAmount === "" || !Number.isFinite(parsedAmount)) {
+      void showToast(t("entries.amountRequired"), { variant: "danger" });
       return;
     }
 
@@ -172,7 +187,7 @@ export function AddEntryDialog({
         </p>
       ) : null}
 
-      <form id={formId} onSubmit={handleSubmit} className="wa-stack wa-gap-m">
+      <form id={formId} noValidate onSubmit={handleSubmit} className="wa-stack wa-gap-m">
         <wa-input
           ref={amountInputRef}
           id={amountFieldId}

@@ -27,21 +27,13 @@ export const deleteLineItemSchema = z.object({
 });
 
 export const addLineItemEntrySchema = z.object({
-  amount: z.number().finite().refine((value) => value !== 0, {
-    message: "Amount must not be zero",
-  }),
+  amount: z.number().finite(),
   note: z.string().trim().min(1).optional(),
 });
 
 export const updateLineItemEntrySchema = z
   .object({
-    amount: z
-      .number()
-      .finite()
-      .refine((value) => value !== 0, {
-        message: "Amount must not be zero",
-      })
-      .optional(),
+    amount: z.number().finite().optional(),
     note: z.string().trim().min(1).nullable().optional(),
   })
   .refine((value) => value.amount !== undefined || value.note !== undefined, {

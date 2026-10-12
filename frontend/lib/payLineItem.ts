@@ -1,10 +1,17 @@
 import type { LineItem } from "@/lib/api";
-import { getLineItemRealizedAmount } from "@/lib/lineItemAmounts";
+import { getLineItemRealizedAmount, hasLineItemEntries } from "@/lib/lineItemAmounts";
 
 export function payRemainderAmount(item: LineItem): number | null {
   const spent = getLineItemRealizedAmount(item) ?? 0;
   const remainder = item.plannedAmount - spent;
-  return remainder > 0 ? remainder : null;
+  if (remainder > 0) {
+    return remainder;
+  }
+  // Unpaid items planned at zero can still be marked paid.
+  if (remainder === 0 && !hasLineItemEntries(item)) {
+    return 0;
+  }
+  return null;
 }
 
 /** Default amount shown in the Pay dialog (equals planned when nothing is recorded yet). */
